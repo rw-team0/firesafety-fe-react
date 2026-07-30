@@ -1,0 +1,61 @@
+.mobile-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* 상단 고정 헤더 */
+.mobile-layout__header {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding: 0 var(--space-16);
+  background: var(--color-header-bg);
+  color: var(--color-text-on-dark);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky-header);
+}
+
+/* 어두운 헤더 배경용 공통 유틸/버튼 색상 재정의 */
+.mobile-layout__header .u-text-secondary {
+  color: var(--color-text-on-dark);
+  opacity: 0.85;
+}
+
+.mobile-layout__header .btn-ghost {
+  color: var(--color-text-on-dark);
+}
+
+.mobile-layout__brand {
+  font-weight: 700;
+}
+
+.mobile-layout__content {
+  flex: 1;
+  padding: var(--space-16);
+}
+
+/* 하단 고정 탭바 */
+.mobile-layout__tabbar {
+  display: flex;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  position: sticky;
+  bottom: 0;
+}
+
+.mobile-layout__tab {
+  flex: 1;
+  text-align: center;
+  padding: var(--space-12) 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* NavLink isActive가 붙이는 클래스 */
+.mobile-layout__tab.is-active {
+  color: var(--color-brand);
+  font-weight: 700;
+}

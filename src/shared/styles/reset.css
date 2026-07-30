@@ -1,0 +1,71 @@
+/* box-sizing 통일 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* 뷰포트 전체 높이 확보 */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* 기본 폰트/배경 (토큰 참조) */
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  background: var(--color-page-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 브라우저 기본 마진 제거 */
+h1,
+h2,
+h3,
+h4,
+p,
+figure {
+  margin: 0;
+}
+
+/* 리스트 마커/여백 제거 */
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 폼 요소 폰트 상속 (브라우저 기본은 미상속) */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* 버튼 기본 테두리/배경 제거 → btn 클래스로만 스타일링 */
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+/* 링크 밑줄/색상 제거 → 컴포넌트별로 지정 */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 이미지 하단 여백(inline 기본값) 제거 + 반응형 기본값 */
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}

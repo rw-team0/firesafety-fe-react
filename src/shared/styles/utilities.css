@@ -1,0 +1,41 @@
+.u-flex {
+  display: flex;
+}
+.u-flex-col {
+  display: flex;
+  flex-direction: column;
+}
+.u-items-center {
+  align-items: center;
+}
+.u-justify-between {
+  justify-content: space-between;
+}
+.u-gap-8 {
+  gap: var(--space-8);
+}
+.u-gap-12 {
+  gap: var(--space-12);
+}
+.u-gap-16 {
+  gap: var(--space-16);
+}
+.u-text-muted {
+  color: var(--color-text-muted);
+}
+.u-text-secondary {
+  color: var(--color-text-secondary);
+}
+
+/* 화면엔 안 보이지만 스크린리더는 읽는 시각적 숨김 */
+.u-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

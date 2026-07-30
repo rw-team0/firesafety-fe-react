@@ -1,0 +1,340 @@
+/* 공통 컴포넌트(Button/BaseCard/StatusBadge 등)가 참조하는 클래스 기반 스타일. CSS-in-JS 미도입. */
+
+/* 키보드 포커스만 표시 (마우스 클릭 시 아웃라인 없음) */
+*:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+/* BaseCard */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-20);
+}
+
+/* Button 공통 틀 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  height: 36px;
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: background var(--motion-fast) ease, border-color var(--motion-fast) ease;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Button variant 4종 */
+.btn-primary {
+  background: var(--color-brand);
+  color: #fff;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-brand-strong);
+}
+
+.btn-secondary {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+.btn-danger:hover:not(:disabled) {
+  background: #b93129;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+}
+
+/* StatusBadge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 2px var(--space-12);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  line-height: 20px;
+}
+
+/* NotFoundPage: 아이콘 원 + 큰 404 숫자 */
+.not-found__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--color-surface-accent);
+  color: var(--color-brand);
+}
+
+.not-found__code {
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+}
+
+/* ConfirmModal: 테두리만 있는 경고 아이콘 + 중앙 정렬 텍스트 */
+.confirm-modal {
+  text-align: center;
+}
+
+.confirm-modal__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--space-12);
+  border: 2px solid;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.confirm-modal__title {
+  font-size: var(--font-size-subtitle);
+  font-weight: 700;
+  margin-bottom: var(--space-4);
+}
+
+.confirm-modal__message {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+}
+
+/* 요약 카드 등 화면별 추가 콘텐츠 자리, 텍스트는 다시 좌측 정렬 */
+.confirm-modal__extra {
+  margin-top: var(--space-16);
+  text-align: left;
+}
+
+/* ActionResultModal: 아이콘+제목+요약표 전부 중앙 정렬 */
+.action-result {
+  text-align: center;
+}
+
+.action-result__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--space-12);
+  border-radius: 50%;
+  font-size: 22px;
+}
+
+.action-result__title {
+  font-size: var(--font-size-subtitle);
+  font-weight: 700;
+  margin-bottom: var(--space-4);
+}
+
+.action-result__subtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+}
+
+.action-result__desc {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+  margin-top: var(--space-4);
+}
+
+/* 처리 항목/시각/처리자 등 요약 표 */
+.action-result__info {
+  margin-top: var(--space-16);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: left;
+  overflow: hidden;
+}
+
+.action-result__info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding: var(--space-8) var(--space-12);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-caption);
+}
+
+.action-result__info-row:last-child {
+  border-bottom: none;
+}
+
+.action-result__info-label {
+  color: var(--color-text-muted);
+}
+
+.action-result__info-value {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+/* Pagination: 하단 중앙 정렬 « ‹ 1 2 3 › » */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-top: var(--space-16);
+}
+
+.pagination__button,
+.pagination__page {
+  display: inline-flex;
+  min-width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-8);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+}
+
+.pagination__button:hover:not(:disabled),
+.pagination__page:hover:not(:disabled) {
+  border-color: var(--color-brand);
+  background: var(--color-surface-accent);
+}
+
+.pagination__button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 현재 페이지 강조 */
+.pagination__page.is-active {
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: #fff;
+}
+
+/* LoadingState 스피너 */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-brand);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* BaseModal/ConfirmModal/ActionResultModal 공용 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 26, 32, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal-overlay);
+}
+
+/* 다른 모달 위에 겹쳐야 할 때(overlayTop prop) */
+.modal-overlay-top {
+  z-index: calc(var(--z-modal-overlay) + 50);
+}
+
+.modal-panel {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  z-index: var(--z-modal);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-16) var(--space-20);
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 700;
+}
+
+/* 삭제 확인 등 위험 액션 모달 강조 */
+.modal-header.danger {
+  color: var(--color-danger);
+}
+
+.modal-close {
+  font-size: 18px;
+  line-height: 1;
+  color: var(--color-text-muted);
+}
+
+.modal-body {
+  padding: var(--space-20);
+  overflow-y: auto;
+}
+
+/* firesafety-fe BaseModal.vue 기본값과 동일하게 중앙 정렬 */
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-8);
+  padding: var(--space-16) var(--space-20);
+  border-top: 1px solid var(--color-border);
+}
+
+/* ErrorState 등에서 쓰는 인라인 배너 3종 */
+.banner {
+  border-radius: var(--radius-md);
+  padding: var(--space-12) var(--space-16);
+  font-size: var(--font-size-body);
+}
+.banner-danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+.banner-warn {
+  background: var(--color-warning-bg);
+  color: #8a5c10;
+}
+.banner-info {
+  background: var(--color-surface-accent);
+  color: var(--color-brand-strong);
+}

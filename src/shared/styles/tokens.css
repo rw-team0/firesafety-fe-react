@@ -1,0 +1,94 @@
+/*
+  디자인 토큰. 값 근거: .agent-docs/design-guide.md
+  화면 전체가 붉어 보이지 않도록 danger(#D5423A)는 상태 배지/경보 팝업 헤더 등 강조 지점에만 쓰고,
+  기본 액션 색은 틸 블루(--color-brand)를 사용한다.
+*/
+:root {
+  /* Brand / surfaces */
+  --color-brand: #2a91b3;
+  --color-brand-strong: #1f7591;
+  --color-sidebar-bg: #123a4a;
+  --color-header-bg: #123a4a;
+  --color-page-bg: #f4f7f9;
+  --color-surface: #ffffff;
+  --color-surface-accent: #e4f4f9;
+  --color-surface-muted: #dfe9ee;
+
+  /* Text */
+  --color-text-primary: #16222a;
+  --color-text-secondary: #4c5c66;
+  --color-text-muted: #7c8a93;
+  --color-text-on-dark: #eef4f7;
+
+  /* Borders */
+  --color-border: #d9e2e6;
+  --color-border-strong: #b8c4ca;
+
+  /* Status semantics */
+  --color-success: #0f9d63;
+  --color-success-bg: #e3f6ed;
+  --color-warning: #e29922;
+  --color-warning-bg: #fbf1de;
+  --color-danger: #d5423a;
+  --color-danger-bg: #fbe7e5;
+  --color-offline: #6b7785;
+  --color-offline-bg: #e9ebee;
+
+  /* Spacing */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px rgba(18, 58, 74, 0.08);
+  --shadow-md: 0 4px 12px rgba(18, 58, 74, 0.12);
+
+  /* Typography */
+  --font-sans: 'Noto Sans KR', 'Noto Sans', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-title: 22px;
+  --font-size-subtitle: 16px;
+  --font-size-body: 14px;
+  --font-size-caption: 12px;
+
+  /* Z-index */
+  --z-dropdown: 50;
+  --z-sticky-header: 80;
+  --z-modal-overlay: 100;
+  --z-modal: 101;
+  --z-toast: 200;
+
+  /* Breakpoints (참고용 — 미디어쿼리에 직접 숫자를 써야 하므로 값만 문서화) */
+  --breakpoint-mobile: 480px;
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1024px;
+
+  /* Motion */
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+}
+
+/* surface/text/border만 재정의, 브랜드/상태 색은 라이트와 동일 유지 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-page-bg: #0f1a20;
+    --color-surface: #16242c;
+    --color-surface-accent: #163038;
+    --color-surface-muted: #1c2f36;
+    --color-text-primary: #eef4f7;
+    --color-text-secondary: #b7c4cb;
+    --color-text-muted: #8a99a1;
+    --color-border: #26383f;
+    --color-border-strong: #33474f;
+  }
+}

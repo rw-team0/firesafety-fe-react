@@ -1,0 +1,104 @@
+.default-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* 상단 고정 헤더 */
+.default-layout__header {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  padding: 0 var(--space-20);
+  background: var(--color-header-bg);
+  color: var(--color-text-on-dark);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky-header);
+}
+
+.default-layout__menu-toggle {
+  color: var(--color-text-on-dark);
+  font-size: 18px;
+}
+
+.default-layout__brand {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* 로고와 우측 정보 사이 여백 밀어내기 */
+.default-layout__spacer {
+  flex: 1;
+}
+
+/* 헤더가 어두운 배경이라 공통 유틸/버튼 색상 재정의 */
+.default-layout__header .u-text-secondary {
+  color: var(--color-text-on-dark);
+  opacity: 0.85;
+}
+
+.default-layout__header .btn-ghost {
+  color: var(--color-text-on-dark);
+}
+
+.default-layout__body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 사이드바: is-collapsed일 때 폭 0으로 접힘 */
+.default-layout__sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--color-sidebar-bg);
+  padding: var(--space-16) var(--space-8);
+  overflow-x: hidden;
+  white-space: nowrap;
+  transition: width var(--motion-base) ease, padding var(--motion-base) ease;
+}
+
+.default-layout__sidebar.is-collapsed {
+  width: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.default-layout__nav-group {
+  margin-bottom: var(--space-16);
+}
+
+.default-layout__nav-group-title {
+  padding: 0 var(--space-12);
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-on-dark);
+  opacity: 0.6;
+}
+
+.default-layout__nav-link {
+  display: block;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-md);
+  color: var(--color-text-on-dark);
+  opacity: 0.85;
+  font-size: var(--font-size-body);
+}
+
+.default-layout__nav-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* NavLink isActive가 붙이는 클래스 */
+.default-layout__nav-link.is-active {
+  background: var(--color-brand);
+  opacity: 1;
+}
+
+.default-layout__content {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-24);
+}

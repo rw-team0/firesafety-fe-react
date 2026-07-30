@@ -1,0 +1,65 @@
+/* label + input + error를 세로로 쌓는 필드 공통 틀 (Input/Select/Textarea) */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.field-label {
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* 세 종류 입력 요소 공통 테두리/배경 */
+.field-input,
+.field-select,
+.field-textarea {
+  height: 36px;
+  padding: 0 var(--space-12);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+/* textarea만 높이 가변 + 세로 리사이즈 허용 */
+.field-textarea {
+  height: auto;
+  min-height: 88px;
+  padding: var(--space-8) var(--space-12);
+  resize: vertical;
+}
+
+.field-input:disabled,
+.field-select:disabled,
+.field-textarea:disabled {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+/* error prop 전달 시 컴포넌트가 붙이는 클래스 */
+.field-input.has-error,
+.field-select.has-error,
+.field-textarea.has-error {
+  border-color: var(--color-danger);
+}
+
+.field-error {
+  font-size: var(--font-size-caption);
+  color: var(--color-danger);
+}
+
+/* Checkbox: label 전체를 클릭 영역으로 */
+.field-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--font-size-body);
+}
+
+.field-checkbox input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-brand);
+}
