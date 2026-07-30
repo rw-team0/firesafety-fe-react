@@ -1,69 +1,79 @@
 .default-layout {
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
 }
 
-/* 상단 고정 헤더 */
-.default-layout__header {
-  height: 56px;
+/* sidebar-wrap: 사이드바(collapse 대상) + 토글 버튼을 한 줄에 — 토글은 collapse 폭에 안 갇히게 별도 요소 */
+.default-layout__sidebar-wrap {
   display: flex;
-  align-items: center;
-  gap: var(--space-16);
-  padding: 0 var(--space-20);
-  background: var(--color-header-bg);
-  color: var(--color-text-on-dark);
-  position: sticky;
-  top: 0;
-  z-index: var(--z-sticky-header);
+  flex-shrink: 0;
 }
 
-.default-layout__menu-toggle {
-  color: var(--color-text-on-dark);
-  font-size: 18px;
-}
-
-.default-layout__brand {
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-/* 로고와 우측 정보 사이 여백 밀어내기 */
-.default-layout__spacer {
-  flex: 1;
-}
-
-/* 헤더가 어두운 배경이라 공통 유틸/버튼 색상 재정의 */
-.default-layout__header .u-text-secondary {
-  color: var(--color-text-on-dark);
-  opacity: 0.85;
-}
-
-.default-layout__header .btn-ghost {
-  color: var(--color-text-on-dark);
-}
-
-.default-layout__body {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-}
-
-/* 사이드바: is-collapsed일 때 폭 0으로 접힘 */
+/* 사이드바: 남색은 여기에만, 전체 높이 */
 .default-layout__sidebar {
   width: 220px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
   background: var(--color-sidebar-bg);
-  padding: var(--space-16) var(--space-8);
   overflow-x: hidden;
   white-space: nowrap;
-  transition: width var(--motion-base) ease, padding var(--motion-base) ease;
+  transition: width var(--motion-base) ease;
 }
 
 .default-layout__sidebar.is-collapsed {
   width: 0;
-  padding-left: 0;
-  padding-right: 0;
+}
+
+.default-layout__sidebar-top {
+  display: flex;
+  align-items: center;
+  height: 78px;
+  padding: 0 var(--space-16);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.default-layout__brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-title);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-text-on-dark);
+}
+
+.default-layout__logo {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+}
+
+/* 사이드바 오른쪽 경계에 붙는 손잡이 — sidebar-wrap의 형제 요소라 sidebar가 collapse돼도 계속 보임/눌림.
+   남색 배경으로 사이드바와 이어 붙여서 시각적으로는 사이드바 일부처럼 보이게 함 */
+.default-layout__sidebar-toggle {
+  flex-shrink: 0;
+  width: 20px;
+  align-self: stretch;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: var(--space-16);
+  background: var(--color-sidebar-bg);
+  color: var(--color-text-on-dark);
+  opacity: 0.8;
+  font-size: 13px;
+}
+
+.default-layout__sidebar-toggle:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--color-sidebar-bg) 85%, white);
+}
+
+.default-layout__nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-16) var(--space-8);
 }
 
 .default-layout__nav-group {
@@ -91,10 +101,121 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* NavLink isActive가 붙이는 클래스 */
 .default-layout__nav-link.is-active {
   background: var(--color-brand);
   opacity: 1;
+}
+
+/* 사이드바 하단: 아바타 + 이름/역할 + 로그아웃 */
+.default-layout__sidebar-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-12) var(--space-16);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.default-layout__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--color-brand);
+  color: #fff;
+  font-size: var(--font-size-caption);
+  font-weight: 700;
+}
+
+.default-layout__user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.3;
+}
+
+.default-layout__user-name {
+  color: var(--color-text-on-dark);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.default-layout__user-role {
+  color: var(--color-text-on-dark);
+  opacity: 0.6;
+  font-size: 11px;
+}
+
+.default-layout__logout-btn {
+  flex-shrink: 0;
+  color: var(--color-text-on-dark);
+  opacity: 0.75;
+  display: inline-flex;
+}
+
+.default-layout__logout-btn:hover {
+  opacity: 1;
+  color: var(--color-danger);
+}
+
+/* 콘텐츠 컬럼: 헤더(흰 배경) + 본문 */
+.default-layout__content-column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.default-layout__content-header {
+  height: 78px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  padding: 0 var(--space-24);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky-header);
+}
+
+.default-layout__title-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.default-layout__title {
+  font-size: var(--font-size-title);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.default-layout__today {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+.default-layout__header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.default-layout__bell {
+  color: var(--color-text-secondary);
+  display: inline-flex;
+}
+
+.default-layout__bell:hover {
+  color: var(--color-text-primary);
 }
 
 .default-layout__content {
