@@ -1,16 +1,16 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import AuthLayout from '../../layouts/AuthLayout'
-import DefaultLayout from '../../layouts/DefaultLayout/DefaultLayout'
-import MobileLayout from '../../layouts/MobileLayout/MobileLayout'
-import LoadingState from '../../shared/components/feedback/LoadingState'
+import AuthLayout from '@/layouts/AuthLayout'
+import DefaultLayout from '@/layouts/DefaultLayout/DefaultLayout'
+import MobileLayout from '@/layouts/MobileLayout/MobileLayout'
+import LoadingState from '@/shared/components/feedback/LoadingState'
 import NotFoundPage from '../pages/NotFoundPage'
 import PlaceholderPage from '../pages/PlaceholderPage'
 import ProtectedRoute from './ProtectedRoute'
 import RoleRoute from './RoleRoute'
 import { routeConfig } from './routeConfig'
 
-const DesignSystemPage = lazy(() => import('../../dev/DesignSystemPage')) // 개발 전용, 아래 조건부 라우트에서만 로드
+const DesignSystemPage = lazy(() => import('@/dev/DesignSystemPage')) // 개발 전용, 아래 조건부 라우트에서만 로드
 
 const LAYOUTS = {
   auth: AuthLayout,

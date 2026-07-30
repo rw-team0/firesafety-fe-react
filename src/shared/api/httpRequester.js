@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { clearUser } from '../../features/auth/authSession'
+import { clearUser } from '@/features/auth/authSession'
 import { extractErrorMessage, isNetworkError, parseBlobErrorBody } from './apiError'
 import { showAlert } from './uiAlertBus'
 

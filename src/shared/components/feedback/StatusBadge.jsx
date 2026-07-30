@@ -1,4 +1,4 @@
-import { STATUS_BADGE_COLOR } from '../../constants/domainColors'
+import { STATUS_BADGE_COLOR } from '@/shared/constants/domainColors'
 
 const BG_BY_COLOR = {
   'var(--color-success)': 'var(--color-success-bg)',

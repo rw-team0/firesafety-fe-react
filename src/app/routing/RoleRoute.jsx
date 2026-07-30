@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../../features/auth/useAuth'
-import { hasRequiredRole } from '../../shared/constants/roles'
+import { useAuth } from '@/features/auth/useAuth'
+import { hasRequiredRole } from '@/shared/constants/roles'
 
 // 권한 랭크만 검사 (ProtectedRoute 통과 후 적용 전제)
 export default function RoleRoute({ requiredRole, children }) {

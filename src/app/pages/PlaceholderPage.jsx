@@ -1,4 +1,4 @@
-import PageHeader from '../../shared/components/layout/PageHeader'
+import PageHeader from '@/shared/components/layout/PageHeader'
 
 // 미구현 화면 공통 자리표시자 (대량 빈 파일 생성 방지)
 export default function PlaceholderPage({ title, scrId }) {

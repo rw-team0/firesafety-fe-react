@@ -1,4 +1,4 @@
-import { useModalA11y } from '../../hooks/useModalA11y'
+import { useModalA11y } from '@/shared/hooks/useModalA11y'
 
 export default function BaseModal({
   visible,

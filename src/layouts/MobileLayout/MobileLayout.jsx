@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { getMobileNavItems } from '../../app/routing/routeConfig'
-import { useAuth } from '../../features/auth/useAuth'
-import ConfirmModal from '../../shared/components/modals/ConfirmModal'
-import { USER_ROLE_LABELS } from '../../shared/constants/domainLabels'
+import { getMobileNavItems } from '@/app/routing/routeConfig'
+import { useAuth } from '@/features/auth/useAuth'
+import ConfirmModal from '@/shared/components/modals/ConfirmModal'
+import { USER_ROLE_LABELS } from '@/shared/constants/domainLabels'
 import './MobileLayout.css'
 
 // 모바일 하단 탭 셸. PC/모바일 구분은 URL 프리픽스(/m/*)로만

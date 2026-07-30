@@ -1,5 +1,5 @@
-import { ROLES } from '../../shared/constants/roles'
-import { ROUTE_PATHS } from '../../shared/constants/routePaths'
+import { ROLES } from '@/shared/constants/roles'
+import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 
 // 화면 실 구현은 다음 Phase, 지금은 PlaceholderPage 연결 + 라우트/권한/사이드바 골격만
 // REQ-701/703은 범위 제외 확정 — route/menu/placeholder 어디에도 없음 (명세에 남아있어도 무시)

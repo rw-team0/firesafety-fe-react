@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { NAV_GROUP_ORDER, getNavItems } from '../../app/routing/routeConfig'
-import { useAuth } from '../../features/auth/useAuth'
-import ConfirmModal from '../../shared/components/modals/ConfirmModal'
-import { hasRequiredRole } from '../../shared/constants/roles'
-import { USER_ROLE_LABELS } from '../../shared/constants/domainLabels'
+import { NAV_GROUP_ORDER, getNavItems } from '@/app/routing/routeConfig'
+import { useAuth } from '@/features/auth/useAuth'
+import ConfirmModal from '@/shared/components/modals/ConfirmModal'
+import { hasRequiredRole } from '@/shared/constants/roles'
+import { USER_ROLE_LABELS } from '@/shared/constants/domainLabels'
 import './DefaultLayout.css'
 
 // PC 사이드바+헤더 셸. 위험 팝업/미확인 알림 모달 자리는 모니터링 기능 구현 시 연결
