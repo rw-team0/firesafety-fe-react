@@ -1,0 +1,60 @@
+.mobile-login-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-24) var(--space-20);
+  background: var(--color-page-bg);
+}
+
+.mobile-login-page__card {
+  width: 100%;
+  max-width: 340px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-32) var(--space-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.mobile-login-page__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  font-weight: 700;
+  font-size: var(--font-size-title);
+  color: var(--color-brand);
+}
+
+.mobile-login-page__logo {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+}
+
+.mobile-login-page__subtitle {
+  text-align: center;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-8);
+}
+
+.mobile-login-page__submit {
+  width: 100%;
+}
+
+.mobile-login-page__footnote {
+  text-align: center;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.mobile-login-page__footnote a {
+  color: var(--color-brand);
+}

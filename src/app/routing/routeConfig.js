@@ -1,3 +1,7 @@
+import LoginPage from '@/features/auth/pages/LoginPage'
+import MobileLoginPage from '@/features/auth/pages/MobileLoginPage'
+import PasswordResetConfirmPage from '@/features/auth/pages/PasswordResetConfirmPage'
+import PasswordResetRequestPage from '@/features/auth/pages/PasswordResetRequestPage'
 import { ROLES } from '@/shared/constants/roles'
 import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 
@@ -7,13 +11,22 @@ import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 // layout: 'auth' | 'default' | 'mobile'. navGroup 있으면 DefaultLayout 사이드바 노출
 export const routeConfig = [
   // 인증 (PC)
-  { path: ROUTE_PATHS.login, layout: 'auth', requiredRole: null, title: '로그인', scrId: 'SCR-401' },
+  {
+    path: ROUTE_PATHS.login,
+    layout: 'auth',
+    requiredRole: null,
+    title: '로그인',
+    scrId: 'SCR-401',
+    page: LoginPage,
+    guestOnly: true, // 로그인 상태면 대시보드로 리다이렉트
+  },
   {
     path: ROUTE_PATHS.passwordResetRequest,
     layout: 'auth',
     requiredRole: null,
     title: '비밀번호 재설정 요청',
     scrId: 'SCR-402',
+    page: PasswordResetRequestPage,
   },
   {
     path: ROUTE_PATHS.passwordResetConfirm,
@@ -21,6 +34,7 @@ export const routeConfig = [
     requiredRole: null,
     title: '비밀번호 재설정',
     scrId: 'SCR-403',
+    page: PasswordResetConfirmPage,
   },
 
   // 관제 (PC)
@@ -154,7 +168,15 @@ export const routeConfig = [
   },
 
   // 모바일
-  { path: ROUTE_PATHS.mobileLogin, layout: 'mobile-auth', requiredRole: null, title: '로그인', scrId: 'SCR-401-M' },
+  {
+    path: ROUTE_PATHS.mobileLogin,
+    layout: 'mobile-auth',
+    requiredRole: null,
+    title: '로그인',
+    scrId: 'SCR-401-M',
+    page: MobileLoginPage,
+    guestOnly: true,
+  },
   {
     path: ROUTE_PATHS.mobileDashboard,
     layout: 'mobile',

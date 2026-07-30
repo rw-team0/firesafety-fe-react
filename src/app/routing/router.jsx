@@ -6,6 +6,7 @@ import MobileLayout from '@/layouts/MobileLayout/MobileLayout'
 import LoadingState from '@/shared/components/feedback/LoadingState'
 import NotFoundPage from '../pages/NotFoundPage'
 import PlaceholderPage from '../pages/PlaceholderPage'
+import GuestRoute from './GuestRoute'
 import ProtectedRoute from './ProtectedRoute'
 import RoleRoute from './RoleRoute'
 import { routeConfig } from './routeConfig'
@@ -19,8 +20,9 @@ const LAYOUTS = {
   mobile: MobileLayout,
 }
 
-// requiredRole 있으면 로그인+권한 가드로 감싸기, 없으면 그대로 통과
+// requiredRole 있으면 로그인+권한 가드, guestOnly면 반대로 비로그인 전용 가드로 감싼다
 function guard(route, element) {
+  if (route.guestOnly) return <GuestRoute>{element}</GuestRoute>
   if (!route.requiredRole) return element
   return (
     <ProtectedRoute>
@@ -50,13 +52,11 @@ export default function AppRouter() {
         const Layout = LAYOUTS[layoutKey]
         return (
           <Route key={layoutKey} element={<Layout />}>
-            {routes.map((route) => (
-              <Route
-                key={route.path}
-                path={route.path}
-                element={guard(route, <PlaceholderPage title={route.title} scrId={route.scrId} />)}
-              />
-            ))}
+            {routes.map((route) => {
+              const Page = route.page
+              const element = Page ? <Page /> : <PlaceholderPage title={route.title} scrId={route.scrId} />
+              return <Route key={route.path} path={route.path} element={guard(route, element)} />
+            })}
           </Route>
         )
       })}
