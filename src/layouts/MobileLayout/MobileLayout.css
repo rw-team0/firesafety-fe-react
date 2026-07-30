@@ -29,7 +29,16 @@
 }
 
 .mobile-layout__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
   font-weight: 700;
+}
+
+.mobile-layout__logo {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
 }
 
 .mobile-layout__content {
