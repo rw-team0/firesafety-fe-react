@@ -23,8 +23,6 @@ export const ROUTE_PATHS = {
   settingsFacilitiesHistory: '/settings/facilities/history',
   settingsSiteAssignment: '/settings/site-assignment',
   settingsAccounts: '/settings/accounts',
-  settingsAccountAdd: '/settings/accounts/new',
-  settingsAccountEdit: '/settings/accounts/:userId',
   settingsAccountHistory: '/settings/accounts/history',
   settingsSiteAdd: '/settings/sites/new',
   // ':siteId' 단독 경로였으면 '/settings/sites/new'가 siteId=new로 잡힘 → /edit 접미사로 구분

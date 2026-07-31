@@ -1,0 +1,97 @@
+/* 상세/등록/수정 모달 공용 — 기본 모달(480px)보다는 넓지만, 기존 페이지 폼(max-width:520px)보다 과하지 않게 */
+.modal-panel--wide {
+  width: min(520px, calc(100vw - 32px));
+}
+
+/* 이름+연락처, 비밀번호+비밀번호 확인처럼 짧은 필드 2개를 한 줄에 */
+.account-modal__row {
+  display: flex;
+  gap: var(--space-12);
+}
+
+.account-modal__row > .field {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.account-modal__eyebrow {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.account-modal__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
+}
+
+.account-modal__heading h3 {
+  font-size: var(--font-size-subtitle);
+  font-weight: 700;
+}
+
+.account-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.account-modal__section-title {
+  padding-top: var(--space-16);
+  margin-top: var(--space-8);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--font-size-body);
+  font-weight: 700;
+}
+
+.account-modal__body > .account-modal__section-title:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.account-modal__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-16);
+}
+
+.account-modal__grid-label {
+  display: block;
+  margin-bottom: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.account-modal__grid-value {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.account-modal__history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.account-modal__history-row {
+  display: flex;
+  gap: var(--space-12);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+
+.account-modal__history-date {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+/* 390px: 2열 행/그리드를 1열로 */
+@media (max-width: 480px) {
+  .account-modal__row,
+  .account-modal__grid {
+    display: flex;
+    flex-direction: column;
+  }
+}

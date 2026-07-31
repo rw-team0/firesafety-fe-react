@@ -1,26 +1,33 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { bulkDeleteUsers, getManagedUsers } from '../api/accountApi'
+import AccountCreateModal from '../components/AccountCreateModal'
+import AccountDetailModal from '../components/AccountDetailModal'
 import { useAuth } from '@/features/auth/useAuth'
 import { useSite } from '@/features/sites/useSite'
 import { usePageActions } from '@/layouts/DefaultLayout/usePageActions'
+import BaseCard from '@/shared/components/data-display/BaseCard'
 import Button from '@/shared/components/buttons/Button'
 import DataTable from '@/shared/components/data-display/DataTable'
+import Pagination from '@/shared/components/data-display/Pagination'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
 import ErrorState from '@/shared/components/feedback/ErrorState'
 import Input from '@/shared/components/forms/Input'
 import Select from '@/shared/components/forms/Select'
 import FilterBar from '@/shared/components/layout/FilterBar'
+import TabBar from '@/shared/components/layout/TabBar'
 import { USER_ROLE_LABELS } from '@/shared/constants/domainLabels'
 import { ROLES } from '@/shared/constants/roles'
-import { ROUTE_PATHS, buildPath } from '@/shared/constants/routePaths'
+import { ROUTE_PATHS } from '@/shared/constants/routePaths'
+import { formatResultDateTime } from '@/shared/utils/formatters'
 import './AccountListPage.css'
 
 const ROLE_FILTER_OPTIONS = [
   { value: ROLES.ADMIN, label: USER_ROLE_LABELS[ROLES.ADMIN] },
   { value: ROLES.GENERAL, label: USER_ROLE_LABELS[ROLES.GENERAL] },
 ]
+
+const PAGE_SIZE = 13
 
 function includesText(value, keyword) {
   return String(value ?? '').toLowerCase().includes(keyword)
@@ -32,8 +39,7 @@ function formatPhone(phone) {
 
 // SCR-404 직원관리 — 현재 선택 현장의 managed-users를 역할 공통 조회 API로 사용한다.
 export default function AccountListPage() {
-  const navigate = useNavigate()
-  const { role } = useAuth()
+  const { user, role } = useAuth()
   const { currentSiteId } = useSite()
   const requestSeqRef = useRef(0)
 
@@ -43,8 +49,11 @@ export default function AccountListPage() {
   const [selectedIds, setSelectedIds] = useState([])
   const [keyword, setKeyword] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
+  const [page, setPage] = useState(1)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deleteResult, setDeleteResult] = useState(null)
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [detailUser, setDetailUser] = useState(null)
 
   const canManageStaff = role === ROLES.SUPER_ADMIN || role === ROLES.ADMIN
 
@@ -55,6 +64,7 @@ export default function AccountListPage() {
 
     setUsers([])
     setSelectedIds([])
+    setPage(1)
 
     if (!siteId) {
       setLoading(false)
@@ -90,35 +100,45 @@ export default function AccountListPage() {
     setSelectedIds((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]))
   }
 
+  // "전체 선택"은 필터 전체가 아니라 지금 보이는 페이지 기준(일반적인 테이블 UX와 동일)
   function toggleSelectAll() {
-    setSelectedIds((prev) => (prev.length === filteredUsers.length ? [] : filteredUsers.map((u) => u.userId)))
+    const pageIds = pagedUsers.map((u) => u.userId)
+    const allChecked = pageIds.length > 0 && pageIds.every((id) => selectedIds.includes(id))
+    setSelectedIds((prev) =>
+      allChecked ? prev.filter((id) => !pageIds.includes(id)) : [...new Set([...prev, ...pageIds])],
+    )
   }
 
   async function handleBulkDelete() {
     const count = selectedIds.length
     await bulkDeleteUsers(selectedIds) // 실패(자기자신/권한밖 포함 등)는 전역 알림이 처리 — 여기선 성공만 다룸
     setDeleteConfirmOpen(false)
-    setDeleteResult({ message: `직원 ${count}건이 삭제되었습니다.` })
+    setDeleteResult({ count })
     load()
   }
 
+  // 관리이력 이동은 탭바로 옮겨서, 헤더에는 등록처럼 즉시 실행되는 액션만 남긴다
   const actions = useMemo(
     () =>
       canManageStaff ? (
-        <>
-          {role === ROLES.SUPER_ADMIN && (
-            <Button variant="secondary" onClick={() => navigate(ROUTE_PATHS.settingsAccountHistory)}>
-              관리이력
-            </Button>
-          )}
-          <Button variant="primary" onClick={() => navigate(ROUTE_PATHS.settingsAccountAdd)}>
-            직원 등록
-          </Button>
-        </>
+        <Button variant="primary" onClick={() => setCreateModalOpen(true)}>
+          직원 등록
+        </Button>
       ) : null,
-    [canManageStaff, navigate, role],
+    [canManageStaff],
   )
   usePageActions(actions)
+
+  const tabs = useMemo(
+    () =>
+      role === ROLES.SUPER_ADMIN
+        ? [
+            { label: '직원관리', to: ROUTE_PATHS.settingsAccounts, end: true },
+            { label: '관리이력', to: ROUTE_PATHS.settingsAccountHistory },
+          ]
+        : [],
+    [role],
+  )
 
   const normalizedKeyword = keyword.trim().toLowerCase()
   const filteredUsers = users.filter((user) => {
@@ -133,13 +153,18 @@ export default function AccountListPage() {
     return true
   })
 
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE))
+  // 필터/삭제로 목록이 줄어 page가 범위를 벗어나도 렌더 시점에 바로 보정
+  const currentPage = Math.min(page, totalPages)
+  const pagedUsers = filteredUsers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
   // 읽기 전용 사용자에게 가입일은 연락처 확인에 쓸모가 없어 열 자체를 뺀다
   const columns = useMemo(() => {
     const base = [
       { key: 'name', header: '이름', className: 'account-list__name-cell' },
       { key: 'email', header: '이메일' },
       { key: 'phone', header: '연락처', render: (row) => formatPhone(row.phone) },
-      { key: 'role', header: '역할', render: (row) => USER_ROLE_LABELS[row.role] ?? row.role },
+      { key: 'role', header: '권한', render: (row) => USER_ROLE_LABELS[row.role] ?? row.role },
     ]
     if (!canManageStaff) return base
     return [...base, { key: 'createdAt', header: '가입일', render: (row) => row.createdAt?.slice(0, 10) ?? '-' }]
@@ -158,42 +183,56 @@ export default function AccountListPage() {
         <p className="account-list__notice">현재 현장에서 함께 근무하는 직원의 연락처를 확인할 수 있습니다.</p>
       )}
 
-      <FilterBar
-        actions={
-          canManageStaff ? (
-            <Button variant="danger" disabled={selectedIds.length === 0} onClick={() => setDeleteConfirmOpen(true)}>
-              선택 삭제 ({selectedIds.length})
-            </Button>
-          ) : null
-        }
-      >
-        <Input
-          label="직원 검색"
-          placeholder="이름, 이메일 또는 연락처"
-          value={keyword}
-          onChange={(event) => setKeyword(event.target.value)}
-        />
-        <Select
-          label="역할"
-          placeholder="전체"
-          value={roleFilter}
-          onChange={(event) => setRoleFilter(event.target.value)}
-          options={roleFilterOptions}
-        />
-      </FilterBar>
+      <BaseCard className="card--filter">
+        {/* 탭이 1개 이하면(SUPER_ADMIN 아니면 관리이력 탭 자체가 없음) TabBar가 알아서 아무것도 렌더하지 않는다 */}
+        <TabBar tabs={tabs} />
+        <FilterBar
+          onReset={() => {
+            setKeyword('')
+            setRoleFilter('')
+            setPage(1)
+          }}
+          actions={
+            canManageStaff ? (
+              <Button variant="danger" disabled={selectedIds.length === 0} onClick={() => setDeleteConfirmOpen(true)}>
+                선택 삭제 ({selectedIds.length})
+              </Button>
+            ) : null
+          }
+        >
+          <Input
+            aria-label="직원 검색"
+            placeholder="이름, 이메일 또는 연락처"
+            value={keyword}
+            onChange={(event) => {
+              setKeyword(event.target.value)
+              setPage(1)
+            }}
+          />
+          <Select
+            aria-label="권한"
+            placeholder="권한"
+            value={roleFilter}
+            onChange={(event) => {
+              setRoleFilter(event.target.value)
+              setPage(1)
+            }}
+            options={roleFilterOptions}
+          />
+        </FilterBar>
+      </BaseCard>
 
+      {/* 표 자체 테두리가 "표+페이지네이션" 세트의 경계 — 감싸는 카드를 따로 두지 않는다 */}
       <DataTable
         loading={loading}
-        rows={filteredUsers}
+        rows={pagedUsers}
         rowKey={(row) => row.userId}
-        onRowClick={
-          canManageStaff ? (row) => navigate(buildPath(ROUTE_PATHS.settingsAccountEdit, { userId: row.userId })) : undefined
-        }
+        onRowClick={canManageStaff ? (row) => setDetailUser(row) : undefined}
         selection={
           canManageStaff
             ? {
                 selectedKeys: selectedIds,
-                allSelected: filteredUsers.length > 0 && selectedIds.length === filteredUsers.length,
+                allSelected: pagedUsers.length > 0 && pagedUsers.every((u) => selectedIds.includes(u.userId)),
                 onToggle: toggleSelect,
                 onToggleAll: toggleSelectAll,
               }
@@ -204,22 +243,73 @@ export default function AccountListPage() {
         columns={columns}
       />
 
+      {!loading && filteredUsers.length > 0 && (
+        <div className="account-list__footer">
+          <p className="account-list__count">
+            총 {users.length}건 중 {filteredUsers.length}건 조회
+          </p>
+          <Pagination page={currentPage} totalPages={totalPages} onChange={setPage} />
+        </div>
+      )}
+
       <ConfirmModal
         visible={deleteConfirmOpen}
         title="직원 삭제"
-        message={`선택한 직원 ${selectedIds.length}건을 삭제하시겠습니까?`}
+        message="선택한 직원을 삭제하시겠습니까?"
         danger
         confirmLabel="삭제"
         onConfirm={handleBulkDelete}
         onCancel={() => setDeleteConfirmOpen(false)}
-      />
+      >
+        {/* 여러 명을 한 번에 지울 수 있어 이름을 전부 나열하지 않고 건수만 강조 */}
+        <div className="confirm-modal__summary">
+          <span className="confirm-modal__summary-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <div className="confirm-modal__summary-body">
+            <p className="confirm-modal__summary-row">
+              <span className="confirm-modal__summary-label">대상</span>
+              <span className="confirm-modal__summary-value">{selectedIds.length}건</span>
+              <span className="confirm-modal__summary-badge">삭제</span>
+            </p>
+            <p className="confirm-modal__summary-detail">선택한 직원 전체가 삭제됩니다.</p>
+          </div>
+        </div>
+      </ConfirmModal>
 
       <ActionResultModal
         visible={Boolean(deleteResult)}
         type="success"
-        title="직원 삭제"
-        subtitle={deleteResult?.message}
+        title="삭제가 완료되었습니다."
+        subtitle="선택한 직원이 삭제되었습니다."
+        infoRows={[
+          { label: '처리 항목', value: `${deleteResult?.count}건` },
+          { label: '처리 시각', value: formatResultDateTime() },
+          { label: '처리 내용', value: '직원 삭제' },
+          { label: '처리자', value: user?.name },
+        ]}
         onClose={() => setDeleteResult(null)}
+      />
+
+      <AccountCreateModal
+        visible={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCreated={load}
+      />
+
+      <AccountDetailModal
+        visible={Boolean(detailUser)}
+        user={detailUser}
+        onClose={() => setDetailUser(null)}
+        onChanged={load}
       />
     </div>
   )

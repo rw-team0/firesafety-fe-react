@@ -58,9 +58,11 @@
   margin-top: 2px;
 }
 
+/* flex-end로 맞추면 이메일 밑 hint 텍스트까지 포함해 정렬 기준이 잡혀서 버튼이 아래로 처짐 —
+   top 기준으로 맞추고 버튼만 라벨 높이(약 22px)만큼 내려서 입력창 줄에 나란히 맞춘다 */
 .account-form__email-row {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   flex-wrap: wrap;
   gap: var(--space-8);
 }
@@ -68,6 +70,10 @@
 .account-form__email-row > .field {
   flex: 1 1 200px;
   min-width: 0;
+}
+
+.account-form__email-row > .btn {
+  margin-top: 22px;
 }
 
 /* 결과는 색만이 아니라 ✓ / ! 기호를 같이 보여준다 */
@@ -142,5 +148,6 @@
 
   .account-form__email-row .btn {
     width: 100%;
+    margin-top: 0;
   }
 }

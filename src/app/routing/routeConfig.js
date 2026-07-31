@@ -1,5 +1,3 @@
-import AccountCreatePage from '@/features/accounts/pages/AccountCreatePage'
-import AccountEditPage from '@/features/accounts/pages/AccountEditPage'
 import AccountHistoryPage from '@/features/accounts/pages/AccountHistoryPage'
 import AccountListPage from '@/features/accounts/pages/AccountListPage'
 import LoginPage from '@/features/auth/pages/LoginPage'
@@ -160,26 +158,6 @@ export const routeConfig = [
     requiresSite: true,
     navGroup: '관리',
     page: AccountListPage,
-  },
-  {
-    path: ROUTE_PATHS.settingsAccountAdd,
-    layout: 'default',
-    requiredRole: ROLES.ADMIN,
-    title: '직원 등록',
-    scrId: 'SCR-405',
-    requiresSite: true,
-    page: AccountCreatePage,
-    forbiddenMessage: '직원 등록 권한이 없습니다.',
-  },
-  {
-    path: ROUTE_PATHS.settingsAccountEdit,
-    layout: 'default',
-    requiredRole: ROLES.ADMIN,
-    title: '직원 수정',
-    scrId: 'SCR-406',
-    requiresSite: true,
-    page: AccountEditPage,
-    forbiddenMessage: '직원 수정 권한이 없습니다.',
   },
   {
     path: ROUTE_PATHS.settingsAccountHistory,

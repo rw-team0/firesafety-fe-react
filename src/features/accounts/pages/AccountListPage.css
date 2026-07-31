@@ -1,3 +1,8 @@
+/* 탭+필터 카드 다음에 표(별도 카드로 안 감쌈)가 바로 오므로 카드 자체 간격만 지정 */
+.account-list > .card {
+  margin-bottom: var(--space-16);
+}
+
 /* 읽기 전용(일반직원) 안내 — 필터 위, 표와 같은 폭 */
 .account-list__notice {
   margin-bottom: var(--space-16);
@@ -12,4 +17,24 @@
 .account-list__name-cell {
   font-weight: 600;
   white-space: nowrap;
+}
+
+/* 총 건수 + 페이지네이션 한 줄 — Pagination이 가운데 정렬이라 건수는 왼쪽에 절대배치로 겹침 */
+.account-list__footer {
+  position: relative;
+  margin-top: var(--space-16);
+}
+
+/* Pagination 자체 margin-top과 이 줄의 margin-top이 겹치지 않게 */
+.account-list__footer .pagination {
+  margin-top: 0;
+}
+
+.account-list__count {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
 }
