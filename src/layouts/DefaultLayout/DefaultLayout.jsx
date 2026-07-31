@@ -28,7 +28,7 @@ function formatTodayLabel() {
   return `${y}.${m}.${d} (${WEEKDAY_LABELS[now.getDay()]})`
 }
 
-// 현장명 + 변경 버튼. 선택지가 하나뿐인 사용자에겐 바꿀 대상이 없으므로 텍스트만 보여준다
+// 현장명 + 변경 버튼. 날짜 옆 부제로 붙는 자리라 배경/라벨 없이 텍스트로만
 function CurrentSiteBadge() {
   const { role } = useAuth()
   const { currentSite, sites } = useSite()
@@ -39,10 +39,11 @@ function CurrentSiteBadge() {
   const changeable = sites.length > 1 || canManageSites(role)
 
   return (
-    <div className="default-layout__site">
-      {/* 사용자명(사이드바 하단)과 헷갈리지 않게 "현장" 라벨을 항상 붙인다 */}
-      <span className="default-layout__site-label">현장</span>
-      <span className="default-layout__site-name" title={currentSite.name}>
+    <span className="default-layout__meta-site">
+      <span className="default-layout__meta-dot" aria-hidden="true">
+        ·
+      </span>
+      <span className="default-layout__meta-name" title={currentSite.name}>
         {currentSite.name}
       </span>
       {changeable && (
@@ -54,7 +55,7 @@ function CurrentSiteBadge() {
           변경
         </button>
       )}
-    </div>
+    </span>
   )
 }
 
@@ -65,14 +66,16 @@ function ContentHeader({ title }) {
     <header className="default-layout__content-header">
       <div className="default-layout__title-group">
         <h1 className="default-layout__title">{title}</h1>
-        <p className="default-layout__today">{formatTodayLabel()}</p>
+        {/* 날짜/현재 현장은 페이지 제목과 달리 모든 화면에 고정으로 붙는 부제 */}
+        <div className="default-layout__meta">
+          <span className="default-layout__today">{formatTodayLabel()}</span>
+          <CurrentSiteBadge />
+        </div>
       </div>
       <div className="default-layout__header-right">
-        <CurrentSiteBadge />
-        {actions}
-        {/* 알림 종 — 자리만 준비, 실제 동작은 경보 기능 구현 시 연결 */}
-        <button type="button" className="default-layout__bell" aria-label="알림">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        {/* 알림은 페이지 액션 유무와 무관하게 항상 먼저 — 실제 동작(미확인 건수 배지 포함)은 경보 기능 구현 시 연결 */}
+        <button type="button" className="default-layout__bell">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path
               d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"
               stroke="currentColor"
@@ -82,7 +85,9 @@ function ContentHeader({ title }) {
             />
             <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
           </svg>
+          알림
         </button>
+        {actions}
       </div>
     </header>
   )

@@ -200,7 +200,16 @@
   color: var(--color-text-primary);
 }
 
+.default-layout__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
 .default-layout__today {
+  flex-shrink: 0;
   font-size: var(--font-size-caption);
   color: var(--color-text-muted);
 }
@@ -213,30 +222,27 @@
   justify-content: flex-end;
 }
 
-.default-layout__site {
+.default-layout__meta-site {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-8);
-  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-accent);
-  max-width: 280px;
+  gap: var(--space-4);
   min-width: 0;
 }
 
-.default-layout__site-label {
+.default-layout__meta-dot {
   flex-shrink: 0;
   color: var(--color-text-muted);
-  font-size: var(--font-size-caption);
 }
 
-.default-layout__site-name {
-  font-weight: 700;
+.default-layout__meta-name {
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  color: var(--color-text-secondary);
   min-width: 0; /* flex item 기본 min-width:auto면 ellipsis가 안 걸림 */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 180px;
 }
 
 /* 텍스트 링크지만 실제 클릭 영역은 손가락/커서가 편하게 잡을 만큼 확보 */
@@ -251,16 +257,26 @@
 }
 
 .default-layout__site-change:hover {
-  background: var(--color-surface);
+  background: var(--color-surface-accent);
 }
 
+/* 페이지 안의 다른 버튼(.btn, 36px)과 높이를 맞춤 */
 .default-layout__bell {
-  color: var(--color-text-secondary);
   display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  height: 36px;
+  padding: 0 var(--space-16);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+  font-weight: 600;
 }
 
 .default-layout__bell:hover {
   color: var(--color-text-primary);
+  background: var(--color-surface-accent);
 }
 
 .default-layout__content {
