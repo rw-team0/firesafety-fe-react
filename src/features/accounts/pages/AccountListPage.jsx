@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { bulkDeleteUsers, getManagedUsers, getStaffContacts } from '../api/accountApi'
+import { bulkDeleteUsers, getManagedUsers } from '../api/accountApi'
 import { useAuth } from '@/features/auth/useAuth'
 import { useSite } from '@/features/sites/useSite'
 import { usePageActions } from '@/layouts/DefaultLayout/usePageActions'
@@ -30,7 +30,7 @@ function formatPhone(phone) {
   return phone || '-'
 }
 
-// SCR-404 직원관리 — 현재 선택 현장 기준으로 역할별 데이터 소스를 분리한다.
+// SCR-404 직원관리 — 현재 선택 현장의 managed-users를 역할 공통 조회 API로 사용한다.
 export default function AccountListPage() {
   const navigate = useNavigate()
   const { role } = useAuth()
@@ -46,7 +46,6 @@ export default function AccountListPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deleteResult, setDeleteResult] = useState(null)
 
-  const isContactMode = role === ROLES.GENERAL
   const canManageStaff = role === ROLES.SUPER_ADMIN || role === ROLES.ADMIN
 
   const load = useCallback(async () => {
@@ -66,7 +65,7 @@ export default function AccountListPage() {
     setLoading(true)
     setLoadError('')
     try {
-      const data = isContactMode ? await getStaffContacts(siteId) : await getManagedUsers(siteId)
+      const data = await getManagedUsers(siteId)
       if (requestSeqRef.current !== seq) return
       setUsers(data)
     } catch (error) {
@@ -76,7 +75,7 @@ export default function AccountListPage() {
     } finally {
       if (requestSeqRef.current === seq) setLoading(false)
     }
-  }, [currentSiteId, isContactMode])
+  }, [currentSiteId])
 
   useEffect(() => {
     // 현장/역할이 바뀌면 이전 현장 데이터가 잠시라도 남지 않게 즉시 비우고 다시 조회한다.
@@ -113,7 +112,7 @@ export default function AccountListPage() {
             </Button>
           )}
           <Button variant="primary" onClick={() => navigate(ROUTE_PATHS.settingsAccountAdd)}>
-            직원 추가
+            직원 등록
           </Button>
         </>
       ) : null,
@@ -124,54 +123,41 @@ export default function AccountListPage() {
   const normalizedKeyword = keyword.trim().toLowerCase()
   const filteredUsers = users.filter((user) => {
     if (normalizedKeyword) {
-      const matchesKeyword = isContactMode
-        ? includesText(user.name, normalizedKeyword) || includesText(user.phone, normalizedKeyword)
-        : includesText(user.name, normalizedKeyword) ||
-          includesText(user.email, normalizedKeyword) ||
-          includesText(user.phone, normalizedKeyword)
+      const matchesKeyword =
+        includesText(user.name, normalizedKeyword) ||
+        includesText(user.email, normalizedKeyword) ||
+        includesText(user.phone, normalizedKeyword)
       if (!matchesKeyword) return false
     }
     if (roleFilter && user.role !== roleFilter) return false
     return true
   })
 
+  // 읽기 전용 사용자에게 가입일은 연락처 확인에 쓸모가 없어 열 자체를 뺀다
   const columns = useMemo(() => {
-    if (isContactMode) {
-      return [
-        { key: 'name', header: '이름' },
-        {
-          key: 'phone',
-          header: '연락처',
-          render: (row) =>
-            row.phone ? (
-              <a className="account-list__tel" href={`tel:${row.phone}`}>
-                {row.phone}
-              </a>
-            ) : (
-              '-'
-            ),
-        },
-        { key: 'role', header: '역할', render: (row) => USER_ROLE_LABELS[row.role] ?? row.role },
-        { key: 'siteName', header: '현장명', render: (row) => row.siteName ?? '-' },
-      ]
-    }
-
-    return [
-      { key: 'name', header: '이름' },
+    const base = [
+      { key: 'name', header: '이름', className: 'account-list__name-cell' },
       { key: 'email', header: '이메일' },
       { key: 'phone', header: '연락처', render: (row) => formatPhone(row.phone) },
       { key: 'role', header: '역할', render: (row) => USER_ROLE_LABELS[row.role] ?? row.role },
-      { key: 'createdAt', header: '가입일', render: (row) => row.createdAt?.slice(0, 10) ?? '-' },
     ]
-  }, [isContactMode])
+    if (!canManageStaff) return base
+    return [...base, { key: 'createdAt', header: '가입일', render: (row) => row.createdAt?.slice(0, 10) ?? '-' }]
+  }, [canManageStaff])
 
-  const roleFilterOptions = role === ROLES.SUPER_ADMIN ? ROLE_FILTER_OPTIONS : ROLE_FILTER_OPTIONS.filter((option) => option.value !== ROLES.ADMIN)
-  const emptyMessage = isContactMode ? '현재 현장의 직원 연락망이 없습니다.' : '현재 현장에 등록된 직원이 없습니다.'
+  const roleFilterOptions = ROLE_FILTER_OPTIONS
+  const emptyMessage = '현재 현장에 등록된 직원이 없습니다.'
+  const emptyDescription = canManageStaff ? '직원 등록 버튼을 눌러 이 현장에서 근무할 직원을 추가해주세요.' : undefined
 
   if (loadError) return <ErrorState message={loadError} onRetry={load} />
 
   return (
-    <div>
+    <div className="account-list">
+      {/* 읽기 전용 사용자에겐 "버튼만 빠진 화면"이 아니라 연락처 확인용 화면이라는 걸 먼저 알린다 */}
+      {!canManageStaff && (
+        <p className="account-list__notice">현재 현장에서 함께 근무하는 직원의 연락처를 확인할 수 있습니다.</p>
+      )}
+
       <FilterBar
         actions={
           canManageStaff ? (
@@ -182,8 +168,8 @@ export default function AccountListPage() {
         }
       >
         <Input
-          label="검색"
-          placeholder={isContactMode ? '이름 또는 연락처' : '이름, 이메일 또는 연락처'}
+          label="직원 검색"
+          placeholder="이름, 이메일 또는 연락처"
           value={keyword}
           onChange={(event) => setKeyword(event.target.value)}
         />
@@ -214,6 +200,7 @@ export default function AccountListPage() {
             : undefined
         }
         emptyMessage={emptyMessage}
+        emptyDescription={emptyDescription}
         columns={columns}
       />
 
@@ -230,7 +217,7 @@ export default function AccountListPage() {
       <ActionResultModal
         visible={Boolean(deleteResult)}
         type="success"
-        title="삭제 완료"
+        title="직원 삭제"
         subtitle={deleteResult?.message}
         onClose={() => setDeleteResult(null)}
       />
