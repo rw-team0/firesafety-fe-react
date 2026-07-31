@@ -8,6 +8,7 @@ export default function BaseModal({
   closeOnBackdrop = true,
   overlayTop = false,
   hideHeader = false, // ActionResultModal처럼 자체 중앙정렬 헤더를 쓰는 경우 기본 헤더바를 숨김
+  className = '', // 상세/폼처럼 기본 480px보다 넓어야 하는 모달에서 폭 변형용
   children,
   footer,
 }) {
@@ -22,7 +23,7 @@ export default function BaseModal({
     >
       <div
         ref={panelRef}
-        className="modal-panel"
+        className={`modal-panel ${className}`.trim()}
         role="dialog"
         aria-modal="true"
         aria-label={title}

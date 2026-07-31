@@ -1,8 +1,7 @@
 // 처음/이전/페이지번호(윈도우 단위)/다음/마지막, 하단 중앙 정렬 (firesafety-fe BasePagination.vue 형식)
 // page/totalPages는 1-base
 export default function Pagination({ page, totalPages, onChange, pageWindow = 10 }) {
-  if (totalPages <= 1) return null
-
+  // 1페이지뿐이어도 목록 하단에 항상 표시 — 필터바/목록/페이지네이션이 한 세트로 보이게
   const isFirstPage = page <= 1
   const isLastPage = page >= totalPages
 

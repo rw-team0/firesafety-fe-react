@@ -15,6 +15,11 @@
   padding: var(--space-20);
 }
 
+/* 탭+필터바 카드 전용 — 표 카드보다 여백을 좁게 */
+.card--filter {
+  padding: 10px;
+}
+
 /* Button 공통 틀 */
 .btn {
   display: inline-flex;
@@ -136,6 +141,65 @@
   text-align: left;
 }
 
+/* 삭제 대상 요약 카드 — "그냥 확인 문구뿐"이 아니라 뭘 지우는지 한눈에 보이게 */
+.confirm-modal__summary {
+  display: flex;
+  gap: var(--space-12);
+  align-items: flex-start;
+  padding: var(--space-12);
+  border-left: 3px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-bg);
+}
+
+.confirm-modal__summary-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-danger);
+}
+
+.confirm-modal__summary-body {
+  min-width: 0;
+}
+
+.confirm-modal__summary-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.confirm-modal__summary-label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.confirm-modal__summary-value {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.confirm-modal__summary-badge {
+  padding: 2px var(--space-8);
+  border-radius: var(--radius-pill);
+  background: var(--color-danger);
+  color: #fff;
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+}
+
+.confirm-modal__summary-detail {
+  margin-top: var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+}
+
 /* ActionResultModal: 아이콘+제목+요약표 전부 중앙 정렬 */
 .action-result {
   text-align: center;
@@ -249,28 +313,92 @@
   margin-top: var(--space-4);
 }
 
-/* FilterBar: 필터 필드 묶음 + 우측 액션 */
+/* TabBar: .card--filter(10px 패딩) 안에서 FilterBar 위에 붙는 화면 전환 탭. 밑줄 구분선만 카드 폭
+   전체로 나가고 탭 라벨 자체는 카드 여백에 맞춰 다시 들여쓴다(음수 마진으로 padding 상쇄 후 재적용) */
+.tab-bar {
+  display: flex;
+  gap: var(--space-24);
+  margin: -10px -10px var(--space-12);
+  padding: 0 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* 필터 입력창(36px)과 탭 줄 높이를 맞추려고 8px로 줄임 */
+.tab-bar__tab {
+  padding: var(--space-8) 0;
+  margin-bottom: -1px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-bar__tab:hover {
+  color: var(--color-text-primary);
+}
+
+.tab-bar__tab.is-active {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-brand);
+}
+
+/* FilterBar: 필터 필드 묶음 + 우측 액션. wrap 상태의 중첩 flex는 너비 계산이 실제보다 좁게 잡혀
+   검색창/select/초기화가 한 줄에 다 들어가는데도 줄바꿈되는 문제가 있어 데스크톱은 nowrap으로 고정하고
+   좁은 화면(390px 등)에서만 아래 미디어쿼리로 다시 wrap을 켠다 */
 .filter-bar {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--space-12);
-  margin-bottom: var(--space-16);
 }
 
 .filter-bar__fields {
   display: flex;
   align-items: flex-end;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--space-12);
   min-width: 0;
 }
 
-/* 좁은 화면에서 필드가 아이콘 크기까지 눌리지 않게 하한만 지정 */
+@media (max-width: 640px) {
+  .filter-bar,
+  .filter-bar__fields {
+    flex-wrap: wrap;
+  }
+}
+
+/* flex-grow를 주면 초기화 버튼이 밀려 다음 줄로 넘어가므로 늘어나지 않고 필요할 때만 줄어들게 */
 .filter-bar__fields > .field {
   min-width: 160px;
-  flex: 1 1 180px;
+  flex: 0 1 200px;
+}
+
+/* select는 옵션 글자가 짧아서 검색창만큼 넓을 필요가 없음 */
+.filter-bar__fields > .field:has(.field-select) {
+  min-width: 120px;
+  flex: 0 1 140px;
+}
+
+/* 라벨 없는 버튼이라 align-self로 입력창 아랫줄에 맞춤 */
+/* 아이콘 전용이라 정사각형에 가깝게 — 텍스트 버튼일 때 쓰던 좌우 패딩 제거 */
+.filter-bar__reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-end;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+
+.filter-bar__reset:hover {
+  background: var(--color-surface-accent);
+  color: var(--color-text-primary);
 }
 
 .filter-bar__actions {
@@ -285,6 +413,11 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
+}
+
+/* FilterBar 바로 다음에 표가 오는 화면(디자인 시스템 데모 등)에서만 최소 간격 — FilterBar 자체엔 더 이상 하단 여백이 없음 */
+.filter-bar + .data-table__wrap {
+  margin-top: var(--space-12);
 }
 
 .data-table {
@@ -347,8 +480,8 @@
 .pagination__button,
 .pagination__page {
   display: inline-flex;
-  min-width: 36px;
-  height: 36px;
+  min-width: 32px;
+  height: 32px;
   align-items: center;
   justify-content: center;
   padding: 0 var(--space-8);

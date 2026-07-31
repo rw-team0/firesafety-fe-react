@@ -15,6 +15,7 @@ import Pagination from '../shared/components/data-display/Pagination'
 import PageHeader from '../shared/components/layout/PageHeader'
 import Select from '../shared/components/forms/Select'
 import StatusBadge from '../shared/components/feedback/StatusBadge'
+import TabBar from '../shared/components/layout/TabBar'
 import Textarea from '../shared/components/forms/Textarea'
 
 const TOKEN_COLORS = [
@@ -118,16 +119,23 @@ export default function DesignSystemPage() {
         </div>
       </BaseCard>
 
+      {/* 필터바 → 목록 → 페이지네이션을 한 세트로 묶는 기본 패턴 — 실제 화면(직원관리 등)도 이 구성을 그대로 따른다 */}
       <BaseCard header={<h2>FilterBar / DataTable</h2>}>
+        <TabBar tabs={[{ label: '탭 A', to: '/dev/design-system', end: true }, { label: '탭 B', to: '/login' }]} />
         <FilterBar
+          onReset={() => {}}
           actions={
             <Button variant="primary" onClick={() => {}}>
               조회
             </Button>
           }
         >
-          <Input placeholder="검색어" />
-          <Select placeholder="상태 전체" options={STATUS_VALUES.map((value) => ({ value, label: value }))} />
+          <Input aria-label="검색어" placeholder="검색어" />
+          <Select
+            aria-label="상태"
+            placeholder="상태 전체"
+            options={STATUS_VALUES.map((value) => ({ value, label: value }))}
+          />
         </FilterBar>
         <DataTable
           columns={[
@@ -137,6 +145,7 @@ export default function DesignSystemPage() {
           rows={SAMPLE_ROWS}
           rowKey={(row) => row.id}
         />
+        <Pagination page={page} totalPages={3} onChange={setPage} />
       </BaseCard>
 
       <BaseCard header={<h2>Modal</h2>}>
@@ -165,8 +174,27 @@ export default function DesignSystemPage() {
         onConfirm={() => setConfirmOpen(false)}
         onCancel={() => setConfirmOpen(false)}
       >
-        <div className="card u-text-secondary" style={{ fontSize: 'var(--font-size-caption)' }}>
-          1현장 분전반 A · 회로 4개
+        {/* 삭제 대상 요약 카드 — 확인 문구만 있는 것보다 뭘 지우는지 한눈에 보이게 */}
+        <div className="confirm-modal__summary">
+          <span className="confirm-modal__summary-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <div className="confirm-modal__summary-body">
+            <p className="confirm-modal__summary-row">
+              <span className="confirm-modal__summary-label">분전반명</span>
+              <span className="confirm-modal__summary-value">1현장 분전반 A</span>
+              <span className="confirm-modal__summary-badge">삭제</span>
+            </p>
+            <p className="confirm-modal__summary-detail">회로 4개</p>
+          </div>
         </div>
       </ConfirmModal>
 
