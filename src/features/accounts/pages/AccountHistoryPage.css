@@ -1,3 +1,8 @@
+/* 탭+필터 카드 다음에 표(별도 카드로 안 감쌈)가 바로 오므로 카드 자체 간격만 지정 */
+.account-history > .card {
+  margin-bottom: var(--space-16);
+}
+
 /* 직원관리 하위 기능이라는 맥락 안내 — 필터 위 */
 .account-history__notice {
   margin-bottom: var(--space-16);

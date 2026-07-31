@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getUserAuditLogs, getUsers, restoreUser } from '../api/accountApi'
+import { summarizeLog } from '../utils/auditLog'
+import { useAuth } from '@/features/auth/useAuth'
+import BaseCard from '@/shared/components/data-display/BaseCard'
 import Button from '@/shared/components/buttons/Button'
 import DataTable from '@/shared/components/data-display/DataTable'
 import Pagination from '@/shared/components/data-display/Pagination'
@@ -7,13 +10,18 @@ import ErrorState from '@/shared/components/feedback/ErrorState'
 import FilterBar from '@/shared/components/layout/FilterBar'
 import Input from '@/shared/components/forms/Input'
 import Select from '@/shared/components/forms/Select'
+import TabBar from '@/shared/components/layout/TabBar'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
-import { USER_ROLE_LABELS } from '@/shared/constants/domainLabels'
-import { isoDate } from '@/shared/utils/formatters'
+import { ROUTE_PATHS } from '@/shared/constants/routePaths'
+import { formatResultDateTime, isoDate } from '@/shared/utils/formatters'
 import './AccountHistoryPage.css'
 
-const FIELD_LABELS = { name: '이름', email: '이메일', phone: '연락처', role: '권한' }
+// 이 화면 자체가 SUPER_ADMIN 전용 라우트라 역할 분기 없이 두 탭 모두 항상 보여준다
+const TABS = [
+  { label: '직원관리', to: ROUTE_PATHS.settingsAccounts, end: true },
+  { label: '관리이력', to: ROUTE_PATHS.settingsAccountHistory },
+]
 
 const ACTION_OPTIONS = [
   { value: 'CREATE', label: '생성' },
@@ -33,57 +41,21 @@ const ACTION_COLOR = {
 
 const PAGE_SIZE = 13
 
-// 서버 GET /users/audit-logs는 날짜/유형 필터 파라미터가 없음(백엔드 확인됨) — 전체를 받아 화면에서 필터링
-function toObject(value) {
-  if (value == null) return null
-  if (typeof value === 'object') return value
-  if (typeof value === 'string') {
-    try {
-      return JSON.parse(value)
-    } catch {
-      return null
-    }
-  }
-  return null
-}
-
-function formatFieldValue(field, value) {
-  if (value == null || value === '') return '-'
-  return field === 'role' ? (USER_ROLE_LABELS[value] ?? value) : value
-}
-
-// 변경 전/후 diff 요약 — 바뀐 필드만 표시, 파싱 실패해도 '-'만 보여주고 화면은 안 깨지게
-function summarizeLog(log) {
-  const before = toObject(log.beforeData)
-  const after = toObject(log.afterData)
-
-  if (log.action === 'UPDATE' && before && after) {
-    const changed = Object.keys(FIELD_LABELS).filter((key) => before[key] !== after[key])
-    if (changed.length === 0) return '변경사항 없음'
-    return changed
-      .map((key) => `${FIELD_LABELS[key]}: ${formatFieldValue(key, before[key])} → ${formatFieldValue(key, after[key])}`)
-      .join(', ')
-  }
-
-  const snapshot = log.action === 'DELETE' ? before : after
-  if (!snapshot) return '-'
-  return Object.keys(FIELD_LABELS)
-    .filter((key) => snapshot[key] !== undefined)
-    .map((key) => `${FIELD_LABELS[key]}: ${formatFieldValue(key, snapshot[key])}`)
-    .join(', ')
+// 기본 조회 기간(최근 7일) — 초기값과 초기화 버튼이 같은 기준을 쓰도록 함수로 뺌
+function defaultFromDate() {
+  const weekAgo = new Date()
+  weekAgo.setDate(weekAgo.getDate() - 7)
+  return isoDate(weekAgo)
 }
 
 // SCR-407 직원 관리이력. API 의미는 user audit log라 내부 데이터는 계정 감사 이력 그대로 사용한다.
 export default function AccountHistoryPage() {
+  const { user } = useAuth()
   const [logs, setLogs] = useState([])
   const [usersById, setUsersById] = useState({})
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
-  const [from, setFrom] = useState(() => {
-    const weekAgo = new Date()
-    weekAgo.setDate(weekAgo.getDate() - 7)
-    return isoDate(weekAgo)
-  })
+  const [from, setFrom] = useState(defaultFromDate)
   const [to, setTo] = useState(() => isoDate(new Date()))
   const [actionFilter, setActionFilter] = useState('')
   const [page, setPage] = useState(1)
@@ -128,11 +100,19 @@ export default function AccountHistoryPage() {
   const currentPage = Math.min(page, totalPages)
   const pagedLogs = filteredLogs.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
+  function handleReset() {
+    setFrom(defaultFromDate())
+    setTo(isoDate(new Date()))
+    setActionFilter('')
+    setPage(1)
+  }
+
   async function handleRestore() {
     const userId = restoreTarget
+    const targetName = usersById[userId]?.name ?? `#${userId}`
     setRestoreTarget(null)
     await restoreUser(userId)
-    setRestoreResult({ message: '직원이 복구되었습니다.' })
+    setRestoreResult({ name: targetName })
     load()
   }
 
@@ -144,37 +124,41 @@ export default function AccountHistoryPage() {
         직원관리에서 이뤄진 등록·수정·삭제·복구 기록입니다. 삭제된 직원은 이 화면에서만 복구할 수 있습니다.
       </p>
 
-      <FilterBar>
-        <Input
-          type="date"
-          label="시작일"
-          value={from}
-          onChange={(e) => {
-            setFrom(e.target.value)
-            setPage(1)
-          }}
-        />
-        <Input
-          type="date"
-          label="종료일"
-          value={to}
-          onChange={(e) => {
-            setTo(e.target.value)
-            setPage(1)
-          }}
-        />
-        <Select
-          label="이력 유형"
-          placeholder="전체"
-          value={actionFilter}
-          onChange={(e) => {
-            setActionFilter(e.target.value)
-            setPage(1)
-          }}
-          options={ACTION_OPTIONS}
-        />
-      </FilterBar>
+      <BaseCard className="card--filter">
+        <TabBar tabs={TABS} />
+        <FilterBar onReset={handleReset}>
+          <Input
+            type="date"
+            label="시작일"
+            value={from}
+            onChange={(e) => {
+              setFrom(e.target.value)
+              setPage(1)
+            }}
+          />
+          <Input
+            type="date"
+            label="종료일"
+            value={to}
+            onChange={(e) => {
+              setTo(e.target.value)
+              setPage(1)
+            }}
+          />
+          <Select
+            label="이력 유형"
+            placeholder="전체"
+            value={actionFilter}
+            onChange={(e) => {
+              setActionFilter(e.target.value)
+              setPage(1)
+            }}
+            options={ACTION_OPTIONS}
+          />
+        </FilterBar>
+      </BaseCard>
 
+      {/* 표 자체 테두리가 "표+페이지네이션" 세트의 경계 — 감싸는 카드를 따로 두지 않는다 */}
       <DataTable
         loading={loading}
         rows={pagedLogs}
@@ -197,7 +181,10 @@ export default function AccountHistoryPage() {
             key: 'action',
             header: '구분',
             render: (row) => (
-              <span className="badge" style={{ color: ACTION_COLOR[row.action], background: 'var(--color-surface-muted)' }}>
+              <span
+                className="badge"
+                style={{ color: ACTION_COLOR[row.action], background: 'var(--color-surface-muted)' }}
+              >
                 {row.actionLabel}
               </span>
             ),
@@ -241,8 +228,14 @@ export default function AccountHistoryPage() {
       <ActionResultModal
         visible={Boolean(restoreResult)}
         type="success"
-        title="직원 복구"
-        subtitle={restoreResult?.message}
+        title="복구가 완료되었습니다."
+        subtitle="삭제되었던 직원 계정이 복구되었습니다."
+        infoRows={[
+          { label: '처리 항목', value: restoreResult?.name },
+          { label: '처리 시각', value: formatResultDateTime() },
+          { label: '처리 내용', value: '직원 복구' },
+          { label: '처리자', value: user?.name },
+        ]}
         onClose={() => setRestoreResult(null)}
       />
     </div>

@@ -9,6 +9,7 @@ import Button from '@/shared/components/buttons/Button'
 import Input from '@/shared/components/forms/Input'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
 import { ROUTE_PATHS } from '@/shared/constants/routePaths'
+import { formatResultDateTime } from '@/shared/utils/formatters'
 import './sitePageShell.css'
 
 const INITIAL_FORM = {
@@ -25,14 +26,14 @@ const INITIAL_FORM = {
 // 현장 + 최초 현장관리자 통합 등록(POST /sites/with-admin). 백엔드가 단일 트랜잭션이라 이 화면에서 호출은 한 번뿐
 export default function SiteCreatePage() {
   const navigate = useNavigate()
-  const { role } = useAuth()
+  const { user, role } = useAuth()
   const { refreshSites } = useSite()
 
   const [form, setForm] = useState(INITIAL_FORM)
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [successMessage, setSuccessMessage] = useState('')
+  const [result, setResult] = useState(null)
 
   if (!canManageSites(role)) return <Navigate to={ROUTE_PATHS.siteSelect} replace />
 
@@ -73,7 +74,7 @@ export default function SiteCreatePage() {
       })
       await refreshSites().catch(() => {})
       // 등록 직후 자동 입장 안 시킴 — SUPER_ADMIN은 여러 현장을 연속 등록하는 경우가 많아 선택 화면으로 복귀
-      setSuccessMessage(`${created?.siteName ?? form.name} 현장과 현장관리자 계정이 등록되었습니다.`)
+      setResult({ siteName: created?.siteName ?? form.name })
     } catch (error) {
       // 현장명/이메일 중복(409)은 어느 필드 문제인지 서버 메시지로만 구분 가능 → 폼 상단에 그대로 노출
       setSubmitError(error?.response?.data?.resultMessage ?? '현장 등록에 실패했습니다.')
@@ -188,10 +189,16 @@ export default function SiteCreatePage() {
       </div>
 
       <ActionResultModal
-        visible={Boolean(successMessage)}
+        visible={Boolean(result)}
         type="success"
-        title="현장 등록"
-        subtitle={successMessage}
+        title="등록이 완료되었습니다."
+        subtitle="현장과 현장관리자 계정이 함께 등록되었습니다."
+        infoRows={[
+          { label: '처리 항목', value: result?.siteName },
+          { label: '처리 시각', value: formatResultDateTime() },
+          { label: '처리 내용', value: '현장 등록' },
+          { label: '처리자', value: user?.name },
+        ]}
         onClose={() => navigate(ROUTE_PATHS.siteSelect, { replace: true })}
       />
     </div>

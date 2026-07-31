@@ -10,13 +10,14 @@ import ErrorState from '@/shared/components/feedback/ErrorState'
 import LoadingState from '@/shared/components/feedback/LoadingState'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
 import { ROUTE_PATHS } from '@/shared/constants/routePaths'
+import { formatResultDateTime } from '@/shared/utils/formatters'
 import './sitePageShell.css'
 
 // 현장 정보 수정. 최초 관리자 계정은 수정 대상 아님(백엔드 SiteUpdateReq에 name/address/zipCode만 있음)
 export default function SiteEditPage() {
   const navigate = useNavigate()
   const { siteId } = useParams()
-  const { role } = useAuth()
+  const { user, role } = useAuth()
   const { sites, currentSite, refreshSites, selectSite } = useSite()
   // 헤더 표시용 원래 이름 — form.name은 입력 중 계속 바뀌어서 제목에 쓰면 글자가 따라 흔들림
   const targetSiteName = sites.find((site) => String(site.siteId) === String(siteId))?.name ?? ''
@@ -27,7 +28,7 @@ export default function SiteEditPage() {
   const [loadError, setLoadError] = useState('')
   const [submitError, setSubmitError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [successMessage, setSuccessMessage] = useState('')
+  const [result, setResult] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -78,7 +79,7 @@ export default function SiteEditPage() {
       await refreshSites().catch(() => {})
       // 헤더에 표시 중인 현장이면 이름이 바로 반영되도록 세션 값도 갱신
       if (currentSite && String(currentSite.siteId) === String(siteId)) selectSite(updated)
-      setSuccessMessage(`${updated?.name ?? form.name} 현장 정보가 수정되었습니다.`)
+      setResult({ name: updated?.name ?? form.name })
     } catch (error) {
       setSubmitError(error?.response?.data?.resultMessage ?? '현장 수정에 실패했습니다.')
     } finally {
@@ -160,10 +161,16 @@ export default function SiteEditPage() {
       </div>
 
       <ActionResultModal
-        visible={Boolean(successMessage)}
+        visible={Boolean(result)}
         type="success"
-        title="현장 수정"
-        subtitle={successMessage}
+        title="수정이 완료되었습니다."
+        subtitle="변경된 현장 정보가 저장되었습니다."
+        infoRows={[
+          { label: '처리 항목', value: result?.name },
+          { label: '처리 시각', value: formatResultDateTime() },
+          { label: '처리 내용', value: '현장 정보 수정' },
+          { label: '처리자', value: user?.name },
+        ]}
         onClose={() => navigate(ROUTE_PATHS.siteSelect, { replace: true })}
       />
     </div>

@@ -14,6 +14,7 @@ import ActionResultModal from '@/shared/components/modals/ActionResultModal'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
 import { USER_ROLE_LABELS } from '@/shared/constants/domainLabels'
 import { ROUTE_PATHS, buildPath } from '@/shared/constants/routePaths'
+import { formatResultDateTime } from '@/shared/utils/formatters'
 import './sitePageShell.css'
 import './SiteSelectPage.css'
 
@@ -27,7 +28,7 @@ export default function SiteSelectPage() {
 
   const [keyword, setKeyword] = useState('')
   const [deleteTarget, setDeleteTarget] = useState(null)
-  const [deleteResult, setDeleteResult] = useState('')
+  const [deleteResult, setDeleteResult] = useState(null)
 
   const manageable = canManageSites(role)
   // 모바일 로그인에서 넘어온 경우 선택 후 /m/dashboard로 복귀 필요
@@ -55,7 +56,7 @@ export default function SiteSelectPage() {
     await deleteSite(target.siteId)
     setDeleteTarget(null)
     await refreshSites().catch(() => {}) // 삭제된 현장이 currentSite였으면 refresh 중 normalize가 선택을 해제
-    setDeleteResult(`${target.name} 현장이 삭제되었습니다.`)
+    setDeleteResult({ name: target.name })
   }
 
   if (siteLoadError) {
@@ -170,18 +171,48 @@ export default function SiteSelectPage() {
         visible={Boolean(deleteTarget)}
         danger
         title="현장 삭제"
-        message={`${deleteTarget?.name ?? ''} 현장을 삭제하시겠습니까? 삭제된 현장은 현장 선택 목록에서 제외됩니다.`}
+        message="이 현장을 삭제하시겠습니까?"
         confirmLabel="삭제"
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
-      />
+      >
+        <div className="confirm-modal__summary">
+          <span className="confirm-modal__summary-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <div className="confirm-modal__summary-body">
+            <p className="confirm-modal__summary-row">
+              <span className="confirm-modal__summary-label">현장명</span>
+              <span className="confirm-modal__summary-value">{deleteTarget?.name}</span>
+              <span className="confirm-modal__summary-badge">삭제</span>
+            </p>
+            <p className="confirm-modal__summary-detail">
+              상태를 삭제로 변경 · 삭제된 현장은 현장 선택 목록에서 제외됩니다{deleteTarget?.address ? ` · ${deleteTarget.address}` : ''}
+            </p>
+          </div>
+        </div>
+      </ConfirmModal>
 
       <ActionResultModal
         visible={Boolean(deleteResult)}
         type="success"
-        title="현장 삭제"
-        subtitle={deleteResult}
-        onClose={() => setDeleteResult('')}
+        title="삭제가 완료되었습니다."
+        subtitle="선택한 현장이 삭제되었습니다."
+        infoRows={[
+          { label: '처리 항목', value: deleteResult?.name },
+          { label: '처리 시각', value: formatResultDateTime() },
+          { label: '처리 내용', value: '현장 삭제' },
+          { label: '처리자', value: user?.name },
+        ]}
+        onClose={() => setDeleteResult(null)}
       />
     </div>
   )
