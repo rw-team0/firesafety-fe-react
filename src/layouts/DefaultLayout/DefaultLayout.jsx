@@ -2,7 +2,10 @@ import { useState } from 'react'
 import { matchPath, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { NAV_GROUP_ORDER, getNavItems, routeConfig } from '@/app/routing/routeConfig'
 import { useAuth } from '@/features/auth/useAuth'
+import { useSite } from '@/features/sites/useSite'
+import { canManageSites } from '@/features/sites/utils/sitePolicy'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
+import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 import { hasRequiredRole } from '@/shared/constants/roles'
 import { USER_ROLE_LABELS } from '@/shared/constants/domainLabels'
 import { PageHeaderProvider } from './PageHeaderContext'
@@ -25,6 +28,32 @@ function formatTodayLabel() {
   return `${y}.${m}.${d} (${WEEKDAY_LABELS[now.getDay()]})`
 }
 
+// 현장명 + 변경 버튼. 선택지가 하나뿐인 사용자에겐 바꿀 대상이 없으므로 텍스트만 보여준다
+function CurrentSiteBadge() {
+  const { role } = useAuth()
+  const { currentSite, sites } = useSite()
+  const navigate = useNavigate()
+
+  if (!currentSite) return null
+
+  const changeable = sites.length > 1 || canManageSites(role)
+
+  return (
+    <div className="default-layout__site">
+      <span className="default-layout__site-name">{currentSite.name}</span>
+      {changeable && (
+        <button
+          type="button"
+          className="default-layout__site-change"
+          onClick={() => navigate(ROUTE_PATHS.siteSelect)}
+        >
+          변경
+        </button>
+      )}
+    </div>
+  )
+}
+
 function ContentHeader({ title }) {
   const actions = usePageHeaderActions() // 화면이 usePageActions()로 등록한 페이지별 버튼
 
@@ -35,6 +64,7 @@ function ContentHeader({ title }) {
         <p className="default-layout__today">{formatTodayLabel()}</p>
       </div>
       <div className="default-layout__header-right">
+        <CurrentSiteBadge />
         {actions}
         {/* 알림 종 — 자리만 준비, 실제 동작은 경보 기능 구현 시 연결 */}
         <button type="button" className="default-layout__bell" aria-label="알림">

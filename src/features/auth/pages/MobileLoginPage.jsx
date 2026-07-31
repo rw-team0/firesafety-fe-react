@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../useAuth'
 import { registerFcmToken } from '../utils/fcm'
+import { useSite } from '@/features/sites/useSite'
+import { buildSiteSelectPath, resolveSiteEntry } from '@/features/sites/utils/siteEntry'
 import Button from '@/shared/components/buttons/Button'
 import Checkbox from '@/shared/components/forms/Checkbox'
 import Input from '@/shared/components/forms/Input'
@@ -13,6 +15,7 @@ const SAVED_EMAIL_KEY = 'savedEmail'
 // SCR-401-M 모바일 로그인
 export default function MobileLoginPage() {
   const { login, isLoggingIn } = useAuth()
+  const { loadSites, selectSite, clearCurrentSite } = useSite()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -42,14 +45,27 @@ export default function MobileLoginPage() {
       return
     }
     setErrorMessage('')
+    let profile
     try {
-      await login(email, password)
+      profile = await login(email, password)
       if (saveEmail) localStorage.setItem(SAVED_EMAIL_KEY, email)
       else localStorage.removeItem(SAVED_EMAIL_KEY)
       registerFcmToken().catch(() => {}) // FCM 실패는 로그인 실패로 취급 안 함(fire-and-forget)
-      navigate(ROUTE_PATHS.mobileDashboard)
     } catch (error) {
       setErrorMessage(error.response?.data?.resultMessage ?? '로그인에 실패했습니다.')
+      return
+    }
+
+    // PC와 동일한 0/1/N 규칙, 이동 대상만 모바일 경로. 현장 선택 화면은 PC/모바일 공용이라 next로 복귀 경로를 넘긴다
+    try {
+      const sites = await loadSites({ force: true })
+      const { path, autoSelect } = resolveSiteEntry({ role: profile.role, sites, isMobile: true })
+      if (autoSelect) selectSite(autoSelect)
+      else clearCurrentSite()
+      navigate(path, { replace: true })
+    } catch {
+      clearCurrentSite()
+      navigate(buildSiteSelectPath(true), { replace: true })
     }
   }
 

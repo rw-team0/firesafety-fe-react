@@ -207,6 +207,33 @@
   display: flex;
   align-items: center;
   gap: var(--space-12);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.default-layout__site {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-12);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-accent);
+  max-width: 260px;
+}
+
+.default-layout__site-name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.default-layout__site-change {
+  color: var(--color-brand-strong);
+  font-size: var(--font-size-caption);
+  text-decoration: underline;
+  flex-shrink: 0;
 }
 
 .default-layout__bell {

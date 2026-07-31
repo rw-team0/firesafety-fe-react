@@ -1,0 +1,93 @@
+/* 사이드바 진입 전 독립 화면(현장 선택/미배정/등록/수정) 공통 셸 — AuthLayout(빈 셸) 위에서 쓰인다 */
+.site-shell {
+  min-height: 100vh;
+  background: var(--color-page-bg);
+  padding: var(--space-24) var(--space-16);
+}
+
+.site-shell__inner {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.site-shell__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  margin-bottom: var(--space-20);
+}
+
+.site-shell__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-weight: 700;
+  font-size: var(--font-size-subtitle);
+}
+
+.site-shell__logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.site-shell__user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.site-shell__title {
+  font-size: var(--font-size-title);
+  font-weight: 700;
+}
+
+.site-shell__subtitle {
+  color: var(--color-text-secondary);
+  margin-top: var(--space-4);
+}
+
+.site-shell__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  margin-bottom: var(--space-16);
+}
+
+/* 현장 등록/수정 폼 공통 — 두 화면이 같은 독립 셸 위에서 같은 구조를 쓴다 */
+.site-form {
+  max-width: 520px;
+}
+
+.site-form__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.site-form__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  border: none;
+  padding: 0;
+  min-width: 0; /* fieldset 기본 min-width 때문에 좁은 화면에서 가로 스크롤이 생기는 것 방지 */
+}
+
+.site-form__legend {
+  font-weight: 700;
+  margin-bottom: var(--space-8);
+}
+
+.site-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}

@@ -6,6 +6,10 @@ import LoginPage from '@/features/auth/pages/LoginPage'
 import MobileLoginPage from '@/features/auth/pages/MobileLoginPage'
 import PasswordResetConfirmPage from '@/features/auth/pages/PasswordResetConfirmPage'
 import PasswordResetRequestPage from '@/features/auth/pages/PasswordResetRequestPage'
+import SiteCreatePage from '@/features/sites/pages/SiteCreatePage'
+import SiteEditPage from '@/features/sites/pages/SiteEditPage'
+import SiteSelectPage from '@/features/sites/pages/SiteSelectPage'
+import SiteUnassignedPage from '@/features/sites/pages/SiteUnassignedPage'
 import { ROLES } from '@/shared/constants/roles'
 import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 
@@ -13,6 +17,7 @@ import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 // REQ-701/703은 범위 제외 확정 — route/menu/placeholder 어디에도 없음 (명세에 남아있어도 무시)
 
 // layout: 'auth' | 'default' | 'mobile'. navGroup 있으면 DefaultLayout 사이드바 노출
+// requiresSite: 선택된 현장이 있어야 의미가 있는 업무 화면 → SiteRoute로 추가 래핑
 export const routeConfig = [
   // 인증 (PC)
   {
@@ -41,6 +46,36 @@ export const routeConfig = [
     page: PasswordResetConfirmPage,
   },
 
+  // 현장 — 사이드바 진입 전 독립 화면이라 layout 'auth'(빈 셸) 사용. SiteRoute 대상이 아님(가드 왕복 방지)
+  {
+    path: ROUTE_PATHS.siteSelect,
+    layout: 'auth',
+    requiredRole: ROLES.GENERAL,
+    title: '현장 선택',
+    page: SiteSelectPage,
+  },
+  {
+    path: ROUTE_PATHS.siteUnassigned,
+    layout: 'auth',
+    requiredRole: ROLES.GENERAL,
+    title: '배정 현장 없음',
+    page: SiteUnassignedPage,
+  },
+  {
+    path: ROUTE_PATHS.settingsSiteAdd,
+    layout: 'auth',
+    requiredRole: ROLES.SUPER_ADMIN,
+    title: '현장 등록',
+    page: SiteCreatePage,
+  },
+  {
+    path: ROUTE_PATHS.settingsSiteEdit,
+    layout: 'auth',
+    requiredRole: ROLES.SUPER_ADMIN,
+    title: '현장 수정',
+    page: SiteEditPage,
+  },
+
   // 관제 (PC)
   {
     path: ROUTE_PATHS.dashboard,
@@ -48,6 +83,7 @@ export const routeConfig = [
     requiredRole: ROLES.GENERAL,
     title: '대시보드',
     scrId: 'SCR-201',
+    requiresSite: true,
     navGroup: '관제',
   },
   {
@@ -56,6 +92,7 @@ export const routeConfig = [
     requiredRole: ROLES.GENERAL,
     title: '알림 이력',
     scrId: 'SCR-301',
+    requiresSite: true,
     navGroup: '관제',
   },
   {
@@ -64,6 +101,7 @@ export const routeConfig = [
     requiredRole: ROLES.GENERAL,
     title: '설비 목록',
     scrId: 'SCR-501',
+    requiresSite: true,
     navGroup: '관제',
   },
   {
@@ -72,6 +110,7 @@ export const routeConfig = [
     requiredRole: ROLES.GENERAL,
     title: '설비 상세',
     scrId: 'SCR-202',
+    requiresSite: true,
   },
 
   // 통계 (PC)
@@ -81,6 +120,7 @@ export const routeConfig = [
     requiredRole: ROLES.GENERAL,
     title: '통계',
     scrId: 'SCR-601',
+    requiresSite: true,
     navGroup: '통계',
   },
 
@@ -92,6 +132,7 @@ export const routeConfig = [
     requiredRole: ROLES.ADMIN,
     title: '설비 관리',
     scrId: 'SCR-502',
+    requiresSite: true,
     navGroup: '관리',
   },
   {
@@ -100,6 +141,7 @@ export const routeConfig = [
     requiredRole: ROLES.SUPER_ADMIN,
     title: '설비 변경 이력',
     scrId: 'SCR-503',
+    requiresSite: true,
   },
   {
     path: ROUTE_PATHS.settingsSiteAssignment,
@@ -107,6 +149,7 @@ export const routeConfig = [
     requiredRole: ROLES.ADMIN,
     title: '담당현장 배정',
     scrId: 'SCR-504',
+    requiresSite: true,
   },
   {
     path: ROUTE_PATHS.settingsAccounts,
@@ -141,13 +184,6 @@ export const routeConfig = [
     scrId: 'SCR-407',
     page: AccountHistoryPage,
   },
-  {
-    path: ROUTE_PATHS.settingsSiteEdit,
-    layout: 'default',
-    requiredRole: ROLES.SUPER_ADMIN,
-    title: '현장 수정',
-  },
-
   // 설비 점검 [GAP] REQ-511/512 — 백엔드 완료, 프론트 신규 구현 대상 (오늘은 placeholder만)
   {
     path: ROUTE_PATHS.settingsInspectionChecklist,
@@ -155,6 +191,7 @@ export const routeConfig = [
     requiredRole: ROLES.ADMIN,
     title: '점검 체크리스트',
     scrId: 'SCR-505',
+    requiresSite: true,
     navGroup: '관리',
   },
   {
@@ -163,6 +200,7 @@ export const routeConfig = [
     requiredRole: ROLES.GENERAL,
     title: '점검 이력',
     scrId: 'SCR-506',
+    requiresSite: true,
   },
 
   // 시스템 [GAP] REQ-702 — 백엔드 완료. REQ-703은 범위 제외라 여기 없음.
@@ -191,6 +229,7 @@ export const routeConfig = [
     requiredRole: ROLES.GENERAL,
     title: '대시보드',
     scrId: 'SCR-201-M',
+    requiresSite: true,
     navGroup: 'mobile',
   },
   {
@@ -199,6 +238,7 @@ export const routeConfig = [
     requiredRole: ROLES.GENERAL,
     title: '알림 이력',
     scrId: 'SCR-301-M',
+    requiresSite: true,
     navGroup: 'mobile',
   },
 ]

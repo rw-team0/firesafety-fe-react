@@ -9,6 +9,7 @@ import PlaceholderPage from '../pages/PlaceholderPage'
 import GuestRoute from './GuestRoute'
 import ProtectedRoute from './ProtectedRoute'
 import RoleRoute from './RoleRoute'
+import SiteRoute from './SiteRoute'
 import { routeConfig } from './routeConfig'
 
 const DesignSystemPage = lazy(() => import('@/dev/DesignSystemPage')) // 개발 전용, 아래 조건부 라우트에서만 로드
@@ -21,12 +22,14 @@ const LAYOUTS = {
 }
 
 // requiredRole 있으면 로그인+권한 가드, guestOnly면 반대로 비로그인 전용 가드로 감싼다
+// requiresSite는 권한 통과 후 마지막에 적용 — 권한 미달이면 현장 조회 자체가 불필요
 function guard(route, element) {
   if (route.guestOnly) return <GuestRoute>{element}</GuestRoute>
   if (!route.requiredRole) return element
+  const guarded = route.requiresSite ? <SiteRoute>{element}</SiteRoute> : element
   return (
     <ProtectedRoute>
-      <RoleRoute requiredRole={route.requiredRole}>{element}</RoleRoute>
+      <RoleRoute requiredRole={route.requiredRole}>{guarded}</RoleRoute>
     </ProtectedRoute>
   )
 }

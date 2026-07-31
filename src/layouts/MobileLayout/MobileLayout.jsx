@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { getMobileNavItems } from '@/app/routing/routeConfig'
 import { useAuth } from '@/features/auth/useAuth'
+import { useSite } from '@/features/sites/useSite'
+import { buildSiteSelectPath } from '@/features/sites/utils/siteEntry'
+import { canManageSites } from '@/features/sites/utils/sitePolicy'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
 import { USER_ROLE_LABELS } from '@/shared/constants/domainLabels'
 import './MobileLayout.css'
@@ -9,9 +12,11 @@ import './MobileLayout.css'
 // 모바일 하단 탭 셸. PC/모바일 구분은 URL 프리픽스(/m/*)로만
 export default function MobileLayout() {
   const { user, role, logout } = useAuth()
+  const { currentSite, sites } = useSite()
   const navigate = useNavigate()
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const navItems = getMobileNavItems()
+  const siteChangeable = sites.length > 1 || canManageSites(role)
 
   // 로그아웃 확정 → 실제 로그아웃 API 호출 후 모바일 로그인 이동
   async function handleLogout() {
@@ -38,6 +43,22 @@ export default function MobileLayout() {
           로그아웃
         </button>
       </header>
+
+      {/* 현재 현장 표시 — 좁은 화면이라 헤더와 같은 줄에 넣지 않고 별도 바로 분리 */}
+      {currentSite && (
+        <div className="mobile-layout__site">
+          <span className="mobile-layout__site-name">{currentSite.name}</span>
+          {siteChangeable && (
+            <button
+              type="button"
+              className="mobile-layout__site-change"
+              onClick={() => navigate(buildSiteSelectPath(true))}
+            >
+              변경
+            </button>
+          )}
+        </div>
+      )}
 
       <main className="mobile-layout__content">
         <Outlet />

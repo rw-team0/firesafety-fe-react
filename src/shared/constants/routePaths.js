@@ -6,6 +6,10 @@ export const ROUTE_PATHS = {
   passwordResetRequest: '/reset-password/request',
   passwordResetConfirm: '/reset-password',
 
+  // 현장 (사이드바 진입 전 독립 화면)
+  siteSelect: '/select-site',
+  siteUnassigned: '/site-unassigned',
+
   // 관제/통계 (PC)
   dashboard: '/dashboard',
   alerts: '/alerts',
@@ -22,7 +26,9 @@ export const ROUTE_PATHS = {
   settingsAccountAdd: '/settings/accounts/new',
   settingsAccountEdit: '/settings/accounts/:userId',
   settingsAccountHistory: '/settings/accounts/history',
-  settingsSiteEdit: '/settings/sites/:siteId',
+  settingsSiteAdd: '/settings/sites/new',
+  // ':siteId' 단독 경로였으면 '/settings/sites/new'가 siteId=new로 잡힘 → /edit 접미사로 구분
+  settingsSiteEdit: '/settings/sites/:siteId/edit',
   settingsInspectionChecklist: '/settings/inspections', // [GAP] REQ-511, 백엔드 완료
   settingsInspectionHistory: '/settings/inspections/history', // [GAP] REQ-512, 백엔드 완료
 

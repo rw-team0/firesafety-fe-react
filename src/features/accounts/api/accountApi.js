@@ -42,11 +42,8 @@ export async function getUserAuditLogs() {
   return unwrap(res)
 }
 
-// ADMIN 계정은 본인이 배정된 현장만 응답에 포함(SUPER_ADMIN은 전체)
-export async function getSites() {
-  const res = await httpRequester.get('/sites')
-  return unwrap(res)
-}
+// 현장 목록은 sites 도메인 소유 — 담당현장 배정 화면이 쓰던 import 경로만 유지하려고 재수출한다(중복 구현 방지)
+export { getSites } from '@/features/sites/api/siteApi'
 
 export async function getSiteAssignments(userId) {
   const res = await httpRequester.get(`/users/${userId}/site-assignments`)

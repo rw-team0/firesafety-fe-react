@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../useAuth'
+import { useSite } from '@/features/sites/useSite'
+import { resolveSiteEntry } from '@/features/sites/utils/siteEntry'
 import Button from '@/shared/components/buttons/Button'
 import Checkbox from '@/shared/components/forms/Checkbox'
 import Input from '@/shared/components/forms/Input'
@@ -12,6 +14,7 @@ const SAVED_EMAIL_KEY = 'savedEmail'
 // SCR-401 PC 로그인
 export default function LoginPage() {
   const { login, isLoggingIn } = useAuth()
+  const { loadSites, selectSite, clearCurrentSite } = useSite()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -41,13 +44,27 @@ export default function LoginPage() {
       return
     }
     setErrorMessage('')
+    let profile
     try {
-      await login(email, password)
+      profile = await login(email, password)
       if (saveEmail) localStorage.setItem(SAVED_EMAIL_KEY, email)
       else localStorage.removeItem(SAVED_EMAIL_KEY)
-      navigate(ROUTE_PATHS.dashboard)
     } catch (error) {
       setErrorMessage(error.response?.data?.resultMessage ?? '로그인에 실패했습니다.')
+      return
+    }
+
+    // 로그인 성공 후 현장 목록 1회 조회 → 역할과 현장 수(0/1/N)에 따라 진입 지점 결정
+    // 이 조회가 실패해도 로그인 자체는 되돌리지 않는다 — 선택 화면에서 재시도할 수 있게 안내만 하고 이동
+    try {
+      const sites = await loadSites({ force: true })
+      const { path, autoSelect } = resolveSiteEntry({ role: profile.role, sites })
+      if (autoSelect) selectSite(autoSelect)
+      else clearCurrentSite()
+      navigate(path, { replace: true })
+    } catch {
+      clearCurrentSite()
+      navigate(ROUTE_PATHS.siteSelect, { replace: true })
     }
   }
 

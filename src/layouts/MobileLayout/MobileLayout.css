@@ -41,6 +41,30 @@
   border-radius: var(--radius-sm);
 }
 
+.mobile-layout__site {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-16);
+  background: var(--color-surface-accent);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.mobile-layout__site-name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-layout__site-change {
+  color: var(--color-brand-strong);
+  font-size: var(--font-size-caption);
+  text-decoration: underline;
+  flex-shrink: 0;
+}
+
 .mobile-layout__content {
   flex: 1;
   padding: var(--space-16);

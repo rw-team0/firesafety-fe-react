@@ -1,0 +1,17 @@
+.site-select__search {
+  max-width: 320px;
+  margin-bottom: var(--space-16);
+}
+
+.site-select__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-16);
+}
+
+/* 좁은 화면에서 minmax 하한 때문에 가로 스크롤이 생기지 않도록 1열 고정 */
+@media (max-width: 480px) {
+  .site-select__grid {
+    grid-template-columns: 1fr;
+  }
+}
