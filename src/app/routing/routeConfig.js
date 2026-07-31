@@ -1,3 +1,7 @@
+import AccountCreatePage from '@/features/accounts/pages/AccountCreatePage'
+import AccountEditPage from '@/features/accounts/pages/AccountEditPage'
+import AccountHistoryPage from '@/features/accounts/pages/AccountHistoryPage'
+import AccountListPage from '@/features/accounts/pages/AccountListPage'
 import LoginPage from '@/features/auth/pages/LoginPage'
 import MobileLoginPage from '@/features/auth/pages/MobileLoginPage'
 import PasswordResetConfirmPage from '@/features/auth/pages/PasswordResetConfirmPage'
@@ -111,6 +115,7 @@ export const routeConfig = [
     title: '계정 관리',
     scrId: 'SCR-404',
     navGroup: '관리',
+    page: AccountListPage,
   },
   {
     path: ROUTE_PATHS.settingsAccountAdd,
@@ -118,6 +123,7 @@ export const routeConfig = [
     requiredRole: ROLES.ADMIN,
     title: '계정 등록',
     scrId: 'SCR-405',
+    page: AccountCreatePage,
   },
   {
     path: ROUTE_PATHS.settingsAccountEdit,
@@ -125,6 +131,7 @@ export const routeConfig = [
     requiredRole: ROLES.ADMIN,
     title: '계정 수정',
     scrId: 'SCR-406',
+    page: AccountEditPage,
   },
   {
     path: ROUTE_PATHS.settingsAccountHistory,
@@ -132,6 +139,7 @@ export const routeConfig = [
     requiredRole: ROLES.SUPER_ADMIN,
     title: '계정 변경 이력',
     scrId: 'SCR-407',
+    page: AccountHistoryPage,
   },
   {
     path: ROUTE_PATHS.settingsSiteEdit,
