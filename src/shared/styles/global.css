@@ -232,6 +232,8 @@
   justify-content: center;
   gap: var(--space-4);
   margin-top: var(--space-16);
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .pagination__button,

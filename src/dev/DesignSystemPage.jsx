@@ -70,7 +70,7 @@ export default function DesignSystemPage() {
       </BaseCard>
 
       <BaseCard header={<h2>Button</h2>}>
-        <div className="u-flex u-gap-8">
+        <div className="u-flex u-gap-8 u-flex-wrap">
           <Button variant="primary">Primary</Button>
           <Button variant="secondary">Secondary</Button>
           <Button variant="danger">Danger</Button>
@@ -140,7 +140,7 @@ export default function DesignSystemPage() {
       </BaseCard>
 
       <BaseCard header={<h2>Modal</h2>}>
-        <div className="u-flex u-gap-8">
+        <div className="u-flex u-gap-8 u-flex-wrap">
           <Button onClick={() => setBaseModalOpen(true)}>BaseModal 열기</Button>
           <Button variant="danger" onClick={() => setConfirmOpen(true)}>
             ConfirmModal 열기
