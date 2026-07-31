@@ -13,12 +13,6 @@ export async function getManagedUsers(siteId, config = {}) {
   return unwrap(res)
 }
 
-// deprecated 후보: 직원 목록 조회는 managed-users로 통일했다. 기존 계약 확인용으로 함수는 유지한다.
-export async function getStaffContacts(siteId, config = {}) {
-  const res = await httpRequester.get(`/sites/${siteId}/staff-contacts`, config)
-  return unwrap(res)
-}
-
 // siteIds는 여기 안 들어감 — 배정은 별도 API(POST /users/{id}/site-assignments)
 export async function createUser(payload) {
   const res = await httpRequester.post('/users', payload)

@@ -51,8 +51,9 @@ export default function SiteSelectPage() {
 
   async function handleDelete() {
     const target = deleteTarget
+    // 실패하면 여기서 throw되어 아래 정리(모달 닫기/목록 갱신)가 실행되지 않음 — 대상 유지, 실패 메시지는 인터셉터가 전역 표시
+    await deleteSite(target.siteId)
     setDeleteTarget(null)
-    await deleteSite(target.siteId) // 실패 메시지는 인터셉터가 전역 표시
     await refreshSites().catch(() => {}) // 삭제된 현장이 currentSite였으면 refresh 중 normalize가 선택을 해제
     setDeleteResult(`${target.name} 현장이 삭제되었습니다.`)
   }

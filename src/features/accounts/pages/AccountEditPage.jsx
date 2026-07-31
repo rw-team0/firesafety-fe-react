@@ -113,7 +113,8 @@ export default function AccountEditPage() {
       try {
         await saveSiteAssignments(userId, selectedSiteIds)
       } catch {
-        setResult({ message: '직원 정보는 수정되었지만 담당 현장 배정 저장에 실패했습니다. 다시 시도해주세요.' })
+        // updateUser는 PUT이라 재제출해도 부작용 없음 — 화면은 그대로 두고 저장 버튼으로 재시도하게 함
+        setResult({ message: '직원 정보는 수정되었지만 담당 현장 배정 저장에 실패했습니다. 다시 시도해주세요.', partial: true })
         return
       }
       setResult({ message: '직원 정보가 수정되었습니다.' })
@@ -224,10 +225,11 @@ export default function AccountEditPage() {
 
       <ActionResultModal
         visible={Boolean(result)}
-        type="success"
+        type={result?.partial ? 'warning' : 'success'}
         title="직원 수정"
         subtitle={result?.message}
-        onClose={() => navigate(ROUTE_PATHS.settingsAccounts)}
+        // 부분 성공은 목록 이동을 자동으로 시키지 않음 — 화면에 남아 저장을 다시 시도하거나 취소 버튼으로 직접 나가야 함
+        onClose={() => (result?.partial ? setResult(null) : navigate(ROUTE_PATHS.settingsAccounts))}
       />
     </div>
   )

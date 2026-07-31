@@ -111,8 +111,11 @@ export default function AccountHistoryPage() {
   }, [])
 
   const filteredLogs = useMemo(() => {
+    const hasDateFilter = Boolean(from || to)
     return logs.filter((log) => {
       const day = log.createdAt?.slice(0, 10)
+      // 날짜 필터를 쓰는데 createdAt이 없으면 어느 기간에도 안 걸리는 게 맞음 — 필터 미사용 시에는 그대로 노출
+      if (hasDateFilter && !day) return false
       if (from && day < from) return false
       if (to && day > to) return false
       if (actionFilter && log.action !== actionFilter) return false
@@ -121,7 +124,9 @@ export default function AccountHistoryPage() {
   }, [logs, from, to, actionFilter])
 
   const totalPages = Math.max(1, Math.ceil(filteredLogs.length / PAGE_SIZE))
-  const pagedLogs = filteredLogs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  // 복구/필터 변경으로 목록이 줄어 page가 범위를 벗어나도 렌더 시점에 바로 보정 — 별도 setState/effect 불필요
+  const currentPage = Math.min(page, totalPages)
+  const pagedLogs = filteredLogs.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
   async function handleRestore() {
     const userId = restoreTarget
@@ -222,7 +227,7 @@ export default function AccountHistoryPage() {
         ]}
       />
 
-      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+      <Pagination page={currentPage} totalPages={totalPages} onChange={setPage} />
 
       <ConfirmModal
         visible={Boolean(restoreTarget)}

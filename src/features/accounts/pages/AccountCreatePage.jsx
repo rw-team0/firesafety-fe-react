@@ -35,6 +35,8 @@ export default function AccountCreatePage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
+  // 배정 실패로 계정만 먼저 생성된 경우의 userId — 다시 제출할 때 계정을 또 만들지 않고 배정만 재시도하기 위함
+  const [createdUserId, setCreatedUserId] = useState(null)
 
   useEffect(() => {
     if (!form.role && creatableRoles[0]) {
@@ -74,36 +76,45 @@ export default function AccountCreatePage() {
     event.preventDefault()
     setErrorMessage('')
 
-    if (!form.name || !form.email || !form.password || !form.phone || !form.role) {
-      setErrorMessage('필수 항목을 모두 입력해주세요.')
-      return
-    }
-    if (form.password !== form.passwordConfirm) {
-      setErrorMessage('비밀번호가 일치하지 않습니다.')
-      return
-    }
-    if (!isValidPassword(form.password)) {
-      setErrorMessage(PASSWORD_POLICY_MESSAGE)
-      return
+    // 배정만 재시도하는 단계에선 계정 필드 재검증이 필요 없음(이미 서버에 생성된 값)
+    if (!createdUserId) {
+      if (!form.name || !form.email || !form.password || !form.phone || !form.role) {
+        setErrorMessage('필수 항목을 모두 입력해주세요.')
+        return
+      }
+      if (form.password !== form.passwordConfirm) {
+        setErrorMessage('비밀번호가 일치하지 않습니다.')
+        return
+      }
+      if (!isValidPassword(form.password)) {
+        setErrorMessage(PASSWORD_POLICY_MESSAGE)
+        return
+      }
     }
 
     setSubmitting(true)
     try {
-      const created = await createUser({
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        phone: form.phone,
-        role: form.role,
-      })
+      let userId = createdUserId
+      if (!userId) {
+        const created = await createUser({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          phone: form.phone,
+          role: form.role,
+        })
+        userId = created.userId
+        setCreatedUserId(userId)
+      }
 
       if (selectedSiteIds.length > 0) {
         try {
-          await saveSiteAssignments(created.userId, selectedSiteIds)
+          await saveSiteAssignments(userId, selectedSiteIds)
         } catch {
           // 계정 생성은 이미 성공 — 배정 실패로 계정을 임의로 되돌리지 않고, 부분 성공을 그대로 안내
           setResult({
-            message: '직원은 등록되었지만 담당 현장 배정에 실패했습니다. 직원 수정 화면에서 다시 지정해주세요.',
+            message: '직원은 등록되었지만 담당 현장 배정에 실패했습니다. 담당 현장을 다시 선택한 뒤 등록 버튼을 눌러주세요.',
+            partial: true,
           })
           return
         }
@@ -126,7 +137,14 @@ export default function AccountCreatePage() {
           </div>
         )}
 
-        <fieldset className="account-form__group">
+        {/* 계정은 이미 만들어졌고 배정만 남은 상태 — 모달을 닫아도 이 배너로 계속 확인 가능 */}
+        {createdUserId && (
+          <div className="banner banner-info" role="status">
+            직원 계정은 이미 등록되었습니다. 담당 현장을 선택하고 등록 버튼을 눌러 배정을 다시 시도해주세요.
+          </div>
+        )}
+
+        <fieldset className="account-form__group" disabled={Boolean(createdUserId)}>
           <legend className="account-form__legend">
             기본 정보
             <span className="account-form__legend-desc">
@@ -225,17 +243,18 @@ export default function AccountCreatePage() {
             취소
           </Button>
           <Button type="submit" variant="primary" loading={submitting}>
-            등록
+            {createdUserId ? '배정 다시 시도' : '등록'}
           </Button>
         </div>
       </form>
 
       <ActionResultModal
         visible={Boolean(result)}
-        type="success"
+        type={result?.partial ? 'warning' : 'success'}
         title="직원 등록"
         subtitle={result?.message}
-        onClose={() => navigate(ROUTE_PATHS.settingsAccounts)}
+        // 부분 성공은 목록 이동을 자동으로 시키지 않음 — 화면에 남아 배정을 다시 시도하거나 취소 버튼으로 직접 나가야 함
+        onClose={() => (result?.partial ? setResult(null) : navigate(ROUTE_PATHS.settingsAccounts))}
       />
     </div>
   )
