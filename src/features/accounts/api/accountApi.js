@@ -7,6 +7,18 @@ export async function getUsers() {
   return unwrap(res)
 }
 
+// 현재 현장 기준 관리 대상 직원 목록. 백엔드 계약상 ADMIN/SUPER_ADMIN만 호출 가능하며 GENERAL만 반환된다.
+export async function getManagedUsers(siteId, config = {}) {
+  const res = await httpRequester.get(`/sites/${siteId}/managed-users`, config)
+  return unwrap(res)
+}
+
+// 현재 현장 기준 직원 연락망. GENERAL도 조회 가능하며 이메일 등 관리용 필드는 내려오지 않는다.
+export async function getStaffContacts(siteId, config = {}) {
+  const res = await httpRequester.get(`/sites/${siteId}/staff-contacts`, config)
+  return unwrap(res)
+}
+
 // siteIds는 여기 안 들어감 — 배정은 별도 API(POST /users/{id}/site-assignments)
 export async function createUser(payload) {
   const res = await httpRequester.post('/users', payload)

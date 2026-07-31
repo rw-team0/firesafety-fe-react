@@ -29,7 +29,9 @@ function guard(route, element) {
   const guarded = route.requiresSite ? <SiteRoute>{element}</SiteRoute> : element
   return (
     <ProtectedRoute>
-      <RoleRoute requiredRole={route.requiredRole}>{guarded}</RoleRoute>
+      <RoleRoute requiredRole={route.requiredRole} forbiddenMessage={route.forbiddenMessage}>
+        {guarded}
+      </RoleRoute>
     </ProtectedRoute>
   )
 }

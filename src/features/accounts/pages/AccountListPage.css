@@ -3,3 +3,13 @@
   justify-content: flex-end;
   margin-bottom: var(--space-12);
 }
+
+.account-list__tel {
+  color: var(--color-brand);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.account-list__tel:hover {
+  text-decoration: underline;
+}

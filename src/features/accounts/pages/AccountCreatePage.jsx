@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { checkEmailDuplicate, createUser, getSites, saveSiteAssignments } from '../api/accountApi'
+import { checkEmailDuplicate, createUser, saveSiteAssignments } from '../api/accountApi'
 import { getCreatableRoles } from '../utils/rolePolicy'
 import { isValidPassword, PASSWORD_POLICY_MESSAGE } from '@/features/auth/utils/passwordPolicy'
 import { useAuth } from '@/features/auth/useAuth'
+import { useSite } from '@/features/sites/useSite'
 import Button from '@/shared/components/buttons/Button'
 import Checkbox from '@/shared/components/forms/Checkbox'
 import Input from '@/shared/components/forms/Input'
@@ -13,13 +14,13 @@ import { USER_ROLE_LABELS } from '@/shared/constants/domainLabels'
 import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 import './AccountCreatePage.css'
 
-// SCR-405 계정 추가 — 담당현장은 체크박스 다중선택으로 구현(AUTH-019, Vue의 단일 select 규제 안 따름)
+// SCR-405 직원 추가 — 담당현장은 체크박스 다중선택으로 구현(AUTH-019, Vue의 단일 select 규제 안 따름)
 export default function AccountCreatePage() {
   const navigate = useNavigate()
   const { role: actorRole } = useAuth()
-  const creatableRoles = getCreatableRoles(actorRole)
+  const { sites, currentSiteId } = useSite()
+  const creatableRoles = useMemo(() => getCreatableRoles(actorRole), [actorRole])
 
-  const [sites, setSites] = useState([])
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -36,8 +37,18 @@ export default function AccountCreatePage() {
   const [result, setResult] = useState(null)
 
   useEffect(() => {
-    getSites().then(setSites)
-  }, [])
+    if (!form.role && creatableRoles[0]) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setForm((prev) => ({ ...prev, role: creatableRoles[0] }))
+    }
+  }, [creatableRoles, form.role])
+
+  useEffect(() => {
+    if (!currentSiteId) return
+    // 현재 직원관리 현장을 기본 배정값으로 잡되, 사용자가 직접 선택을 바꾼 뒤에는 덮어쓰지 않는다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSelectedSiteIds((prev) => (prev.length > 0 ? prev : [currentSiteId]))
+  }, [currentSiteId])
 
   function updateField(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -63,7 +74,7 @@ export default function AccountCreatePage() {
     event.preventDefault()
     setErrorMessage('')
 
-    if (!form.name || !form.email || !form.password || !form.phone) {
+    if (!form.name || !form.email || !form.password || !form.phone || !form.role) {
       setErrorMessage('필수 항목을 모두 입력해주세요.')
       return
     }
@@ -91,11 +102,11 @@ export default function AccountCreatePage() {
           await saveSiteAssignments(created.userId, selectedSiteIds)
         } catch {
           // 계정 생성은 이미 성공 — 배정 실패로 계정을 임의로 되돌리지 않고, 부분 성공을 그대로 안내
-          setResult({ message: '계정은 등록되었지만 담당현장 배정에 실패했습니다. 계정 수정 화면에서 다시 지정해주세요.' })
+          setResult({ message: '직원은 등록되었지만 담당현장 배정에 실패했습니다. 직원 수정 화면에서 다시 지정해주세요.' })
           return
         }
       }
-      setResult({ message: '계정이 등록되었습니다.' })
+      setResult({ message: '직원이 등록되었습니다.' })
     } catch (error) {
       setErrorMessage(error.response?.data?.resultMessage ?? '등록에 실패했습니다.')
     } finally {
@@ -178,7 +189,7 @@ export default function AccountCreatePage() {
       <ActionResultModal
         visible={Boolean(result)}
         type="success"
-        title="계정 등록"
+        title="직원 등록"
         subtitle={result?.message}
         onClose={() => navigate(ROUTE_PATHS.settingsAccounts)}
       />

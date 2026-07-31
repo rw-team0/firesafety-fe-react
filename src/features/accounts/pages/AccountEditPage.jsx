@@ -1,56 +1,90 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getSiteAssignments, getSites, getUsers, saveSiteAssignments, updateUser } from '../api/accountApi'
+import { getManagedUsers, getSiteAssignments, saveSiteAssignments, updateUser } from '../api/accountApi'
 import { canEditTarget, getUpdatableRoles } from '../utils/rolePolicy'
 import { useAuth } from '@/features/auth/useAuth'
+import { useSite } from '@/features/sites/useSite'
 import Button from '@/shared/components/buttons/Button'
 import Checkbox from '@/shared/components/forms/Checkbox'
 import Input from '@/shared/components/forms/Input'
 import Select from '@/shared/components/forms/Select'
+import ErrorState from '@/shared/components/feedback/ErrorState'
 import LoadingState from '@/shared/components/feedback/LoadingState'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
 import { USER_ROLE_LABELS } from '@/shared/constants/domainLabels'
 import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 import './AccountEditPage.css'
 
-// SCR-406 계정 수정 — 담당현장은 체크박스 다중선택(AUTH-019, Vue의 단일 select 규제 안 따름)
-// 상세조회 API가 없어(백엔드 확인됨) 목록 전체를 받아 대상 하나를 찾는다(Vue와 동일 방식)
+// SCR-406 직원 수정 — 상세조회 API가 없어 현재 현장 managed-users 목록에서 대상 하나를 찾는다.
 export default function AccountEditPage() {
   const { userId } = useParams()
   const navigate = useNavigate()
   const { role: actorRole } = useAuth()
+  const { sites, currentSiteId } = useSite()
+  const requestSeqRef = useRef(0)
 
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [loadError, setLoadError] = useState('')
   const [targetRole, setTargetRole] = useState(null)
-  const [sites, setSites] = useState([])
   const [form, setForm] = useState({ name: '', email: '', phone: '', role: '' })
   const [selectedSiteIds, setSelectedSiteIds] = useState([])
   const [errorMessage, setErrorMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
 
-  useEffect(() => {
-    async function load() {
-      const [users, siteList, assignments] = await Promise.all([
-        getUsers(),
-        getSites(),
-        getSiteAssignments(userId),
-      ])
+  const load = useCallback(async () => {
+    const siteId = currentSiteId
+    const seq = requestSeqRef.current + 1
+    requestSeqRef.current = seq
+
+    setLoading(true)
+    setNotFound(false)
+    setLoadError('')
+    setTargetRole(null)
+    setForm({ name: '', email: '', phone: '', role: '' })
+    setSelectedSiteIds([])
+
+    if (!siteId) {
+      setLoadError('직원 수정은 현장 선택 후 이용할 수 있습니다.')
+      setLoading(false)
+      return
+    }
+
+    try {
+      const users = await getManagedUsers(siteId)
+      if (requestSeqRef.current !== seq) return
+
       const target = users.find((u) => String(u.userId) === String(userId))
       if (!target) {
         setNotFound(true)
         setLoading(false)
         return
       }
+
+      const assignments = await getSiteAssignments(userId)
+      if (requestSeqRef.current !== seq) return
+
       setTargetRole(target.role)
       setForm({ name: target.name, email: target.email, phone: target.phone ?? '', role: target.role })
-      setSites(siteList)
       setSelectedSiteIds(assignments.map((a) => a.siteId))
-      setLoading(false)
+    } catch (error) {
+      if (requestSeqRef.current !== seq) return
+      const status = error?.response?.status
+      setLoadError(status === 403 ? '이 직원을 수정할 권한이 없습니다.' : '직원 정보를 불러오지 못했습니다.')
+    } finally {
+      if (requestSeqRef.current === seq) setLoading(false)
     }
+  }, [currentSiteId, userId])
+
+  useEffect(() => {
+    // 현장 변경 중 이전 현장의 수정 대상이 남지 않게 다시 조회한다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
-  }, [userId])
+    return () => {
+      requestSeqRef.current += 1
+    }
+  }, [load])
 
   const editable = targetRole ? canEditTarget(actorRole, targetRole) : false
   const updatableRoles = targetRole ? getUpdatableRoles(actorRole, targetRole) : []
@@ -79,10 +113,10 @@ export default function AccountEditPage() {
       try {
         await saveSiteAssignments(userId, selectedSiteIds)
       } catch {
-        setResult({ message: '계정 정보는 수정되었지만 담당현장 배정 저장에 실패했습니다. 다시 시도해주세요.' })
+        setResult({ message: '직원 정보는 수정되었지만 담당현장 배정 저장에 실패했습니다. 다시 시도해주세요.' })
         return
       }
-      setResult({ message: '계정 정보가 수정되었습니다.' })
+      setResult({ message: '직원 정보가 수정되었습니다.' })
     } catch (error) {
       setErrorMessage(error.response?.data?.resultMessage ?? '수정에 실패했습니다.')
     } finally {
@@ -91,13 +125,14 @@ export default function AccountEditPage() {
   }
 
   if (loading) return <LoadingState />
-  if (notFound) return <div className="banner banner-danger">계정을 찾을 수 없습니다.</div>
+  if (loadError) return <ErrorState message={loadError} onRetry={load} />
+  if (notFound) return <div className="banner banner-danger">현재 현장에서 수정할 수 있는 직원을 찾을 수 없습니다.</div>
 
   return (
     <div className="account-edit card">
       {!editable && (
         <div className="banner banner-danger">
-          이 계정은 {USER_ROLE_LABELS.SUPER_ADMIN}만 수정할 수 있습니다.
+          이 직원은 {USER_ROLE_LABELS.SUPER_ADMIN}만 수정할 수 있습니다.
         </div>
       )}
 
@@ -152,7 +187,7 @@ export default function AccountEditPage() {
       <ActionResultModal
         visible={Boolean(result)}
         type="success"
-        title="계정 수정"
+        title="직원 수정"
         subtitle={result?.message}
         onClose={() => navigate(ROUTE_PATHS.settingsAccounts)}
       />

@@ -73,7 +73,7 @@ function summarizeLog(log) {
     .join(', ')
 }
 
-// SCR-407 계정 관리이력
+// SCR-407 직원 관리이력. API 의미는 user audit log라 내부 데이터는 계정 감사 이력 그대로 사용한다.
 export default function AccountHistoryPage() {
   const [logs, setLogs] = useState([])
   const [usersById, setUsersById] = useState({})
@@ -127,7 +127,7 @@ export default function AccountHistoryPage() {
     const userId = restoreTarget
     setRestoreTarget(null)
     await restoreUser(userId)
-    setRestoreResult({ message: '계정이 복구되었습니다.' })
+    setRestoreResult({ message: '직원이 복구되었습니다.' })
     load()
   }
 
@@ -175,7 +175,7 @@ export default function AccountHistoryPage() {
           { key: 'createdAt', header: '시각', render: (row) => row.createdAt?.replace('T', ' ') ?? '-' },
           {
             key: 'targetUserId',
-            header: '대상 계정',
+            header: '대상 직원',
             render: (row) => usersById[row.targetUserId]?.name ?? `#${row.targetUserId}`,
           },
           {
@@ -212,8 +212,8 @@ export default function AccountHistoryPage() {
 
       <ConfirmModal
         visible={Boolean(restoreTarget)}
-        title="계정 복구"
-        message="이 계정을 복구하시겠습니까?"
+        title="직원 복구"
+        message="이 직원을 복구하시겠습니까?"
         confirmLabel="복구"
         onConfirm={handleRestore}
         onCancel={() => setRestoreTarget(null)}
@@ -222,7 +222,7 @@ export default function AccountHistoryPage() {
       <ActionResultModal
         visible={Boolean(restoreResult)}
         type="success"
-        title="계정 복구"
+        title="직원 복구"
         subtitle={restoreResult?.message}
         onClose={() => setRestoreResult(null)}
       />
