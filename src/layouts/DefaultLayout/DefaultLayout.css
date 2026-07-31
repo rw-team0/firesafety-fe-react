@@ -171,14 +171,16 @@
   flex-direction: column;
 }
 
+/* 액션 버튼이 많아지면 한 줄에 다 못 들어가므로 고정 높이 대신 최소 높이 */
 .default-layout__content-header {
-  height: 78px;
+  min-height: 78px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-16);
-  padding: 0 var(--space-24);
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-16);
+  padding: var(--space-12) var(--space-24);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   position: sticky;
@@ -215,25 +217,41 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-8);
-  padding: var(--space-4) var(--space-12);
+  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
   background: var(--color-surface-accent);
-  max-width: 260px;
+  max-width: 280px;
+  min-width: 0;
+}
+
+.default-layout__site-label {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
 }
 
 .default-layout__site-name {
   font-weight: 700;
+  min-width: 0; /* flex item 기본 min-width:auto면 ellipsis가 안 걸림 */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* 텍스트 링크지만 실제 클릭 영역은 손가락/커서가 편하게 잡을 만큼 확보 */
 .default-layout__site-change {
+  flex-shrink: 0;
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-pill);
   color: var(--color-brand-strong);
   font-size: var(--font-size-caption);
+  font-weight: 600;
   text-decoration: underline;
-  flex-shrink: 0;
+}
+
+.default-layout__site-change:hover {
+  background: var(--color-surface);
 }
 
 .default-layout__bell {
@@ -249,4 +267,15 @@
   flex: 1;
   min-width: 0;
   padding: var(--space-24);
+}
+
+/* 좁은 폭(태블릿 이하)에서 헤더/본문 여백 축소 — PC 레이아웃 구조는 그대로 */
+@media (max-width: 768px) {
+  .default-layout__content-header {
+    padding: var(--space-12) var(--space-16);
+  }
+
+  .default-layout__content {
+    padding: var(--space-16);
+  }
 }

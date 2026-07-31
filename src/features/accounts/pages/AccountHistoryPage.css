@@ -1,3 +1,23 @@
-.account-history__pagination {
-  margin-top: var(--space-16);
+/* 직원관리 하위 기능이라는 맥락 안내 — 필터 위 */
+.account-history__notice {
+  margin-bottom: var(--space-16);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-accent);
+  color: var(--color-brand-strong);
+  font-size: var(--font-size-caption);
+}
+
+.account-history__time-cell {
+  white-space: nowrap;
+}
+
+/* 변경 내용이 길어도 다른 열을 밀어내지 않게 */
+.account-history__summary-cell {
+  min-width: 240px;
+  color: var(--color-text-secondary);
+}
+
+.account-history__restore-cell {
+  white-space: nowrap;
 }

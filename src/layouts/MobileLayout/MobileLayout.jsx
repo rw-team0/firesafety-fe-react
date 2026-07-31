@@ -33,9 +33,8 @@ export default function MobileLayout() {
           <img src="/ArcGuard.png" alt="" className="mobile-layout__logo" />
           ArcGuard
         </span>
-        <div className="default-layout__spacer" />
         {user && (
-          <span className="u-text-secondary">
+          <span className="u-text-secondary mobile-layout__user">
             {user.name} · {USER_ROLE_LABELS[role] ?? role}
           </span>
         )}
@@ -47,7 +46,10 @@ export default function MobileLayout() {
       {/* 현재 현장 표시 — 좁은 화면이라 헤더와 같은 줄에 넣지 않고 별도 바로 분리 */}
       {currentSite && (
         <div className="mobile-layout__site">
-          <span className="mobile-layout__site-name">{currentSite.name}</span>
+          <span className="mobile-layout__site-label">현장</span>
+          <span className="mobile-layout__site-name" title={currentSite.name}>
+            {currentSite.name}
+          </span>
           {siteChangeable && (
             <button
               type="button"

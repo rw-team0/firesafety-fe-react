@@ -11,6 +11,18 @@
   color: var(--color-text-secondary);
 }
 
+/* 필수 표시 — 색만으로 구분되지 않게 sr-only "필수"가 항상 같이 붙음(Input/Select) */
+.field-required {
+  margin-left: 2px;
+  color: var(--color-danger);
+}
+
+/* 비밀번호 정책 등 입력 전 안내. 에러와 달리 항상 표시 */
+.field-hint {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
 /* 세 종류 입력 요소 공통 테두리/배경 */
 .field-input,
 .field-select,

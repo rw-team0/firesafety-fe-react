@@ -12,7 +12,7 @@ import Select from '@/shared/components/forms/Select'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
 import { USER_ROLE_LABELS } from '@/shared/constants/domainLabels'
 import { ROUTE_PATHS } from '@/shared/constants/routePaths'
-import './AccountCreatePage.css'
+import './accountFormShell.css'
 
 // SCR-405 직원 추가 — 담당현장은 체크박스 다중선택으로 구현(AUTH-019, Vue의 단일 select 규제 안 따름)
 export default function AccountCreatePage() {
@@ -102,7 +102,9 @@ export default function AccountCreatePage() {
           await saveSiteAssignments(created.userId, selectedSiteIds)
         } catch {
           // 계정 생성은 이미 성공 — 배정 실패로 계정을 임의로 되돌리지 않고, 부분 성공을 그대로 안내
-          setResult({ message: '직원은 등록되었지만 담당현장 배정에 실패했습니다. 직원 수정 화면에서 다시 지정해주세요.' })
+          setResult({
+            message: '직원은 등록되었지만 담당 현장 배정에 실패했습니다. 직원 수정 화면에서 다시 지정해주세요.',
+          })
           return
         }
       }
@@ -115,68 +117,110 @@ export default function AccountCreatePage() {
   }
 
   return (
-    <div className="account-create card">
-      <form onSubmit={handleSubmit} className="account-create__form">
-        {errorMessage && <div className="banner banner-danger">{errorMessage}</div>}
-
-        <Input label="이름" value={form.name} onChange={(e) => updateField('name', e.target.value)} />
-
-        <div className="account-create__email-row">
-          <Input
-            label="이메일"
-            type="email"
-            value={form.email}
-            onChange={(e) => updateField('email', e.target.value)}
-          />
-          <Button type="button" variant="secondary" onClick={handleCheckEmail}>
-            중복확인
-          </Button>
-        </div>
-        {emailChecked && (
-          <p className={emailAvailable ? 'account-create__email-ok' : 'account-create__email-taken'}>
-            {emailAvailable ? '사용 가능한 이메일입니다.' : '이미 사용 중인 이메일입니다.'}
-          </p>
+    <div className="account-form card">
+      <form onSubmit={handleSubmit} className="account-form__body">
+        {/* 서버 응답/폼 전체 검증 실패 — 필드별 인라인 표시와 구분되게 상단 배너로 */}
+        {errorMessage && (
+          <div className="banner banner-danger" role="alert">
+            {errorMessage}
+          </div>
         )}
 
-        <Input
-          label="비밀번호"
-          type="password"
-          autoComplete="new-password"
-          value={form.password}
-          onChange={(e) => updateField('password', e.target.value)}
-        />
-        <Input
-          label="비밀번호 확인"
-          type="password"
-          autoComplete="new-password"
-          value={form.passwordConfirm}
-          onChange={(e) => updateField('passwordConfirm', e.target.value)}
-        />
-        <Input label="연락처" value={form.phone} onChange={(e) => updateField('phone', e.target.value)} />
+        <fieldset className="account-form__group">
+          <legend className="account-form__legend">
+            기본 정보
+            <span className="account-form__legend-desc">
+              <span className="field-required">*</span> 표시는 필수 항목입니다.
+            </span>
+          </legend>
 
-        <Select
-          label="권한"
-          value={form.role}
-          onChange={(e) => updateField('role', e.target.value)}
-          options={creatableRoles.map((role) => ({ value: role, label: USER_ROLE_LABELS[role] ?? role }))}
-        />
+          <Input
+            label="이름"
+            requiredMark
+            value={form.name}
+            onChange={(e) => updateField('name', e.target.value)}
+          />
 
-        <div className="field">
-          <span className="field-label">담당현장</span>
-          <div className="account-create__site-list">
-            {sites.map((site) => (
-              <Checkbox
-                key={site.siteId}
-                label={site.name}
-                checked={selectedSiteIds.includes(site.siteId)}
-                onChange={() => toggleSite(site.siteId)}
-              />
-            ))}
-            {sites.length === 0 && <p className="u-text-muted">등록된 현장이 없습니다.</p>}
+          <div className="account-form__email-row">
+            <Input
+              label="이메일"
+              type="email"
+              requiredMark
+              hint="로그인 아이디로 사용됩니다."
+              value={form.email}
+              onChange={(e) => updateField('email', e.target.value)}
+            />
+            <Button type="button" variant="secondary" onClick={handleCheckEmail}>
+              중복확인
+            </Button>
           </div>
-        </div>
+          {emailChecked && (
+            <p
+              className={`account-form__email-result ${emailAvailable ? 'is-ok' : 'is-taken'}`}
+              role="status"
+            >
+              <span aria-hidden="true">{emailAvailable ? '✓' : '!'}</span>
+              {emailAvailable ? '사용 가능한 이메일입니다.' : '이미 사용 중인 이메일입니다.'}
+            </p>
+          )}
 
-        <div className="account-create__actions">
+          <Input
+            label="연락처"
+            requiredMark
+            value={form.phone}
+            onChange={(e) => updateField('phone', e.target.value)}
+          />
+          <Input
+            label="비밀번호"
+            type="password"
+            autoComplete="new-password"
+            requiredMark
+            hint={PASSWORD_POLICY_MESSAGE}
+            value={form.password}
+            onChange={(e) => updateField('password', e.target.value)}
+          />
+          <Input
+            label="비밀번호 확인"
+            type="password"
+            autoComplete="new-password"
+            requiredMark
+            value={form.passwordConfirm}
+            onChange={(e) => updateField('passwordConfirm', e.target.value)}
+          />
+
+          <Select
+            label="역할"
+            requiredMark
+            value={form.role}
+            onChange={(e) => updateField('role', e.target.value)}
+            options={creatableRoles.map((role) => ({ value: role, label: USER_ROLE_LABELS[role] ?? role }))}
+          />
+        </fieldset>
+
+        <fieldset className="account-form__group">
+          <legend className="account-form__legend">
+            담당 현장
+            <span className="account-form__legend-desc">
+              여러 현장을 함께 담당할 수 있습니다. 선택한 현장의 화면만 이용할 수 있습니다.
+            </span>
+          </legend>
+
+          <div className={`account-form__site-list ${sites.length === 1 ? 'is-single' : ''}`.trim()}>
+            {sites.map((site) => (
+              <span key={site.siteId} className="account-form__site-row">
+                <Checkbox
+                  label={site.name}
+                  checked={selectedSiteIds.includes(site.siteId)}
+                  onChange={() => toggleSite(site.siteId)}
+                />
+                {site.siteId === currentSiteId && <span className="account-form__site-current">현재 현장</span>}
+              </span>
+            ))}
+            {sites.length === 0 && <p className="u-text-muted">선택할 수 있는 현장이 없습니다.</p>}
+          </div>
+        </fieldset>
+
+        <div className="account-form__actions">
           <Button type="button" variant="secondary" onClick={() => navigate(ROUTE_PATHS.settingsAccounts)}>
             취소
           </Button>

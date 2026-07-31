@@ -36,11 +36,20 @@ export default function SiteUnassignedPage() {
   return (
     <div className="site-shell">
       <div className="site-shell__inner site-unassigned">
-        <h1 className="site-shell__title">배정된 현장이 없습니다</h1>
+        {/* 오류가 아니라 배정 대기 상태 — 경고색 대신 안내 톤 아이콘 */}
+        <span className="site-unassigned__icon" aria-hidden="true">
+          🏢
+        </span>
+        <h1 className="site-shell__title">아직 배정된 현장이 없습니다</h1>
         <p className="site-shell__subtitle">
-          담당 현장이 배정되어야 관제·설비 화면을 이용할 수 있습니다. 상위 관리자에게 현장 배정을 요청해주세요.
+          담당 현장이 배정되어야 관제·설비 화면을 이용할 수 있습니다. 현장관리자에게 현장 배정을 요청한 뒤 다시
+          확인해주세요.
         </p>
-        {sites.length > 0 && <p className="u-text-muted">현장 배정이 확인되었습니다. 다시 확인을 눌러주세요.</p>}
+        {sites.length > 0 && (
+          <p className="banner banner-info site-unassigned__ready">
+            현장 배정이 확인되었습니다. 다시 확인을 눌러주세요.
+          </p>
+        )}
 
         <div className="site-unassigned__actions">
           <Button variant="primary" loading={checking} onClick={handleRecheck}>

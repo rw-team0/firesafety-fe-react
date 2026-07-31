@@ -1,7 +1,16 @@
 import { useId } from 'react'
 
 // options: [{ value, label }]. label/error 연결 포함한 공통 select
-export default function Select({ id, label, error, options = [], placeholder, className = '', ...rest }) {
+export default function Select({
+  id,
+  label,
+  error,
+  options = [],
+  placeholder,
+  requiredMark = false,
+  className = '',
+  ...rest
+}) {
   const autoId = useId()
   const selectId = id ?? autoId
 
@@ -10,6 +19,14 @@ export default function Select({ id, label, error, options = [], placeholder, cl
       {label && (
         <label className="field-label" htmlFor={selectId}>
           {label}
+          {requiredMark && (
+            <>
+              <span className="field-required" aria-hidden="true">
+                *
+              </span>
+              <span className="u-sr-only">필수</span>
+            </>
+          )}
         </label>
       )}
       <select

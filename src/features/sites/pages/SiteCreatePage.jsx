@@ -88,38 +88,55 @@ export default function SiteCreatePage() {
         <div className="site-shell__head">
           <div>
             <h1 className="site-shell__title">현장 등록</h1>
-            <p className="site-shell__subtitle">현장과 최초 현장관리자 계정이 함께 등록됩니다.</p>
+            <p className="site-shell__subtitle">
+              현장과 최초 현장관리자 계정이 함께 등록됩니다. <span className="field-required">*</span> 표시는 필수
+              항목입니다.
+            </p>
           </div>
         </div>
 
         <form className="site-form__body card" onSubmit={handleSubmit}>
-          {submitError && <div className="banner banner-danger">{submitError}</div>}
+          {/* 서버가 보낸 실패 사유 — 필드별 인라인 에러와 구분되게 폼 상단 배너로 */}
+          {submitError && (
+            <div className="banner banner-danger" role="alert">
+              {submitError}
+            </div>
+          )}
 
           <fieldset className="site-form__group">
-            <legend className="site-form__legend">현장 정보</legend>
+            <legend className="site-form__legend site-form__section-head">
+              현장 정보
+              <span className="site-form__legend-desc">관제·설비 화면이 이 현장 기준으로 표시됩니다.</span>
+            </legend>
             <Input
               label="현장명"
+              requiredMark
               value={form.name}
               error={errors.name}
               onChange={(event) => updateField('name', event.target.value)}
             />
             <Input
               label="주소"
+              requiredMark
               value={form.address}
               error={errors.address}
               onChange={(event) => updateField('address', event.target.value)}
             />
             <Input
-              label="우편번호 (선택)"
+              label="우편번호"
               value={form.zipCode}
               onChange={(event) => updateField('zipCode', event.target.value)}
             />
           </fieldset>
 
           <fieldset className="site-form__group">
-            <legend className="site-form__legend">최초 현장관리자</legend>
+            <legend className="site-form__legend site-form__section-head">
+              최초 현장관리자
+              <span className="site-form__legend-desc">이 현장을 담당할 현장관리자 계정이 함께 만들어집니다.</span>
+            </legend>
             <Input
               label="이름"
+              requiredMark
               value={form.adminName}
               error={errors.adminName}
               onChange={(event) => updateField('adminName', event.target.value)}
@@ -128,6 +145,7 @@ export default function SiteCreatePage() {
               label="이메일"
               type="email"
               autoComplete="off"
+              requiredMark
               value={form.adminEmail}
               error={errors.adminEmail}
               onChange={(event) => updateField('adminEmail', event.target.value)}
@@ -136,6 +154,8 @@ export default function SiteCreatePage() {
               label="비밀번호"
               type="password"
               autoComplete="new-password"
+              requiredMark
+              hint={PASSWORD_POLICY_MESSAGE}
               value={form.adminPassword}
               error={errors.adminPassword}
               onChange={(event) => updateField('adminPassword', event.target.value)}
@@ -144,12 +164,13 @@ export default function SiteCreatePage() {
               label="비밀번호 확인"
               type="password"
               autoComplete="new-password"
+              requiredMark
               value={form.adminPasswordConfirm}
               error={errors.adminPasswordConfirm}
               onChange={(event) => updateField('adminPasswordConfirm', event.target.value)}
             />
             <Input
-              label="연락처 (선택)"
+              label="연락처"
               value={form.adminPhone}
               onChange={(event) => updateField('adminPhone', event.target.value)}
             />

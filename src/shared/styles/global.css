@@ -225,6 +225,114 @@
   line-height: 1;
 }
 
+/* EmptyState: 제목 + 선택적 보조설명 + 액션 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-32) var(--space-16);
+  text-align: center;
+}
+
+.empty-state__message {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.empty-state__description {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.empty-state > .btn {
+  margin-top: var(--space-4);
+}
+
+/* FilterBar: 필터 필드 묶음 + 우측 액션 */
+.filter-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  margin-bottom: var(--space-16);
+}
+
+.filter-bar__fields {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+/* 좁은 화면에서 필드가 아이콘 크기까지 눌리지 않게 하한만 지정 */
+.filter-bar__fields > .field {
+  min-width: 160px;
+  flex: 1 1 180px;
+}
+
+.filter-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+/* DataTable: 테이블 자체는 축소하지 않고 wrap만 가로 스크롤 */
+.data-table__wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table thead tr {
+  background: var(--color-surface-muted);
+}
+
+.data-table th {
+  text-align: left;
+  padding: var(--space-8) var(--space-12);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: var(--space-12);
+  border-top: 1px solid var(--color-border);
+  vertical-align: middle;
+  /* 이메일·주소처럼 공백 없는 긴 문자열이 열 폭을 밀어내지 않게 */
+  overflow-wrap: anywhere;
+}
+
+.data-table tr.is-clickable {
+  cursor: pointer;
+}
+
+.data-table tr.is-clickable:hover td {
+  background: var(--color-surface-accent);
+}
+
+.data-table__checkbox-cell {
+  width: 40px;
+  padding: var(--space-8) var(--space-12);
+  text-align: center;
+}
+
+.data-table__checkbox-cell input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-brand);
+}
+
 /* Pagination: 하단 중앙 정렬 « ‹ 1 2 3 › » */
 .pagination {
   display: flex;

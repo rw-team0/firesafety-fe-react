@@ -134,7 +134,11 @@ export default function AccountHistoryPage() {
   if (loadError) return <ErrorState onRetry={load} />
 
   return (
-    <div>
+    <div className="account-history">
+      <p className="account-history__notice">
+        직원관리에서 이뤄진 등록·수정·삭제·복구 기록입니다. 삭제된 직원은 이 화면에서만 복구할 수 있습니다.
+      </p>
+
       <FilterBar>
         <Input
           type="date"
@@ -171,8 +175,14 @@ export default function AccountHistoryPage() {
         rows={pagedLogs}
         rowKey={(row) => row.auditId}
         emptyMessage="조회된 이력이 없습니다."
+        emptyDescription="기간을 넓히거나 이력 유형을 전체로 바꿔보세요."
         columns={[
-          { key: 'createdAt', header: '시각', render: (row) => row.createdAt?.replace('T', ' ') ?? '-' },
+          {
+            key: 'createdAt',
+            header: '시각',
+            className: 'account-history__time-cell',
+            render: (row) => row.createdAt?.replace('T', ' ') ?? '-',
+          },
           {
             key: 'targetUserId',
             header: '대상 직원',
@@ -187,7 +197,12 @@ export default function AccountHistoryPage() {
               </span>
             ),
           },
-          { key: 'summary', header: '변경 내용', render: (row) => summarizeLog(row) },
+          {
+            key: 'summary',
+            header: '변경 내용',
+            className: 'account-history__summary-cell',
+            render: (row) => summarizeLog(row),
+          },
           {
             key: 'actorUserId',
             header: '처리자',
@@ -195,7 +210,8 @@ export default function AccountHistoryPage() {
           },
           {
             key: 'restore',
-            header: '',
+            header: '복구',
+            className: 'account-history__restore-cell',
             render: (row) =>
               row.action === 'DELETE' ? (
                 <Button variant="secondary" onClick={() => setRestoreTarget(row.targetUserId)}>
@@ -206,9 +222,7 @@ export default function AccountHistoryPage() {
         ]}
       />
 
-      <div className="account-history__pagination">
-        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
-      </div>
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
 
       <ConfirmModal
         visible={Boolean(restoreTarget)}

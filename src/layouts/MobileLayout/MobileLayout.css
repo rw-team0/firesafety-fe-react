@@ -33,6 +33,23 @@
   align-items: center;
   gap: var(--space-4);
   font-weight: 700;
+  flex-shrink: 0;
+  /* 사용자 정보/로그아웃을 오른쪽 끝으로 밀어냄 — 예전엔 CSS가 없는 빈 spacer div가 이 역할을 맡고 있었음 */
+  margin-right: auto;
+}
+
+/* 이름이 길어도 로그아웃 버튼을 헤더 밖으로 밀지 않게 */
+.mobile-layout__user {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-caption);
+}
+
+.mobile-layout__header .btn-ghost {
+  flex-shrink: 0;
+  padding: 0 var(--space-8);
 }
 
 .mobile-layout__logo {
@@ -44,25 +61,36 @@
 .mobile-layout__site {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-8);
   padding: var(--space-8) var(--space-16);
   background: var(--color-surface-accent);
   border-bottom: 1px solid var(--color-border);
 }
 
+.mobile-layout__site-label {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
 .mobile-layout__site-name {
+  flex: 1;
   font-weight: 700;
+  min-width: 0; /* flex item 기본 min-width:auto면 ellipsis가 안 걸림 */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* 텍스트 링크지만 손가락으로 누를 만한 영역 확보 */
 .mobile-layout__site-change {
+  flex-shrink: 0;
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-pill);
   color: var(--color-brand-strong);
   font-size: var(--font-size-caption);
+  font-weight: 600;
   text-decoration: underline;
-  flex-shrink: 0;
 }
 
 .mobile-layout__content {

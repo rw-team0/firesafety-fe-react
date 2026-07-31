@@ -1,7 +1,7 @@
 .site-card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-8);
   padding: var(--space-16);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -32,7 +32,9 @@
 .site-card__name {
   font-size: var(--font-size-subtitle);
   font-weight: 700;
-  word-break: break-all;
+  line-height: 1.4;
+  /* 긴 현장명은 단어 단위로 줄바꿈하되, 공백 없는 문자열이면 강제로 끊음 */
+  overflow-wrap: anywhere;
 }
 
 .site-card__badge {
@@ -41,11 +43,21 @@
   background: var(--color-brand);
   color: #fff;
   font-size: var(--font-size-caption);
+  flex-shrink: 0;
+}
+
+/* 주소·우편번호는 보조 정보 — 현장명보다 작고 흐리게 */
+.site-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
 }
 
 .site-card__address {
   color: var(--color-text-secondary);
-  word-break: break-all;
+  font-size: var(--font-size-caption);
+  overflow-wrap: anywhere;
 }
 
 .site-card__zip {
@@ -55,8 +67,26 @@
 
 .site-card__actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: var(--space-8);
   margin-top: var(--space-12);
+  padding-top: var(--space-12);
+  border-top: 1px solid var(--color-border);
+}
+
+/* 관리 액션 묶음이 좌측, 주요 액션(입장)이 우측 — 관리 버튼이 없으면 입장이 그대로 우측에 남음 */
+.site-card__manage {
+  display: flex;
+  gap: var(--space-4);
+  margin-right: auto;
+}
+
+.site-card__delete {
+  color: var(--color-danger);
+}
+
+.site-card__delete:hover:not(:disabled) {
+  background: var(--color-danger-bg);
 }

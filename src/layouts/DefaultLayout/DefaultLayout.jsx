@@ -40,7 +40,11 @@ function CurrentSiteBadge() {
 
   return (
     <div className="default-layout__site">
-      <span className="default-layout__site-name">{currentSite.name}</span>
+      {/* 사용자명(사이드바 하단)과 헷갈리지 않게 "현장" 라벨을 항상 붙인다 */}
+      <span className="default-layout__site-label">현장</span>
+      <span className="default-layout__site-name" title={currentSite.name}>
+        {currentSite.name}
+      </span>
       {changeable && (
         <button
           type="button"

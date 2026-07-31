@@ -108,7 +108,9 @@ export default function SiteSelectPage() {
         <div className="site-shell__head">
           <div>
             <h1 className="site-shell__title">현장을 선택해주세요</h1>
-            <p className="site-shell__subtitle">선택한 현장 기준으로 관제·설비 화면이 표시됩니다.</p>
+            <p className="site-shell__subtitle">
+              선택한 현장 기준으로 관제·설비·직원 화면이 표시됩니다. 선택 후에도 상단에서 언제든 바꿀 수 있습니다.
+            </p>
           </div>
           {manageable && (
             <Button variant="primary" onClick={() => navigate(ROUTE_PATHS.settingsSiteAdd)}>
@@ -126,21 +128,27 @@ export default function SiteSelectPage() {
               value={keyword}
               onChange={(event) => setKeyword(event.target.value)}
             />
+            <p className="site-select__count">전체 {sites.length}개 현장</p>
           </div>
         )}
 
         {sites.length === 0 && (
           <EmptyState
             message="등록된 현장이 없습니다."
+            description={manageable ? '현장 등록 버튼을 눌러 첫 현장을 만들어주세요.' : undefined}
             action={
-              <Button variant="primary" onClick={() => navigate(ROUTE_PATHS.settingsSiteAdd)}>
-                현장 등록
-              </Button>
+              manageable ? (
+                <Button variant="primary" onClick={() => navigate(ROUTE_PATHS.settingsSiteAdd)}>
+                  현장 등록
+                </Button>
+              ) : undefined
             }
           />
         )}
 
-        {sites.length > 0 && filtered.length === 0 && <EmptyState message="검색 결과가 없습니다." />}
+        {sites.length > 0 && filtered.length === 0 && (
+          <EmptyState message="검색 결과가 없습니다." description="현장 이름의 일부만 입력해도 검색됩니다." />
+        )}
 
         <div className="site-select__grid">
           {filtered.map((site) => (

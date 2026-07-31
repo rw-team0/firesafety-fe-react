@@ -1,15 +1,15 @@
-.account-list__toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: var(--space-12);
+/* 읽기 전용(일반직원) 안내 — 필터 위, 표와 같은 폭 */
+.account-list__notice {
+  margin-bottom: var(--space-16);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-accent);
+  color: var(--color-brand-strong);
+  font-size: var(--font-size-caption);
 }
 
-.account-list__tel {
-  color: var(--color-brand);
+/* 이름은 목록에서 가장 먼저 읽히는 값 */
+.account-list__name-cell {
   font-weight: 600;
-  text-decoration: none;
-}
-
-.account-list__tel:hover {
-  text-decoration: underline;
+  white-space: nowrap;
 }
