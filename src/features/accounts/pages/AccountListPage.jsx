@@ -27,7 +27,7 @@ const ROLE_FILTER_OPTIONS = [
   { value: ROLES.GENERAL, label: USER_ROLE_LABELS[ROLES.GENERAL] },
 ]
 
-const PAGE_SIZE = 13
+const PAGE_SIZE = 11
 
 function includesText(value, keyword) {
   return String(value ?? '').toLowerCase().includes(keyword)

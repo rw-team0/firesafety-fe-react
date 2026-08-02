@@ -10,6 +10,7 @@ import Input from '@/shared/components/forms/Input'
 import Select from '@/shared/components/forms/Select'
 import BaseModal from '@/shared/components/modals/BaseModal'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
+import ConfirmModal from '@/shared/components/modals/ConfirmModal'
 import { USER_ROLE_LABELS } from '@/shared/constants/domainLabels'
 import { formatResultDateTime } from '@/shared/utils/formatters'
 import '../pages/accountFormShell.css'
@@ -30,6 +31,7 @@ export default function AccountCreateModal({ visible, onClose, onCreated }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
   // 배정 실패로 계정만 먼저 생성된 경우의 userId — 다시 제출할 때 계정을 또 만들지 않고 배정만 재시도하기 위함
   const [createdUserId, setCreatedUserId] = useState(null)
 
@@ -66,7 +68,8 @@ export default function AccountCreateModal({ visible, onClose, onCreated }) {
     setEmailChecked(true)
   }
 
-  async function handleSubmit(event) {
+  // 저장 전 항상 한 번 확인받는다(삭제/복구뿐 아니라 모든 변경에 통일된 흐름)
+  function handleSubmit(event) {
     event.preventDefault()
     setErrorMessage('')
 
@@ -86,6 +89,11 @@ export default function AccountCreateModal({ visible, onClose, onCreated }) {
       }
     }
 
+    setConfirmOpen(true)
+  }
+
+  async function handleConfirmSubmit() {
+    setConfirmOpen(false)
     setSubmitting(true)
     try {
       let userId = createdUserId
@@ -262,6 +270,37 @@ export default function AccountCreateModal({ visible, onClose, onCreated }) {
           </fieldset>
         </form>
       </BaseModal>
+
+      <ConfirmModal
+        visible={confirmOpen}
+        title="직원 등록"
+        message={createdUserId ? '선택한 담당 현장으로 배정을 다시 시도하시겠습니까?' : '입력한 내용으로 직원을 등록하시겠습니까?'}
+        confirmLabel="등록"
+        onConfirm={handleConfirmSubmit}
+        onCancel={() => setConfirmOpen(false)}
+      >
+        <div className="confirm-modal__summary confirm-modal__summary--neutral">
+          <span className="confirm-modal__summary-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <div className="confirm-modal__summary-body">
+            <p className="confirm-modal__summary-row">
+              <span className="confirm-modal__summary-label">대상</span>
+              <span className="confirm-modal__summary-value">{form.name}</span>
+              <span className="confirm-modal__summary-badge">등록</span>
+            </p>
+            <p className="confirm-modal__summary-detail">담당 현장에 체크한 현장 전체가 배정됩니다.</p>
+          </div>
+        </div>
+      </ConfirmModal>
 
       <ActionResultModal
         visible={Boolean(result)}

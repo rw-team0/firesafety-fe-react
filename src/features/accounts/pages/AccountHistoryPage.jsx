@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getUserAuditLogs, getUsers, restoreUser } from '../api/accountApi'
-import { summarizeLog } from '../utils/auditLog'
+import AuditLogDetailModal from '../components/AuditLogDetailModal'
+import { ACTION_COLOR } from '../utils/auditLog'
 import { useAuth } from '@/features/auth/useAuth'
 import BaseCard from '@/shared/components/data-display/BaseCard'
-import Button from '@/shared/components/buttons/Button'
 import DataTable from '@/shared/components/data-display/DataTable'
 import Pagination from '@/shared/components/data-display/Pagination'
 import ErrorState from '@/shared/components/feedback/ErrorState'
@@ -31,15 +31,7 @@ const ACTION_OPTIONS = [
   { value: 'PASSWORD_RESET', label: '비밀번호 변경' },
 ]
 
-const ACTION_COLOR = {
-  CREATE: 'var(--color-success)',
-  UPDATE: 'var(--color-warning)',
-  DELETE: 'var(--color-danger)',
-  RESTORE: 'var(--color-success)',
-  PASSWORD_RESET: 'var(--color-brand)',
-}
-
-const PAGE_SIZE = 13
+const PAGE_SIZE = 11
 
 // 기본 조회 기간(최근 7일) — 초기값과 초기화 버튼이 같은 기준을 쓰도록 함수로 뺌
 function defaultFromDate() {
@@ -61,6 +53,7 @@ export default function AccountHistoryPage() {
   const [page, setPage] = useState(1)
   const [restoreTarget, setRestoreTarget] = useState(null)
   const [restoreResult, setRestoreResult] = useState(null)
+  const [selectedLog, setSelectedLog] = useState(null)
 
   async function load() {
     setLoading(true)
@@ -116,29 +109,35 @@ export default function AccountHistoryPage() {
     load()
   }
 
+  // 상세 모달의 복구 버튼 — 상세는 닫고 기존 확인 모달로 이어받는다
+  function requestRestore(userId) {
+    setSelectedLog(null)
+    setRestoreTarget(userId)
+  }
+
   if (loadError) return <ErrorState onRetry={load} />
 
   return (
     <div className="account-history">
-      <p className="account-history__notice">
-        직원관리에서 이뤄진 등록·수정·삭제·복구 기록입니다. 삭제된 직원은 이 화면에서만 복구할 수 있습니다.
-      </p>
-
       <BaseCard className="card--filter">
         <TabBar tabs={TABS} />
         <FilterBar onReset={handleReset}>
+          <span className="account-history__date-label">검색일</span>
           <Input
             type="date"
-            label="시작일"
+            aria-label="검색 시작일"
             value={from}
             onChange={(e) => {
               setFrom(e.target.value)
               setPage(1)
             }}
           />
+          <span className="account-history__date-sep" aria-hidden="true">
+            ~
+          </span>
           <Input
             type="date"
-            label="종료일"
+            aria-label="검색 종료일"
             value={to}
             onChange={(e) => {
               setTo(e.target.value)
@@ -146,8 +145,8 @@ export default function AccountHistoryPage() {
             }}
           />
           <Select
-            label="이력 유형"
-            placeholder="전체"
+            aria-label="유형"
+            placeholder="유형"
             value={actionFilter}
             onChange={(e) => {
               setActionFilter(e.target.value)
@@ -163,8 +162,9 @@ export default function AccountHistoryPage() {
         loading={loading}
         rows={pagedLogs}
         rowKey={(row) => row.auditId}
+        onRowClick={(row) => setSelectedLog(row)}
         emptyMessage="조회된 이력이 없습니다."
-        emptyDescription="기간을 넓히거나 이력 유형을 전체로 바꿔보세요."
+        emptyDescription="기간을 넓히거나 유형을 전체로 바꿔보세요."
         columns={[
           {
             key: 'createdAt',
@@ -190,31 +190,32 @@ export default function AccountHistoryPage() {
             ),
           },
           {
-            key: 'summary',
-            header: '변경 내용',
-            className: 'account-history__summary-cell',
-            render: (row) => summarizeLog(row),
-          },
-          {
             key: 'actorUserId',
             header: '처리자',
             render: (row) => (row.actorUserId ? usersById[row.actorUserId]?.name ?? `#${row.actorUserId}` : '-'),
           },
-          {
-            key: 'restore',
-            header: '복구',
-            className: 'account-history__restore-cell',
-            render: (row) =>
-              row.action === 'DELETE' ? (
-                <Button variant="secondary" onClick={() => setRestoreTarget(row.targetUserId)}>
-                  복구
-                </Button>
-              ) : null,
-          },
         ]}
       />
 
-      <Pagination page={currentPage} totalPages={totalPages} onChange={setPage} />
+      {!loading && filteredLogs.length > 0 && (
+        <div className="account-history__footer">
+          <p className="account-history__count">
+            총 {logs.length}건 중 {filteredLogs.length}건 조회
+          </p>
+          <Pagination page={currentPage} totalPages={totalPages} onChange={setPage} />
+        </div>
+      )}
+
+      <AuditLogDetailModal
+        visible={Boolean(selectedLog)}
+        log={selectedLog}
+        targetName={selectedLog ? usersById[selectedLog.targetUserId]?.name ?? `#${selectedLog.targetUserId}` : ''}
+        actorName={
+          selectedLog?.actorUserId ? usersById[selectedLog.actorUserId]?.name ?? `#${selectedLog.actorUserId}` : '-'
+        }
+        onClose={() => setSelectedLog(null)}
+        onRestore={requestRestore}
+      />
 
       <ConfirmModal
         visible={Boolean(restoreTarget)}
@@ -223,7 +224,30 @@ export default function AccountHistoryPage() {
         confirmLabel="복구"
         onConfirm={handleRestore}
         onCancel={() => setRestoreTarget(null)}
-      />
+      >
+        <div className="confirm-modal__summary confirm-modal__summary--neutral">
+          <span className="confirm-modal__summary-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M3 12a9 9 0 1 1 3 6.7"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path d="M3 21v-6h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+          <div className="confirm-modal__summary-body">
+            <p className="confirm-modal__summary-row">
+              <span className="confirm-modal__summary-label">대상</span>
+              <span className="confirm-modal__summary-value">{usersById[restoreTarget]?.name ?? `#${restoreTarget}`}</span>
+              <span className="confirm-modal__summary-badge">복구</span>
+            </p>
+            <p className="confirm-modal__summary-detail">삭제된 계정이 다시 활성화됩니다.</p>
+          </div>
+        </div>
+      </ConfirmModal>
 
       <ActionResultModal
         visible={Boolean(restoreResult)}

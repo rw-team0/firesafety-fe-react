@@ -11,6 +11,7 @@ import Input from '@/shared/components/forms/Input'
 import Select from '@/shared/components/forms/Select'
 import BaseModal from '@/shared/components/modals/BaseModal'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
+import ConfirmModal from '@/shared/components/modals/ConfirmModal'
 import LoadingState from '@/shared/components/feedback/LoadingState'
 import ErrorState from '@/shared/components/feedback/ErrorState'
 import { USER_ROLE_LABELS } from '@/shared/constants/domainLabels'
@@ -32,6 +33,7 @@ export default function AccountDetailModal({ visible, user: targetUser, onClose,
   const [errorMessage, setErrorMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const userId = targetUser?.userId
   // GET /users/audit-logs는 백엔드가 SUPER_ADMIN 전용으로 막아둠(관리이력 페이지와 동일 기준) — 그 외 역할은 호출 자체를 안 함
@@ -100,7 +102,8 @@ export default function AccountDetailModal({ visible, user: targetUser, onClose,
     setMode('view')
   }
 
-  async function handleSubmit(event) {
+  // 저장 전 항상 한 번 확인받는다(삭제/복구뿐 아니라 모든 변경에 통일된 흐름)
+  function handleSubmit(event) {
     event.preventDefault()
     if (!editable) return
     setErrorMessage('')
@@ -110,6 +113,11 @@ export default function AccountDetailModal({ visible, user: targetUser, onClose,
       return
     }
 
+    setConfirmOpen(true)
+  }
+
+  async function handleConfirmSubmit() {
+    setConfirmOpen(false)
     setSubmitting(true)
     try {
       await updateUser(userId, { name: form.name, email: form.email, phone: form.phone, role: form.role })
@@ -306,6 +314,37 @@ export default function AccountDetailModal({ visible, user: targetUser, onClose,
           </form>
         )}
       </BaseModal>
+
+      <ConfirmModal
+        visible={confirmOpen}
+        title="직원 정보 수정"
+        message="입력한 내용으로 직원 정보를 수정하시겠습니까?"
+        confirmLabel="수정"
+        onConfirm={handleConfirmSubmit}
+        onCancel={() => setConfirmOpen(false)}
+      >
+        <div className="confirm-modal__summary confirm-modal__summary--neutral">
+          <span className="confirm-modal__summary-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <div className="confirm-modal__summary-body">
+            <p className="confirm-modal__summary-row">
+              <span className="confirm-modal__summary-label">대상</span>
+              <span className="confirm-modal__summary-value">{form.name}</span>
+              <span className="confirm-modal__summary-badge">수정</span>
+            </p>
+            <p className="confirm-modal__summary-detail">담당 현장 배정도 체크한 내용으로 함께 교체됩니다.</p>
+          </div>
+        </div>
+      </ConfirmModal>
 
       <ActionResultModal
         visible={Boolean(result)}
