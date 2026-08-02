@@ -21,12 +21,8 @@ export const ROUTE_PATHS = {
   settings: '/settings',
   settingsFacilities: '/settings/facilities',
   settingsFacilitiesHistory: '/settings/facilities/history',
-  settingsSiteAssignment: '/settings/site-assignment',
   settingsAccounts: '/settings/accounts',
   settingsAccountHistory: '/settings/accounts/history',
-  settingsSiteAdd: '/settings/sites/new',
-  // ':siteId' 단독 경로였으면 '/settings/sites/new'가 siteId=new로 잡힘 → /edit 접미사로 구분
-  settingsSiteEdit: '/settings/sites/:siteId/edit',
   settingsInspectionChecklist: '/settings/inspections', // [GAP] REQ-511, 백엔드 완료
   settingsInspectionHistory: '/settings/inspections/history', // [GAP] REQ-512, 백엔드 완료
 
@@ -35,6 +31,7 @@ export const ROUTE_PATHS = {
 
   // 모바일
   mobileLogin: '/m/login',
+  mobileSiteSelect: '/m/select-site',
   mobileDashboard: '/m/dashboard',
   mobileAlerts: '/m/alerts',
 

@@ -1,8 +1,11 @@
-/* 사이드바 진입 전 독립 화면(현장 선택/미배정/등록/수정) 공통 셸 — AuthLayout(빈 셸) 위에서 쓰인다 */
+/* 사이드바 진입 전 독립 화면(현장 선택/미배정/등록/수정) 공통 셸 — AuthLayout(빈 셸) 위에서 쓰인다.
+   로그인 전/현장 선택 전 화면이라 MobileLayout 밖이라서 여기서 직접 safe-area를 확보한다 */
 .site-shell {
   min-height: 100vh;
   background: var(--color-page-bg);
-  padding: var(--space-24) var(--space-16);
+  /* 상단 safe-area는 이제 site-shell__topbar(전체 폭 헤더)가 확보 — 여기선 좌우/하단만 */
+  padding: var(--space-24) calc(var(--space-16) + var(--safe-right)) calc(var(--space-24) + var(--safe-bottom))
+    calc(var(--space-16) + var(--safe-left));
 }
 
 .site-shell__inner {
@@ -11,35 +14,30 @@
   margin: 0 auto;
 }
 
+/* 청록색 한 줄 헤더 — 콘텐츠 폭 제한 없이 화면 전체 폭으로, DefaultLayout/MobileLayout과 같은 sticky 패턴 */
 .site-shell__topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: var(--space-12);
-  margin-bottom: var(--space-20);
+  min-height: 56px;
+  padding: var(--safe-top) calc(var(--space-24) + var(--safe-right)) 0 calc(var(--space-24) + var(--safe-left));
+  background: var(--color-sidebar-bg);
+  color: var(--color-text-on-dark);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky-header);
 }
 
-.site-shell__brand {
-  display: flex;
-  align-items: center;
-  gap: var(--space-8);
-  font-weight: 700;
-  font-size: var(--font-size-subtitle);
+.site-shell__topbar .u-text-secondary {
+  color: var(--color-text-on-dark);
+  opacity: 0.85;
 }
 
-.site-shell__logo {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
+.site-shell__topbar .btn-ghost {
+  color: var(--color-text-on-dark);
 }
 
-.site-shell__user {
-  display: flex;
-  align-items: center;
-  gap: var(--space-8);
-  flex-wrap: wrap;
-}
 
 /* 제목 위 작은 대상 표시(수정 중인 현장/직원 이름) */
 .site-shell__eyebrow {
@@ -95,6 +93,60 @@
   border-top: 1px solid var(--color-border);
 }
 
+/* 2:1 비율 한 줄 — 현장명/우편번호, 주소/주소검색 버튼 */
+.site-form__row-2-1 {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+}
+
+.site-form__row-2-1 > .field:first-child {
+  flex: 2;
+  min-width: 0;
+}
+
+.site-form__row-2-1 > :last-child {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 버튼은 라벨 높이만큼 내려서 입력창과 나란히 — account-form__email-row와 동일한 트릭 */
+.site-form__row-2-1 > .btn {
+  margin-top: 20px;
+}
+
+/* 주소 검색 결과 후보 목록 */
+.site-form__address-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-8);
+}
+
+.site-form__address-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-sm);
+  text-align: left;
+}
+
+.site-form__address-result:hover {
+  background: var(--color-surface-accent);
+}
+
+.site-form__address-result-zip {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
 .site-form__legend {
   font-weight: 700;
   font-size: var(--font-size-subtitle);
@@ -121,10 +173,26 @@
   margin-top: var(--space-8);
 }
 
+/* 현장 수정 모달 footer — 삭제(위험)는 왼쪽, 취소/저장은 오른쪽으로 분리.
+   .modal-actions 기본은 justify-content:center라 이 한 줄(자식 1개)이 폭 전체를 차지하게 함 */
+.site-modal__footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: var(--space-12);
+}
+
+.site-modal__footer-actions {
+  display: flex;
+  gap: var(--space-8);
+}
+
 /* 390px: 폼은 한 열, 버튼은 폭 전체를 나눠 쓰게 */
 @media (max-width: 480px) {
   .site-shell {
-    padding: var(--space-16) var(--space-12);
+    padding: calc(var(--space-16) + var(--safe-top)) calc(var(--space-12) + var(--safe-right))
+      calc(var(--space-16) + var(--safe-bottom)) calc(var(--space-12) + var(--safe-left));
   }
 
   .site-form__actions {
@@ -133,5 +201,18 @@
 
   .site-form__actions .btn {
     flex: 1;
+  }
+
+  .site-form__row-2-1 {
+    flex-wrap: wrap;
+  }
+
+  .site-form__row-2-1 > .field:first-child,
+  .site-form__row-2-1 > :last-child {
+    flex: 1 1 100%;
+  }
+
+  .site-form__row-2-1 > .btn {
+    margin-top: 0;
   }
 }

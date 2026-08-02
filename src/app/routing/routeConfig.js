@@ -4,8 +4,7 @@ import LoginPage from '@/features/auth/pages/LoginPage'
 import MobileLoginPage from '@/features/auth/pages/MobileLoginPage'
 import PasswordResetConfirmPage from '@/features/auth/pages/PasswordResetConfirmPage'
 import PasswordResetRequestPage from '@/features/auth/pages/PasswordResetRequestPage'
-import SiteCreatePage from '@/features/sites/pages/SiteCreatePage'
-import SiteEditPage from '@/features/sites/pages/SiteEditPage'
+import MobileSiteSelectPage from '@/features/sites/pages/MobileSiteSelectPage'
 import SiteSelectPage from '@/features/sites/pages/SiteSelectPage'
 import SiteUnassignedPage from '@/features/sites/pages/SiteUnassignedPage'
 import { ROLES } from '@/shared/constants/roles'
@@ -60,20 +59,13 @@ export const routeConfig = [
     page: SiteUnassignedPage,
   },
   {
-    path: ROUTE_PATHS.settingsSiteAdd,
+    // 모바일 전용 페이지 — 선택·입장만, 관리 액션(등록/수정/삭제) 없음
+    path: ROUTE_PATHS.mobileSiteSelect,
     layout: 'auth',
-    requiredRole: ROLES.SUPER_ADMIN,
-    title: '현장 등록',
-    page: SiteCreatePage,
+    requiredRole: ROLES.GENERAL,
+    title: '현장 선택',
+    page: MobileSiteSelectPage,
   },
-  {
-    path: ROUTE_PATHS.settingsSiteEdit,
-    layout: 'auth',
-    requiredRole: ROLES.SUPER_ADMIN,
-    title: '현장 수정',
-    page: SiteEditPage,
-  },
-
   // 관제 (PC)
   {
     path: ROUTE_PATHS.dashboard,
@@ -139,14 +131,6 @@ export const routeConfig = [
     requiredRole: ROLES.SUPER_ADMIN,
     title: '설비 변경 이력',
     scrId: 'SCR-503',
-    requiresSite: true,
-  },
-  {
-    path: ROUTE_PATHS.settingsSiteAssignment,
-    layout: 'default',
-    requiredRole: ROLES.ADMIN,
-    title: '담당현장 배정',
-    scrId: 'SCR-504',
     requiresSite: true,
   },
   {

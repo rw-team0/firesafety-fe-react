@@ -31,3 +31,10 @@ export async function deleteSite(siteId) {
   const res = await httpRequester.delete(`/sites/${siteId}`)
   return unwrap(res)
 }
+
+// 행정안전부 도로명주소 API를 감싼 백엔드 자체 엔드포인트(SUPER_ADMIN 전용) — 현장 등록 폼의 주소 검색
+// 응답 content: [{ address, zipCode, buildingName }], page 없이 호출하면 서버 기본값 사용
+export async function searchAddress(keyword, { page, size } = {}) {
+  const res = await httpRequester.get('/facilities/address/search', { params: { keyword, page, size } })
+  return unwrap(res)
+}

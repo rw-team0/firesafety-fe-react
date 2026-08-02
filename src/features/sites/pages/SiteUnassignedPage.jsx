@@ -55,8 +55,18 @@ export default function SiteUnassignedPage() {
           <Button variant="primary" loading={checking} onClick={handleRecheck}>
             다시 확인
           </Button>
-          <Button variant="secondary" onClick={logout}>
-            로그아웃
+          <Button variant="secondary" onClick={logout} aria-label="로그아웃" title="로그아웃">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path d="M16 17l5-5-5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M21 12H9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
           </Button>
         </div>
       </div>

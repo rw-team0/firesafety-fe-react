@@ -1,10 +1,9 @@
 import { canAutoEnterSingleSite } from './sitePolicy'
 import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 
-// 현장 선택 화면은 PC/모바일 공용이라 선택 후 돌아갈 대시보드를 next 쿼리로 전달
+// 컴포넌트는 PC/모바일 공용(SiteSelectPage)이지만 주소는 /m/* 규칙에 맞춰 분리
 export function buildSiteSelectPath(isMobile) {
-  if (!isMobile) return ROUTE_PATHS.siteSelect
-  return `${ROUTE_PATHS.siteSelect}?next=${encodeURIComponent(ROUTE_PATHS.mobileDashboard)}`
+  return isMobile ? ROUTE_PATHS.mobileSiteSelect : ROUTE_PATHS.siteSelect
 }
 
 // 로그인 직후와 SiteRoute 가드가 공유하는 역할별 진입 규칙(0/1/N)

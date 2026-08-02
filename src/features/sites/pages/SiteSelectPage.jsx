@@ -1,62 +1,76 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
-import { deleteSite } from '../api/siteApi'
-import SiteCard from '../components/SiteCard'
+import { Navigate, useNavigate } from 'react-router-dom'
+import SiteCreateModal from '../components/SiteCreateModal'
+import SiteEditModal from '../components/SiteEditModal'
 import { useSite } from '../useSite'
 import { canManageSites } from '../utils/sitePolicy'
 import { useAuth } from '@/features/auth/useAuth'
 import Button from '@/shared/components/buttons/Button'
-import Input from '@/shared/components/forms/Input'
+import Select from '@/shared/components/forms/Select'
 import EmptyState from '@/shared/components/feedback/EmptyState'
 import ErrorState from '@/shared/components/feedback/ErrorState'
 import LoadingState from '@/shared/components/feedback/LoadingState'
-import ActionResultModal from '@/shared/components/modals/ActionResultModal'
-import ConfirmModal from '@/shared/components/modals/ConfirmModal'
 import { USER_ROLE_LABELS } from '@/shared/constants/domainLabels'
-import { ROUTE_PATHS, buildPath } from '@/shared/constants/routePaths'
-import { formatResultDateTime } from '@/shared/utils/formatters'
+import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 import './sitePageShell.css'
 import './SiteSelectPage.css'
 
-// 현장 선택·관리. SiteRoute 대상이 아니므로(=여기로 리다이렉트해도 되돌아오지 않음) 가드 루프의 종착점
+// 현장 선택·관리(PC 전용). SiteRoute 대상이 아니므로(=여기로 리다이렉트해도 되돌아오지 않음) 가드 루프의 종착점
+// 모바일은 MobileSiteSelectPage(선택만, 관리 액션 없음) 별도 페이지 사용
 export default function SiteSelectPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
   const { user, role, logout } = useAuth()
   const { sites, currentSite, isInitialized, isLoadingSites, siteLoadError, loadSites, refreshSites, selectSite } =
     useSite()
 
-  const [keyword, setKeyword] = useState('')
-  const [deleteTarget, setDeleteTarget] = useState(null)
-  const [deleteResult, setDeleteResult] = useState(null)
+  const [selectedSiteId, setSelectedSiteId] = useState('')
+  const [createOpen, setCreateOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
 
   const manageable = canManageSites(role)
-  // 모바일 로그인에서 넘어온 경우 선택 후 /m/dashboard로 복귀 필요
-  const nextPath = searchParams.get('next') === ROUTE_PATHS.mobileDashboard ? ROUTE_PATHS.mobileDashboard : ROUTE_PATHS.dashboard
 
   useEffect(() => {
     if (isInitialized || isLoadingSites || siteLoadError) return
     loadSites().catch(() => {})
   }, [isInitialized, isLoadingSites, siteLoadError, loadSites])
 
-  const filtered = useMemo(() => {
-    const q = keyword.trim().toLowerCase()
-    if (!q) return sites
-    return sites.filter((site) => site.name?.toLowerCase().includes(q))
-  }, [sites, keyword])
+  // 목록이 바뀌어도(등록/삭제) 선택값이 유효하면 유지, 아니면 현재 현장 또는 첫 번째로 보정
+  useEffect(() => {
+    if (sites.length === 0) {
+      setSelectedSiteId('')
+      return
+    }
+    if (sites.some((site) => String(site.siteId) === String(selectedSiteId))) return
+    setSelectedSiteId(String(currentSite?.siteId ?? sites[0].siteId))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sites])
 
-  function handleEnter(site) {
-    selectSite(site)
-    navigate(nextPath, { replace: true })
+  const selectedSite = useMemo(
+    () => sites.find((site) => String(site.siteId) === String(selectedSiteId)) ?? null,
+    [sites, selectedSiteId],
+  )
+
+  function handleEnter() {
+    if (!selectedSite) return
+    selectSite(selectedSite)
+    navigate(ROUTE_PATHS.dashboard, { replace: true })
   }
 
-  async function handleDelete() {
-    const target = deleteTarget
-    // 실패하면 여기서 throw되어 아래 정리(모달 닫기/목록 갱신)가 실행되지 않음 — 대상 유지, 실패 메시지는 인터셉터가 전역 표시
-    await deleteSite(target.siteId)
-    setDeleteTarget(null)
-    await refreshSites().catch(() => {}) // 삭제된 현장이 currentSite였으면 refresh 중 normalize가 선택을 해제
-    setDeleteResult({ name: target.name })
+  function handleCreated() {
+    refreshSites().catch(() => {})
+  }
+
+  function handleUpdated(updatedSite) {
+    refreshSites().catch(() => {})
+    if (updatedSite && currentSite && String(currentSite.siteId) === String(updatedSite.siteId)) {
+      selectSite(updatedSite)
+    }
+  }
+
+  // 완료 안내는 SiteEditModal이 이미 자체 ActionResultModal로 보여준 뒤 호출 — 여기선 목록/현재 현장만 정리
+  function handleDeleted({ siteId }) {
+    refreshSites().catch(() => {})
+    if (currentSite && String(currentSite.siteId) === String(siteId)) selectSite(null)
   }
 
   if (siteLoadError) {
@@ -65,8 +79,18 @@ export default function SiteSelectPage() {
         <div className="site-shell__inner u-flex-col u-gap-12">
           <ErrorState message={siteLoadError} onRetry={() => loadSites({ force: true }).catch(() => {})} />
           <div>
-            <Button variant="secondary" onClick={logout}>
-              로그아웃
+            <Button variant="secondary" onClick={logout} aria-label="로그아웃" title="로그아웃">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path d="M16 17l5-5-5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M21 12H9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
             </Button>
           </div>
         </div>
@@ -88,132 +112,101 @@ export default function SiteSelectPage() {
   if (!manageable && sites.length === 0) return <Navigate to={ROUTE_PATHS.siteUnassigned} replace />
 
   return (
-    <div className="site-shell">
-      <div className="site-shell__inner">
-        <div className="site-shell__topbar">
-          <span className="site-shell__brand">
-            <img src="/ArcGuard.png" alt="" className="site-shell__logo" />
-            ArcGuard
+    <>
+      <header className="site-shell__topbar">
+        {user && (
+          <span className="u-text-secondary">
+            {user.name} · {USER_ROLE_LABELS[role] ?? role}
           </span>
-          <span className="site-shell__user">
-            {user && (
-              <span className="u-text-secondary">
-                {user.name} · {USER_ROLE_LABELS[role] ?? role}
-              </span>
-            )}
-            <Button variant="ghost" onClick={logout}>
-              로그아웃
-            </Button>
-          </span>
-        </div>
+        )}
+        <Button variant="ghost" className="site-select__logout-btn" onClick={logout}>
+          로그아웃
+        </Button>
+      </header>
 
-        <div className="site-shell__head">
-          <div>
-            <h1 className="site-shell__title">현장을 선택해주세요</h1>
-            <p className="site-shell__subtitle">
-              선택한 현장 기준으로 관제·설비·직원 화면이 표시됩니다. 선택 후에도 상단에서 언제든 바꿀 수 있습니다.
-            </p>
-          </div>
-          {manageable && (
-            <Button variant="primary" onClick={() => navigate(ROUTE_PATHS.settingsSiteAdd)}>
-              현장 등록
-            </Button>
+      <div className="site-shell site-select__shell">
+        <div className="site-shell__inner">
+          {sites.length === 0 ? (
+            <EmptyState
+              message="등록된 현장이 없습니다."
+              description={manageable ? '현장 등록 버튼을 눌러 첫 현장을 만들어주세요.' : undefined}
+              action={
+                manageable ? (
+                  <Button variant="primary" onClick={() => setCreateOpen(true)}>
+                    현장 등록
+                  </Button>
+                ) : undefined
+              }
+            />
+          ) : (
+            <div className="site-select__center">
+              <div className="site-select__hero">
+                <h1 className="site-select__hero-title">
+                  <img src="/ArcGuard.png" alt="" className="site-select__hero-logo" />
+                  ArcGuard
+                </h1>
+                <p className="site-select__hero-subtitle">전기화재 예방 모니터링</p>
+              </div>
+
+              <div className="site-select__picker">
+                <Select
+                  aria-label="현장 선택"
+                  value={selectedSiteId}
+                  onChange={(event) => setSelectedSiteId(event.target.value)}
+                  options={sites.map((site) => ({ value: String(site.siteId), label: site.name }))}
+                />
+                {manageable && (
+                  <Button variant="secondary" onClick={() => setEditOpen(true)} disabled={!selectedSite}>
+                    수정
+                  </Button>
+                )}
+                {manageable && (
+                  <Button variant="primary" className="site-select__create-btn" onClick={() => setCreateOpen(true)}>
+                    + 등록
+                  </Button>
+                )}
+              </div>
+
+              {selectedSite && (
+                <button type="button" className="site-select__shortcut" onClick={handleEnter}>
+                  <span className="site-select__shortcut-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M3 21V8l9-5 9 5v13h-6v-7H9v7H3z"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span className="site-select__shortcut-footer">
+                    <span className="site-select__shortcut-body">
+                      <span className="site-select__shortcut-title">{selectedSite.name}</span>
+                      <span className="site-select__shortcut-desc">{selectedSite.address || '주소 미등록'}</span>
+                    </span>
+                    <span className="site-select__shortcut-arrow" aria-hidden="true">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                  </span>
+                </button>
+              )}
+            </div>
           )}
         </div>
 
-        {/* 백엔드에 현장 검색 API가 없어 받아온 목록 안에서만 이름으로 필터링 */}
-        {sites.length > 0 && (
-          <div className="site-select__search">
-            <Input
-              label="현장 검색"
-              placeholder="현장 이름"
-              value={keyword}
-              onChange={(event) => setKeyword(event.target.value)}
-            />
-            <p className="site-select__count">전체 {sites.length}개 현장</p>
-          </div>
-        )}
+        <SiteCreateModal visible={createOpen} onClose={() => setCreateOpen(false)} onCreated={handleCreated} />
 
-        {sites.length === 0 && (
-          <EmptyState
-            message="등록된 현장이 없습니다."
-            description={manageable ? '현장 등록 버튼을 눌러 첫 현장을 만들어주세요.' : undefined}
-            action={
-              manageable ? (
-                <Button variant="primary" onClick={() => navigate(ROUTE_PATHS.settingsSiteAdd)}>
-                  현장 등록
-                </Button>
-              ) : undefined
-            }
-          />
-        )}
-
-        {sites.length > 0 && filtered.length === 0 && (
-          <EmptyState message="검색 결과가 없습니다." description="현장 이름의 일부만 입력해도 검색됩니다." />
-        )}
-
-        <div className="site-select__grid">
-          {filtered.map((site) => (
-            <SiteCard
-              key={site.siteId}
-              site={site}
-              manageable={manageable}
-              isCurrent={currentSite?.siteId === site.siteId}
-              onEnter={handleEnter}
-              onEdit={(target) => navigate(buildPath(ROUTE_PATHS.settingsSiteEdit, { siteId: target.siteId }))}
-              onDelete={setDeleteTarget}
-            />
-          ))}
-        </div>
+        <SiteEditModal
+          visible={editOpen}
+          site={selectedSite}
+          onClose={() => setEditOpen(false)}
+          onUpdated={handleUpdated}
+          onDeleted={handleDeleted}
+        />
       </div>
-
-      <ConfirmModal
-        visible={Boolean(deleteTarget)}
-        danger
-        title="현장 삭제"
-        message="이 현장을 삭제하시겠습니까?"
-        confirmLabel="삭제"
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteTarget(null)}
-      >
-        <div className="confirm-modal__summary">
-          <span className="confirm-modal__summary-icon" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-          <div className="confirm-modal__summary-body">
-            <p className="confirm-modal__summary-row">
-              <span className="confirm-modal__summary-label">현장명</span>
-              <span className="confirm-modal__summary-value">{deleteTarget?.name}</span>
-              <span className="confirm-modal__summary-badge">삭제</span>
-            </p>
-            <p className="confirm-modal__summary-detail">
-              상태를 삭제로 변경 · 삭제된 현장은 현장 선택 목록에서 제외됩니다{deleteTarget?.address ? ` · ${deleteTarget.address}` : ''}
-            </p>
-          </div>
-        </div>
-      </ConfirmModal>
-
-      <ActionResultModal
-        visible={Boolean(deleteResult)}
-        type="success"
-        title="삭제가 완료되었습니다."
-        subtitle="선택한 현장이 삭제되었습니다."
-        infoRows={[
-          { label: '처리 항목', value: deleteResult?.name },
-          { label: '처리 시각', value: formatResultDateTime() },
-          { label: '처리 내용', value: '현장 삭제' },
-          { label: '처리자', value: user?.name },
-        ]}
-        onClose={() => setDeleteResult(null)}
-      />
-    </div>
+    </>
   )
 }
