@@ -4,28 +4,18 @@
   min-height: 100vh;
 }
 
-/* 상단 고정 헤더 */
+/* 상단 고정 헤더 — PWA standalone 노치 영역만큼 padding-top으로 확보(border-box라 min-height 위로 자연히 늘어남) */
 .mobile-layout__header {
-  height: 52px;
+  min-height: 52px;
   display: flex;
   align-items: center;
   gap: var(--space-12);
-  padding: 0 var(--space-16);
+  padding: var(--safe-top) calc(var(--space-16) + var(--safe-right)) 0 calc(var(--space-16) + var(--safe-left));
   background: var(--color-header-bg);
   color: var(--color-text-on-dark);
   position: sticky;
   top: 0;
   z-index: var(--z-sticky-header);
-}
-
-/* 어두운 헤더 배경용 공통 유틸/버튼 색상 재정의 */
-.mobile-layout__header .u-text-secondary {
-  color: var(--color-text-on-dark);
-  opacity: 0.85;
-}
-
-.mobile-layout__header .btn-ghost {
-  color: var(--color-text-on-dark);
 }
 
 .mobile-layout__brand {
@@ -34,22 +24,8 @@
   gap: var(--space-4);
   font-weight: 700;
   flex-shrink: 0;
-  /* 사용자 정보/로그아웃을 오른쪽 끝으로 밀어냄 — 예전엔 CSS가 없는 빈 spacer div가 이 역할을 맡고 있었음 */
+  /* 아이콘 버튼들을 오른쪽 끝으로 밀어냄 */
   margin-right: auto;
-}
-
-/* 이름이 길어도 로그아웃 버튼을 헤더 밖으로 밀지 않게 */
-.mobile-layout__user {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--font-size-caption);
-}
-
-.mobile-layout__header .btn-ghost {
-  flex-shrink: 0;
-  padding: 0 var(--space-8);
 }
 
 .mobile-layout__logo {
@@ -58,32 +34,165 @@
   border-radius: var(--radius-sm);
 }
 
-.mobile-layout__site {
+/* 알림/전체메뉴 아이콘 버튼 — 손가락으로 누를 영역 확보 위해 정사각 */
+.mobile-layout__icon-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
-  gap: var(--space-8);
-  padding: var(--space-8) var(--space-16);
-  background: var(--color-surface-accent);
-  border-bottom: 1px solid var(--color-border);
+  justify-content: center;
+  color: var(--color-text-on-dark);
+  border-radius: var(--radius-md);
 }
 
-.mobile-layout__site-label {
-  flex-shrink: 0;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-caption);
+.mobile-layout__icon-btn:active {
+  background: rgba(255, 255, 255, 0.12);
 }
 
-.mobile-layout__site-name {
+.mobile-layout__content {
   flex: 1;
+  padding: var(--space-16);
+}
+
+/* 하단 고정 탭바 — 홈 인디케이터(iOS)에 탭이 가려지지 않게 padding-bottom으로 확보 */
+.mobile-layout__tabbar {
+  display: flex;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding-bottom: var(--safe-bottom);
+  position: sticky;
+  bottom: 0;
+}
+
+.mobile-layout__tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-8) 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* NavLink isActive가 붙이는 클래스 */
+.mobile-layout__tab.is-active {
+  color: var(--color-brand);
   font-weight: 700;
-  min-width: 0; /* flex item 기본 min-width:auto면 ellipsis가 안 걸림 */
+}
+
+/* 드로어(전체 메뉴) — 헤더 삼선 → 우측 슬라이드 패널 */
+.mobile-drawer__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 26, 32, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-base) ease;
+  z-index: var(--z-modal-overlay);
+}
+
+.mobile-drawer__backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(300px, 82vw);
+  background: var(--color-surface);
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: calc(var(--space-20) + var(--safe-top)) calc(var(--space-16) + var(--safe-right))
+    calc(var(--space-16) + var(--safe-bottom)) var(--space-16);
+  transform: translateX(100%);
+  transition: transform var(--motion-base) ease;
+  overflow-y: auto;
+}
+
+.mobile-drawer.is-open {
+  transform: translateX(0);
+}
+
+.mobile-drawer__profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.mobile-drawer__avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-brand);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.mobile-drawer__profile-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-drawer__profile-name {
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* 텍스트 링크지만 손가락으로 누를 만한 영역 확보 */
-.mobile-layout__site-change {
+.mobile-drawer__profile-role {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.mobile-drawer__close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.mobile-drawer__site {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-12);
+  background: var(--color-surface-accent);
+  border-radius: var(--radius-md);
+}
+
+.mobile-drawer__site-label {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.mobile-drawer__site-name {
+  flex: 1;
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-drawer__site-change {
   flex-shrink: 0;
   padding: var(--space-4) var(--space-8);
   border-radius: var(--radius-pill);
@@ -93,30 +202,58 @@
   text-decoration: underline;
 }
 
-.mobile-layout__content {
-  flex: 1;
-  padding: var(--space-16);
-}
-
-/* 하단 고정 탭바 */
-.mobile-layout__tabbar {
-  display: flex;
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface);
-  position: sticky;
-  bottom: 0;
-}
-
-.mobile-layout__tab {
-  flex: 1;
-  text-align: center;
-  padding: var(--space-12) 0;
-  font-size: var(--font-size-caption);
+.mobile-drawer__section-title {
   color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+  font-weight: 700;
+  margin-bottom: -8px;
 }
 
-/* NavLink isActive가 붙이는 클래스 */
-.mobile-layout__tab.is-active {
+.mobile-drawer__quick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-8);
+}
+
+.mobile-drawer__quick-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-12) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+  text-align: center;
+}
+
+.mobile-drawer__full-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-border);
+}
+
+.mobile-drawer__full-item {
+  padding: var(--space-12) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.mobile-drawer__full-item.is-active {
   color: var(--color-brand);
   font-weight: 700;
+}
+
+.mobile-drawer__logout {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  padding: var(--space-12) 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-weight: 600;
 }

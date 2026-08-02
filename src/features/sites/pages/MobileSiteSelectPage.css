@@ -1,0 +1,111 @@
+/* 모바일 현장 선택 전용 셸 — MobileLayout 밖(로그인 직후, /m/dashboard 진입 전)이라 헤더/safe-area를 직접 확보 */
+.mobile-site-select {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-page-bg);
+}
+
+/* MobileLayout 헤더와 동일 톤 — 로고 + 로그아웃만(하단탭/드로어는 아직 진입 전이라 없음) */
+.mobile-site-select__header {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding: var(--safe-top) calc(var(--space-16) + var(--safe-right)) 0 calc(var(--space-16) + var(--safe-left));
+  background: var(--color-header-bg);
+  color: var(--color-text-on-dark);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky-header);
+}
+
+.mobile-site-select__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-weight: 700;
+}
+
+.mobile-site-select__logo {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+}
+
+.mobile-site-select__logout {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-on-dark);
+  border-radius: var(--radius-md);
+}
+
+.mobile-site-select__logout:active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.mobile-site-select__body {
+  flex: 1;
+  padding: var(--space-16) calc(var(--space-16) + var(--safe-right)) calc(var(--space-16) + var(--safe-bottom))
+    calc(var(--space-16) + var(--safe-left));
+}
+
+.mobile-site-select__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* 이름/주소만 보이는 행 전체 클릭형 — 입장 버튼 없음, 누르면 바로 선택+이동 */
+.mobile-site-select__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding: var(--space-16);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.mobile-site-select__row.is-current {
+  border-color: var(--color-brand);
+}
+
+.mobile-site-select__row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mobile-site-select__row-name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-site-select__row-address {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-site-select__row-badge {
+  flex-shrink: 0;
+  padding: 2px var(--space-8);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-accent);
+  color: var(--color-brand-strong);
+  font-size: var(--font-size-caption);
+  font-weight: 700;
+}

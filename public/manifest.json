@@ -1,0 +1,19 @@
+{
+  "name": "ArcGuard",
+  "short_name": "ArcGuard",
+  "description": "전기화재 예방 스마트 진단/모니터링 시스템",
+  "start_url": "/m/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f8fa",
+  "theme_color": "#2a91b3",
+  "icons": [
+    {
+      "src": "/ArcGuard.png",
+      "sizes": "1210x1356",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

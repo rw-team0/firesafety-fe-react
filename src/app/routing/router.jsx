@@ -4,6 +4,7 @@ import AuthLayout from '@/layouts/AuthLayout'
 import DefaultLayout from '@/layouts/DefaultLayout/DefaultLayout'
 import MobileLayout from '@/layouts/MobileLayout/MobileLayout'
 import LoadingState from '@/shared/components/feedback/LoadingState'
+import MobilePlaceholderPage from '../pages/MobilePlaceholderPage'
 import NotFoundPage from '../pages/NotFoundPage'
 import PlaceholderPage from '../pages/PlaceholderPage'
 import GuestRoute from './GuestRoute'
@@ -55,11 +56,13 @@ export default function AppRouter() {
 
       {Array.from(groups.entries()).map(([layoutKey, routes]) => {
         const Layout = LAYOUTS[layoutKey]
+        // 미구현 화면 자리표시자도 모바일/PC는 항상 다른 컴포넌트 — 절대 같은 인스턴스를 공유하지 않는다
+        const Fallback = layoutKey === 'mobile' ? MobilePlaceholderPage : PlaceholderPage
         return (
           <Route key={layoutKey} element={<Layout />}>
             {routes.map((route) => {
               const Page = route.page
-              const element = Page ? <Page /> : <PlaceholderPage title={route.title} scrId={route.scrId} />
+              const element = Page ? <Page /> : <Fallback title={route.title} scrId={route.scrId} />
               return <Route key={route.path} path={route.path} element={guard(route, element)} />
             })}
           </Route>
