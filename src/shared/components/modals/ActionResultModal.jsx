@@ -27,6 +27,7 @@ export default function ActionResultModal({
       visible={visible}
       onClose={onClose}
       hideHeader
+      className="modal-panel--narrow"
       footer={
         <Button variant="primary" onClick={onClose}>
           {confirmText}
@@ -42,6 +43,7 @@ export default function ActionResultModal({
         {desc && <p className="action-result__desc">{desc}</p>}
 
         {infoRows.length > 0 && (
+          // success/danger 색으로 튀지 않게, 타입 무관하게 항상 같은 옅은 회색 톤으로 통일
           <div className="action-result__info">
             {infoRows.map((row) => (
               <div key={row.label} className="action-result__info-row">

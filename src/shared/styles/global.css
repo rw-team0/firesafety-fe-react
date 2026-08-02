@@ -142,12 +142,12 @@
 }
 
 /* 삭제 대상 요약 카드 — "그냥 확인 문구뿐"이 아니라 뭘 지우는지 한눈에 보이게 */
+/* ActionResultModal의 정보 표처럼 왼쪽 강조선 없이 배경색만으로 구분 */
 .confirm-modal__summary {
   display: flex;
   gap: var(--space-12);
   align-items: flex-start;
   padding: var(--space-12);
-  border-left: 3px solid var(--color-danger);
   border-radius: var(--radius-md);
   background: var(--color-danger-bg);
 }
@@ -194,6 +194,19 @@
   font-weight: 600;
 }
 
+/* 복구처럼 파괴적이지 않은 확인 모달용 — 빨간색 대신 브랜드 색 */
+.confirm-modal__summary--neutral {
+  background: var(--color-surface-accent);
+}
+
+.confirm-modal__summary--neutral .confirm-modal__summary-icon {
+  color: var(--color-brand);
+}
+
+.confirm-modal__summary--neutral .confirm-modal__summary-badge {
+  background: var(--color-brand);
+}
+
 .confirm-modal__summary-detail {
   margin-top: var(--space-4);
   color: var(--color-text-secondary);
@@ -233,11 +246,11 @@
   margin-top: var(--space-4);
 }
 
-/* 처리 항목/시각/처리자 등 요약 표 */
+/* 처리 항목/시각/처리자 등 요약 표 — success/danger 등 타입 색과 무관하게 항상 옅은 회색으로 통일 */
 .action-result__info {
   margin-top: var(--space-16);
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
   text-align: left;
   overflow: hidden;
 }
@@ -256,7 +269,8 @@
 }
 
 .action-result__info-label {
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
+  font-weight: 600;
 }
 
 .action-result__info-value {
@@ -554,6 +568,60 @@
   z-index: var(--z-modal);
 }
 
+/* ConfirmModal/ActionResultModal 전용 — 요약 카드/정보 표가 짧아서 480px도 과하게 넓어 보임 */
+.modal-panel--narrow {
+  width: min(400px, calc(100vw - 32px));
+}
+
+/* 좁은 화면(모바일)에서 ConfirmModal/ActionResultModal은 중앙 다이얼로그가 아니라 하단 시트로 — 참고 앱 패턴 */
+@media (max-width: 480px) {
+  .modal-overlay--sheet {
+    align-items: flex-end;
+  }
+
+  .modal-panel--narrow {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(85vh - var(--safe-bottom));
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding-top: var(--space-12);
+    padding-bottom: var(--safe-bottom);
+    animation: modal-sheet-up var(--motion-base) ease;
+  }
+
+  /* 드래그 핸들 표시 — 실제 드래그로 닫히지는 않음, 시각적 신호만 */
+  .modal-panel--narrow::before {
+    content: '';
+    position: absolute;
+    top: var(--space-8);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--color-border-strong);
+  }
+
+  /* 주 버튼이 위, 취소가 아래 — 참고 앱과 동일하게 세로 스택 + column-reverse로 DOM 순서(취소→확인) 뒤집기 */
+  .modal-panel--narrow .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-panel--narrow .modal-actions .btn {
+    width: 100%;
+  }
+}
+
+@keyframes modal-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -561,6 +629,8 @@
   padding: var(--space-16) var(--space-20);
   border-bottom: 1px solid var(--color-border);
   font-weight: 700;
+  /* 본문 안 소제목(subtitle 16px)보다 모달 제목이 더 작아 보여서 살짝 키움 */
+  font-size: 17px;
 }
 
 /* 삭제 확인 등 위험 액션 모달 강조 */

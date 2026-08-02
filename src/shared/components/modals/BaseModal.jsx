@@ -16,9 +16,12 @@ export default function BaseModal({
 
   if (!visible) return null // 비표시면 렌더 자체 스킵 (DOM에서 완전히 제거)
 
+  // narrow(Confirm/ActionResult)만 좁은 화면에서 하단 시트로 — :has() 지원에 기대지 않고 overlay에 직접 클래스 전달
+  const isSheet = className.includes('modal-panel--narrow')
+
   return (
     <div
-      className={`modal-overlay ${overlayTop ? 'modal-overlay-top' : ''}`.trim()}
+      className={`modal-overlay ${overlayTop ? 'modal-overlay-top' : ''} ${isSheet ? 'modal-overlay--sheet' : ''}`.trim()}
       onClick={closeOnBackdrop ? onClose : undefined}
     >
       <div

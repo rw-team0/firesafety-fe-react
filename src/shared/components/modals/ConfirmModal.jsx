@@ -20,6 +20,7 @@ export default function ConfirmModal({
       visible={visible}
       onClose={onCancel} // 배경 클릭/ESC도 취소로 처리
       hideHeader
+      className="modal-panel--narrow"
       footer={
         <>
           <Button variant="secondary" onClick={onCancel}>

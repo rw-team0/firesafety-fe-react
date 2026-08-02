@@ -7,6 +7,11 @@ const FOCUSABLE_SELECTOR =
 export function useModalA11y({ visible, onClose }) {
   const panelRef = useRef(null)
   const previousFocusRef = useRef(null)
+  // onClose가 호출부에서 인라인 함수로 넘어오는 경우가 많아 매 렌더 참조가 바뀜 —
+  // effect 의존성에 그대로 넣으면 모달 내부 상태가 바뀔 때마다(예: 입력창 타이핑) 이 effect가 재실행되어
+  // "열리자마자 첫 포커스 요소로 이동"이 반복 발동, 타이핑 중인 입력에서 포커스를 계속 뺏어감
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
     if (!visible) return undefined // 비표시 상태면 리스너 등록 불필요
@@ -18,7 +23,7 @@ export function useModalA11y({ visible, onClose }) {
 
     function handleKeydown(event) {
       if (event.key === 'Escape') {
-        onClose?.()
+        onCloseRef.current?.()
         return
       }
       if (event.key !== 'Tab' || focusables.length === 0) return
@@ -40,7 +45,8 @@ export function useModalA11y({ visible, onClose }) {
       document.removeEventListener('keydown', handleKeydown)
       previousFocusRef.current?.focus?.() // 닫힐 때 원래 포커스로 복귀
     }
-  }, [visible, onClose])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible])
 
   return panelRef
 }
