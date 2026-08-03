@@ -29,10 +29,6 @@ const ROLE_FILTER_OPTIONS = [
 
 const PAGE_SIZE = 11
 
-function includesText(value, keyword) {
-  return String(value ?? '').toLowerCase().includes(keyword)
-}
-
 function formatPhone(phone) {
   return phone || '-'
 }
@@ -44,6 +40,7 @@ export default function AccountListPage() {
   const requestSeqRef = useRef(0)
 
   const [users, setUsers] = useState([])
+  const [totalElements, setTotalElements] = useState(0)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [selectedIds, setSelectedIds] = useState([])
@@ -57,6 +54,7 @@ export default function AccountListPage() {
 
   const canManageStaff = role === ROLES.SUPER_ADMIN || role === ROLES.ADMIN
 
+  // 검색어/권한 필터/페이지는 서버가 필터·페이징한다(API-521)
   const load = useCallback(async () => {
     const siteId = currentSiteId
     const seq = requestSeqRef.current + 1
@@ -64,7 +62,6 @@ export default function AccountListPage() {
 
     setUsers([])
     setSelectedIds([])
-    setPage(1)
 
     if (!siteId) {
       setLoading(false)
@@ -75,9 +72,15 @@ export default function AccountListPage() {
     setLoading(true)
     setLoadError('')
     try {
-      const data = await getManagedUsers(siteId)
+      const data = await getManagedUsers(siteId, {
+        keyword: keyword.trim() || undefined,
+        role: roleFilter || undefined,
+        page: page - 1,
+        size: PAGE_SIZE,
+      })
       if (requestSeqRef.current !== seq) return
-      setUsers(data)
+      setUsers(data?.content ?? [])
+      setTotalElements(Number(data?.totalElements ?? 0))
     } catch (error) {
       if (requestSeqRef.current !== seq) return
       const status = error?.response?.status
@@ -85,10 +88,9 @@ export default function AccountListPage() {
     } finally {
       if (requestSeqRef.current === seq) setLoading(false)
     }
-  }, [currentSiteId])
+  }, [currentSiteId, keyword, roleFilter, page])
 
   useEffect(() => {
-    // 현장/역할이 바뀌면 이전 현장 데이터가 잠시라도 남지 않게 즉시 비우고 다시 조회한다.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
     return () => {
@@ -96,13 +98,21 @@ export default function AccountListPage() {
     }
   }, [load])
 
+  useEffect(() => {
+    // 현장이 바뀌면 검색어/필터/페이지도 새 현장 기준으로 초기화한다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setKeyword('')
+    setRoleFilter('')
+    setPage(1)
+  }, [currentSiteId])
+
   function toggleSelect(userId) {
     setSelectedIds((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]))
   }
 
   // "전체 선택"은 필터 전체가 아니라 지금 보이는 페이지 기준(일반적인 테이블 UX와 동일)
   function toggleSelectAll() {
-    const pageIds = pagedUsers.map((u) => u.userId)
+    const pageIds = users.map((u) => u.userId)
     const allChecked = pageIds.length > 0 && pageIds.every((id) => selectedIds.includes(id))
     setSelectedIds((prev) =>
       allChecked ? prev.filter((id) => !pageIds.includes(id)) : [...new Set([...prev, ...pageIds])],
@@ -140,23 +150,7 @@ export default function AccountListPage() {
     [role],
   )
 
-  const normalizedKeyword = keyword.trim().toLowerCase()
-  const filteredUsers = users.filter((user) => {
-    if (normalizedKeyword) {
-      const matchesKeyword =
-        includesText(user.name, normalizedKeyword) ||
-        includesText(user.email, normalizedKeyword) ||
-        includesText(user.phone, normalizedKeyword)
-      if (!matchesKeyword) return false
-    }
-    if (roleFilter && user.role !== roleFilter) return false
-    return true
-  })
-
-  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE))
-  // 필터/삭제로 목록이 줄어 page가 범위를 벗어나도 렌더 시점에 바로 보정
-  const currentPage = Math.min(page, totalPages)
-  const pagedUsers = filteredUsers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const totalPages = Math.max(1, Math.ceil(totalElements / PAGE_SIZE))
 
   // 읽기 전용 사용자에게 가입일은 연락처 확인에 쓸모가 없어 열 자체를 뺀다
   const columns = useMemo(() => {
@@ -220,14 +214,14 @@ export default function AccountListPage() {
       {/* 표 자체 테두리가 "표+페이지네이션" 세트의 경계 — 감싸는 카드를 따로 두지 않는다 */}
       <DataTable
         loading={loading}
-        rows={pagedUsers}
+        rows={users}
         rowKey={(row) => row.userId}
         onRowClick={(row) => setDetailUser(row)}
         selection={
           canManageStaff
             ? {
                 selectedKeys: selectedIds,
-                allSelected: pagedUsers.length > 0 && pagedUsers.every((u) => selectedIds.includes(u.userId)),
+                allSelected: users.length > 0 && users.every((u) => selectedIds.includes(u.userId)),
                 onToggle: toggleSelect,
                 onToggleAll: toggleSelectAll,
               }
@@ -238,12 +232,10 @@ export default function AccountListPage() {
         columns={columns}
       />
 
-      {!loading && filteredUsers.length > 0 && (
+      {!loading && totalElements > 0 && (
         <div className="account-list__footer">
-          <p className="account-list__count">
-            총 {users.length}건 중 {filteredUsers.length}건 조회
-          </p>
-          <Pagination page={currentPage} totalPages={totalPages} onChange={setPage} />
+          <p className="account-list__count">총 {totalElements}건 중 {users.length}건 조회</p>
+          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
         </div>
       )}
 

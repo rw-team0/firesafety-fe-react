@@ -8,8 +8,14 @@ export async function getUsers() {
 }
 
 // 현재 현장 기준 직원 목록. SUPER_ADMIN/ADMIN/GENERAL 공통 호출이며 ADMIN/GENERAL을 반환한다.
-export async function getManagedUsers(siteId, config = {}) {
-  const res = await httpRequester.get(`/sites/${siteId}/managed-users`, config)
+// 응답은 { content, totalElements } 페이지 형태
+export async function getManagedUsers(siteId, { keyword, role, page, size } = {}, config = {}) {
+  const params = {}
+  if (keyword) params.keyword = keyword
+  if (role) params.role = role
+  if (page != null) params.page = page
+  if (size != null) params.size = size
+  const res = await httpRequester.get(`/sites/${siteId}/managed-users`, { ...config, params })
   return unwrap(res)
 }
 
