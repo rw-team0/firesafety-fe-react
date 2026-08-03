@@ -492,7 +492,7 @@ export default function FacilityManagePage() {
                 <h3 className="facility-section-title">회로 슬롯</h3>
                 {selectedPanelDetail && (
                   <p className="facility-muted">
-                    {canManage ? '등록 가능 채널' : '사용 채널'}: 1~{selectedPanelDetail.circuitCount} / 상태{' '}
+                    {canManage ? '등록 가능 회로' : '사용 회로'}: 1~{selectedPanelDetail.circuitCount} / 상태{' '}
                     {formatPanelStatus(selectedPanelDetail.status)}
                   </p>
                 )}
@@ -527,12 +527,12 @@ export default function FacilityManagePage() {
                       >
                         <div>
                           <div className="facility-circuit-card__top">
-                            <span className="facility-circuit-card__title">채널 {slot.channelNo}</span>
+                            <span className="facility-circuit-card__title">회로 {slot.channelNo}</span>
                             {canManage && slot.circuit && (
                               <Checkbox
                                 checked={selectedCircuitIds.includes(slot.circuit.circuitId)}
                                 onChange={() => toggleCircuitSelect(slot.circuit.circuitId)}
-                                aria-label={`채널 ${slot.channelNo} 선택`}
+                                aria-label={`회로 ${slot.channelNo} 선택`}
                               />
                             )}
                           </div>
@@ -540,7 +540,7 @@ export default function FacilityManagePage() {
                           {!slot.disabled && slot.circuit && (
                             <p className="facility-muted">{slot.circuit.loadType || '연결 기기 없음'}</p>
                           )}
-                          {!slot.disabled && !slot.circuit && <p className="facility-muted">빈 채널</p>}
+                          {!slot.disabled && !slot.circuit && <p className="facility-muted"></p>}
                         </div>
                         {canManage && !slot.disabled && slot.circuit && (
                           <div className="facility-circuit-card__footer">

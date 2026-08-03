@@ -26,6 +26,10 @@
   font-size: var(--font-size-body);
 }
 
+.facility-monitoring-selector {
+  max-width: 520px;
+}
+
 /* 총 건수 + 페이지네이션 한 줄 — Pagination이 가운데 정렬이라 건수는 왼쪽에 절대배치로 겹침(account-list와 동일 패턴) */
 .facility-list__footer {
   position: relative;
@@ -46,49 +50,108 @@
   color: var(--color-text-muted);
 }
 
-.facility-detail__grid {
+/* 페이지 헤더 제목 옆(usePageSubtitle) "/ 1층 분전반 [상태] 통신두절" */
+.facility-header-subtitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.facility-header-subtitle__comm {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-body);
+  font-weight: 400;
+}
+
+/* 센서 상태(왼쪽, 3x3라 폭이 덜 필요) / 회로 상태(오른쪽, 5열이라 더 넓게) — 나란히 둬서 스크롤 없이 한 화면에 보이게 한다.
+   align-items 기본값(stretch)을 그대로 둬서 두 카드 높이가 더 큰 쪽(회로 상태)에 자동으로 맞춰지게 한다 */
+.facility-monitor-row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.65fr) minmax(0, 1.35fr);
+  gap: var(--space-16);
+}
+
+/* 주의임계값 요약 한 줄 — 필터바 안에 이어 붙이거나 단독 헤더로 재사용 */
+.facility-threshold-summary {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+}
+
+.facility-threshold-summary b {
+  color: var(--color-text-primary);
+}
+
+/* 필터카드 안에서 분전반 선택 영역과 요약 영역을 가로줄로 구분 — 필터바 전체 높이를 줄이려고 여백을 최소로 */
+.facility-filter-divider {
+  margin-top: var(--space-8);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--color-border);
+}
+
+/* 센서 상태 — 8종+도어=9개라 3x3 고정 그리드. 값 폰트를 키우고, 이상값만 테두리 전체를 색으로 강조 + 배경을 옅게 채운다.
+   정상값은 색을 아예 안 써서(테두리 회색 그대로) 위험/주의가 상대적으로 확 눈에 띄게 한다 */
+.facility-sensor-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-12);
 }
 
-.facility-detail__item {
-  min-height: 72px;
-  padding: var(--space-12);
+.facility-sensor-tile {
+  padding: var(--space-8) var(--space-12);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
 }
 
-/* 센서 카드 상태 강조 — 임계값 초과(warning)/하드웨어 알람(danger). getSensorFieldStatus()가 계산한 값만 반영 */
-.facility-detail__item--warning {
+.facility-sensor-tile__label {
+  display: block;
+  margin-bottom: var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+}
+
+.facility-sensor-tile__icon {
+  margin-right: var(--space-4);
+}
+
+/* 회로 상태 카드(min-height 104px)와 시각적 높이를 맞추려고 --font-size-title(22px) 대신 subtitle(16px) 사용 */
+.facility-sensor-tile__value {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-subtitle);
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.facility-sensor-tile--warning {
   border-color: var(--color-warning);
   background: var(--color-warning-bg);
 }
 
-.facility-detail__item--danger {
+.facility-sensor-tile--danger {
   border-color: var(--color-danger);
   background: var(--color-danger-bg);
 }
 
-.facility-detail__item-label {
-  display: block;
-  margin-bottom: var(--space-6);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-caption);
-}
-
-.facility-detail__item-value {
-  color: var(--color-text-primary);
-  font-size: var(--font-size-body);
-  font-weight: 700;
-  word-break: break-word;
+/* 회로 상태 — 08-프론트엔드명세서 SCR-202 "5열 그리드" 기준 */
+.facility-monitor-circuit-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-12);
 }
 
 .facility-section-title {
   margin: 0 0 var(--space-12);
   color: var(--color-text-primary);
   font-size: var(--font-size-subtitle);
+}
+
+/* 섹션 제목 아래 보조 설명 한 줄(예: "임계값 기준" 카드의 안내문) */
+.facility-section-note {
+  margin: calc(-1 * var(--space-8)) 0 var(--space-12);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
 }
 
 /* "회로 슬롯" 제목 + "등록 가능 채널..." 안내문을 한 줄 좌우로 배치 */
@@ -157,6 +220,22 @@
   color: var(--color-text-muted);
 }
 
+/* 이상 회로만 테두리 전체를 색으로 강조 + 옅은 배경 — 정상 회로는 색을 안 써서 이상 회로가 상대적으로 눈에 띄게 한다 */
+.facility-circuit-card--warning {
+  border-color: var(--color-warning);
+  background: var(--color-warning-bg);
+}
+
+.facility-circuit-card--danger {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+.facility-circuit-card--offline {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
 .facility-circuit-card__top {
   display: flex;
   align-items: center;
@@ -166,6 +245,22 @@
 }
 
 .facility-circuit-card__title {
+  font-weight: 700;
+}
+
+/* 연결 기기명 — 우측 상단, 등록 안 됐으면 그냥 공백(자리 비움) */
+.facility-circuit-card__load {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+/* 전류값 — 회로 카드에서 가장 먼저 봐야 하는 실시간 값이라 굵고 크게 */
+.facility-circuit-card__current {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
 }
 
@@ -277,6 +372,11 @@
   gap: var(--space-16);
 }
 
+/* 조치 비고처럼 긴 텍스트는 2열을 다 차지하게 */
+.facility-modal__grid-full {
+  grid-column: 1 / -1;
+}
+
 .facility-modal__grid-label {
   display: block;
   margin-bottom: var(--space-4);
@@ -289,18 +389,40 @@
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 900px) {
-  .facility-detail__grid,
-  .facility-card-list,
-  .facility-manage__layout {
+/* 센서상태(좌)/회로상태(우) — 각 카드 안에 5열 회로 그리드가 있어 900px보다 넉넉한 지점에서 먼저 1열로 붕괴시킨다 */
+@media (max-width: 1100px) {
+  .facility-monitor-row {
     grid-template-columns: 1fr;
   }
 }
 
+@media (max-width: 900px) {
+  .facility-card-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .facility-manage__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .facility-monitor-circuit-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 560px) {
+  .facility-card-list,
   .facility-form__split,
   .facility-form__thresholds {
     grid-template-columns: 1fr;
+  }
+
+  .facility-monitor-circuit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .facility-sensor-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .facility-list__footer {
@@ -315,6 +437,10 @@
   .facility-inline-field {
     min-width: 0;
     width: 100%;
+  }
+
+  .facility-monitoring-selector {
+    max-width: none;
   }
 }
 

@@ -16,7 +16,7 @@ export default function PanelTable({
 }) {
   const columns = [
     { key: 'deviceSerial', header: '장비번호', render: (row) => row.deviceSerial || '-' },
-    { key: 'name', header: '위치', render: (row) => row.name || '-' },
+    { key: 'name', header: '분전반명', render: (row) => row.name || '-' },
     { key: 'mNo', header: '분전반No', render: (row) => row.mNo || '-' },
     {
       key: 'status',

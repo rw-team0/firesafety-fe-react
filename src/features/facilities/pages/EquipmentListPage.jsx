@@ -1,127 +1,202 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getPanels } from '../api/facilityApi'
-import PanelTable from '../components/PanelTable'
-import { EQUIPMENT_LIST_PAGE_SIZE } from '../constants/facilityConstants'
-import { includesPanelKeyword, PANEL_STATUS_OPTIONS } from '../utils/facilityFormatters'
+import { getPanelDetail, getPanels } from '../api/facilityApi'
+import PanelMonitoringDetail, { PanelStatusSubtitle, PanelThresholdSummary } from '../components/PanelMonitoringDetail'
+import { extractServerMessage } from '../utils/facilityFormatters'
+import { canManageFacilities } from '../utils/facilityPolicy'
+import { useAuth } from '@/features/auth/useAuth'
 import { useSite } from '@/features/sites/useSite'
+import { usePageActions, usePageSubtitle } from '@/layouts/DefaultLayout/usePageActions'
+import Button from '@/shared/components/buttons/Button'
 import BaseCard from '@/shared/components/data-display/BaseCard'
-import Pagination from '@/shared/components/data-display/Pagination'
+import EmptyState from '@/shared/components/feedback/EmptyState'
 import ErrorState from '@/shared/components/feedback/ErrorState'
-import Input from '@/shared/components/forms/Input'
+import LoadingState from '@/shared/components/feedback/LoadingState'
 import Select from '@/shared/components/forms/Select'
-import FilterBar from '@/shared/components/layout/FilterBar'
-import { buildPath, ROUTE_PATHS } from '@/shared/constants/routePaths'
+import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 import './FacilityPages.css'
 
-const PAGE_SIZE = EQUIPMENT_LIST_PAGE_SIZE
-
-// 설비 모니터링 화면(SCR-501) — 조회 전용. 등록/수정/삭제는 설비관리(SCR-502)에서만 한다.
+// 설비 모니터링 화면(SCR-501) — 현재 현장의 분전반을 선택해 상세 상태를 조회한다.
 export default function EquipmentListPage() {
+  const { role } = useAuth()
   const { currentSiteId } = useSite()
   const navigate = useNavigate()
-  const requestSeqRef = useRef(0)
+  const panelSeqRef = useRef(0)
+  const detailSeqRef = useRef(0)
+  const canManage = canManageFacilities(role)
 
   const [panels, setPanels] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [loadError, setLoadError] = useState('')
-  const [keyword, setKeyword] = useState('')
-  const [status, setStatus] = useState('')
-  const [page, setPage] = useState(1)
+  const [selectedPanelId, setSelectedPanelId] = useState('')
+  const [selectedPanel, setSelectedPanel] = useState(null)
+  const [panelLoading, setPanelLoading] = useState(true)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [panelError, setPanelError] = useState('')
+  const [detailError, setDetailError] = useState('')
 
-  // 분전반 목록 조회
-  const load = useCallback(async () => {
+  // 현재 현장 분전반 선택 목록 조회
+  const loadPanels = useCallback(async () => {
     const siteId = currentSiteId
-    const seq = requestSeqRef.current + 1
-    requestSeqRef.current = seq
+    const seq = panelSeqRef.current + 1
+    panelSeqRef.current = seq
+    detailSeqRef.current += 1
 
     setPanels([])
-    setPage(1)
+    setSelectedPanelId('')
+    setSelectedPanel(null)
+    setDetailError('')
 
     if (!siteId) {
-      setLoading(false)
-      setLoadError('설비 모니터링은 현장 선택 후 이용할 수 있습니다.')
+      setPanelLoading(false)
+      setPanelError('설비 모니터링은 현장 선택 후 이용할 수 있습니다.')
       return
     }
 
-    setLoading(true)
-    setLoadError('')
+    setPanelLoading(true)
+    setPanelError('')
     try {
-      const data = await getPanels({ siteId, status })
-      if (requestSeqRef.current !== seq) return
-      setPanels(data ?? [])
+      const data = await getPanels({ siteId })
+      if (panelSeqRef.current !== seq) return
+      const nextPanels = data ?? []
+      setPanels(nextPanels)
+      setSelectedPanelId(nextPanels[0]?.panelId ? String(nextPanels[0].panelId) : '')
     } catch (error) {
-      if (requestSeqRef.current !== seq) return
-      const statusCode = error?.response?.status
-      setLoadError(statusCode === 403 ? '현재 현장의 설비를 조회할 권한이 없습니다.' : '설비 모니터링 목록을 불러오지 못했습니다.')
+      if (panelSeqRef.current !== seq) return
+      const status = error?.response?.status
+      setPanelError(
+        extractServerMessage(
+          error,
+          status === 403 ? '현재 현장의 설비를 조회할 권한이 없습니다.' : '설비 모니터링 목록을 불러오지 못했습니다.',
+        ),
+      )
     } finally {
-      if (requestSeqRef.current === seq) setLoading(false)
+      if (panelSeqRef.current === seq) setPanelLoading(false)
     }
-  }, [currentSiteId, status])
+  }, [currentSiteId])
 
   useEffect(() => {
-    // 현장/상태가 바뀌면 이전 현장 목록이 남지 않게 즉시 비우고 stale 응답을 무시한다.
+    // 현장이 바뀌면 이전 현장 목록/선택/상세가 잠시라도 남지 않게 비우고 stale 응답을 무시한다.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    load()
+    loadPanels()
     return () => {
-      requestSeqRef.current += 1
+      panelSeqRef.current += 1
+      detailSeqRef.current += 1
     }
-  }, [load])
+  }, [loadPanels])
 
-  const normalizedKeyword = keyword.trim()
-  const filteredPanels = panels.filter((panel) => includesPanelKeyword(panel, normalizedKeyword))
-  const totalPages = Math.max(1, Math.ceil(filteredPanels.length / PAGE_SIZE))
-  const currentPage = Math.min(page, totalPages)
-  const pagedPanels = filteredPanels.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  // 선택한 분전반 상세 조회
+  const loadSelectedPanel = useCallback(async () => {
+    const panelId = selectedPanelId
+    const siteId = currentSiteId
+    const seq = detailSeqRef.current + 1
+    detailSeqRef.current = seq
 
-  if (loadError) return <ErrorState message={loadError} onRetry={load} />
+    setSelectedPanel(null)
+    setDetailError('')
+
+    if (!panelId) {
+      setDetailLoading(false)
+      return
+    }
+
+    setDetailLoading(true)
+    try {
+      const data = await getPanelDetail(panelId)
+      if (detailSeqRef.current !== seq) return
+      if (siteId && data?.siteId !== siteId) {
+        setDetailError('현재 선택 현장에 속한 설비가 아닙니다.')
+        return
+      }
+      setSelectedPanel(data)
+    } catch (error) {
+      if (detailSeqRef.current !== seq) return
+      const status = error?.response?.status
+      setDetailError(
+        extractServerMessage(
+          error,
+          status === 403
+            ? '이 설비를 조회할 권한이 없습니다.'
+            : status === 404
+              ? '분전반을 찾을 수 없습니다.'
+              : '설비 상세를 불러오지 못했습니다.',
+        ),
+      )
+    } finally {
+      if (detailSeqRef.current === seq) setDetailLoading(false)
+    }
+  }, [currentSiteId, selectedPanelId])
+
+  useEffect(() => {
+    // 분전반 선택이 바뀌면 이전 상세가 남지 않게 비우고 최신 선택의 상세만 반영한다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadSelectedPanel()
+    return () => {
+      detailSeqRef.current += 1
+    }
+  }, [loadSelectedPanel])
+
+  const actions = useMemo(
+    () =>
+      canManage ? (
+        <Button variant="secondary" onClick={() => navigate(ROUTE_PATHS.settingsFacilities)}>
+          설비 관리
+        </Button>
+      ) : null,
+    [canManage, navigate],
+  )
+  usePageActions(actions)
+
+  const subtitle = useMemo(
+    () => (selectedPanel ? <PanelStatusSubtitle panel={selectedPanel} /> : null),
+    [selectedPanel],
+  )
+  usePageSubtitle(subtitle)
+
+  const panelOptions = useMemo(
+    () =>
+      panels.map((panel) => ({
+        value: String(panel.panelId),
+        label: `${panel.name} / ${panel.deviceSerial || '-'} / 분전반No ${panel.mNo || '-'}`,
+      })),
+    [panels],
+  )
+
+  if (panelError) return <ErrorState message={panelError} onRetry={loadPanels} />
 
   return (
     <div className="facility-page">
       <BaseCard className="card--filter">
-        <FilterBar
-          onReset={() => {
-            setKeyword('')
-            setStatus('')
-            setPage(1)
-          }}
-        >
-          <Input
-            aria-label="설비 검색"
-            placeholder="장비번호, 분전반명, 분전반No"
-            value={keyword}
-            onChange={(event) => {
-              setKeyword(event.target.value)
-              setPage(1)
-            }}
-          />
+        <div className="facility-inline-field facility-monitoring-selector">
+          <label htmlFor="monitoring-panel-select" className="facility-inline-field__label">
+            분전반 선택 :
+          </label>
           <Select
-            aria-label="상태"
-            placeholder="전체 상태"
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value)
-              setPage(1)
-            }}
-            options={PANEL_STATUS_OPTIONS}
+            id="monitoring-panel-select"
+            value={selectedPanelId}
+            onChange={(event) => setSelectedPanelId(event.target.value)}
+            options={panelOptions}
+            placeholder={panelLoading ? '분전반 목록을 불러오는 중입니다' : '분전반을 선택해주세요'}
+            disabled={panelLoading || panels.length === 0}
           />
-        </FilterBar>
+        </div>
+        {selectedPanel && (
+          <div className="facility-filter-divider">
+            <PanelThresholdSummary panel={selectedPanel} />
+          </div>
+        )}
       </BaseCard>
 
-      <PanelTable
-        loading={loading}
-        panels={pagedPanels}
-        onRowClick={(panel) => navigate(buildPath(ROUTE_PATHS.equipmentDetail, { panelId: panel.panelId }))}
-        emptyDescription="현재 현장에 등록된 분전반이 없습니다. 설비관리 화면에서 등록할 수 있습니다."
-      />
+      {panelLoading && <LoadingState label="분전반 목록을 불러오는 중입니다..." />}
 
-      {!loading && filteredPanels.length > 0 && (
-        <div className="facility-list__footer">
-          <p className="facility-list__count">
-            총 {panels.length}건 중 {filteredPanels.length}건 조회
-          </p>
-          <Pagination page={currentPage} totalPages={totalPages} onChange={setPage} />
-        </div>
+      {!panelLoading && panels.length === 0 && <EmptyState message="현재 현장에 등록된 분전반이 없습니다." />}
+
+      {!panelLoading && panels.length > 0 && detailLoading && <LoadingState label="설비 상세를 불러오는 중입니다..." />}
+
+      {!panelLoading && panels.length > 0 && detailError && (
+        <ErrorState message={detailError} onRetry={loadSelectedPanel} />
+      )}
+
+      {!panelLoading && panels.length > 0 && !detailLoading && !detailError && selectedPanel && (
+        <PanelMonitoringDetail panel={selectedPanel} />
       )}
     </div>
   )

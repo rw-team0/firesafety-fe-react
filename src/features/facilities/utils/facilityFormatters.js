@@ -1,4 +1,4 @@
-import { ALERT_TYPE_LABELS, PANEL_STATUS_LABELS, labelOf } from '@/shared/constants/domainLabels'
+import { ALERT_STATUS_LABELS, ALERT_TYPE_LABELS, PANEL_STATUS_LABELS, labelOf } from '@/shared/constants/domainLabels'
 import { formatDateTime } from '@/shared/utils/formatters'
 import { MAX_CIRCUIT_COUNT, MIN_CIRCUIT_COUNT, M_NO_LENGTH } from '../constants/facilityConstants'
 
@@ -23,14 +23,14 @@ export const THRESHOLD_FIELDS = [
 // thresholdKey가 있으면 panel[thresholdKey]와 비교해 주의(노랑) 표시, alarmKey가 있으면 하드웨어 알람 플래그가
 // true일 때 수치·임계값 비교와 무관하게 위험(빨강)을 강제한다(REQ-203, API-506 2026-07-27 확장 내용).
 export const SENSOR_FIELDS = [
-  { key: 'totalCurrent', label: '전체전류', unit: 'A', alarmKey: 'overcurrentAlarm' },
-  { key: 'leakMa', label: '누설전류', unit: 'mA', thresholdKey: 'leakMaThreshold', alarmKey: 'leakageAlarm' },
-  { key: 'voltV', label: '전압', unit: 'V' },
-  { key: 'totalPower', label: '전체전력', unit: 'W' },
-  { key: 'temperature', label: '온도', unit: '도', thresholdKey: 'tempThreshold', alarmKey: 'overheatAlarm' },
-  { key: 'humidity', label: '습도', unit: '%', thresholdKey: 'humidityThreshold', alarmKey: 'humidityAlarm' },
-  { key: 'fireRaw', label: '불꽃센서', unit: '', thresholdKey: 'fireThreshold', alarmKey: 'fireAlarm' },
-  { key: 'gasRaw', label: '가스센서', unit: '', thresholdKey: 'gasThreshold', alarmKey: 'gasAlarm' },
+  { key: 'totalCurrent', label: '전체전류', unit: 'A', alarmKey: 'overcurrentAlarm', icon: '⚡' },
+  { key: 'leakMa', label: '누설전류', unit: 'mA', thresholdKey: 'leakMaThreshold', alarmKey: 'leakageAlarm', icon: '🔺' },
+  { key: 'voltV', label: '전압', unit: 'V', icon: '🔌' },
+  { key: 'totalPower', label: '전체전력', unit: 'W', icon: '💡' },
+  { key: 'temperature', label: '온도', unit: '도', thresholdKey: 'tempThreshold', alarmKey: 'overheatAlarm', icon: '🌡️' },
+  { key: 'humidity', label: '습도', unit: '%', thresholdKey: 'humidityThreshold', alarmKey: 'humidityAlarm', icon: '💧' },
+  { key: 'fireRaw', label: '불꽃', unit: '', thresholdKey: 'fireThreshold', alarmKey: 'fireAlarm', icon: '🔥' },
+  { key: 'gasRaw', label: '가스', unit: '', thresholdKey: 'gasThreshold', alarmKey: 'gasAlarm', icon: '🧪' },
 ]
 
 // 센서 카드 상태 판단 — 실제 API-506 응답 필드(alarmKey/thresholdKey)로만 계산, 가짜 임계치 비교를 만들지 않는다.
@@ -106,7 +106,7 @@ export function validatePanelForm(form) {
   if (!form.name.trim()) errors.name = '분전반 이름을 입력해주세요.'
   if (!form.deviceSerial.trim()) errors.deviceSerial = '장비 시리얼을 입력해주세요.'
   // 백엔드가 mNo를 센서 m_no 매핑키로 쓰기 때문에 선택값처럼 보이더라도 정확히 5자 필수다.
-  if (form.mNo.trim().length !== M_NO_LENGTH) errors.mNo = `장비번호는 정확히 ${M_NO_LENGTH}자리여야 합니다.`
+  if (form.mNo.trim().length !== M_NO_LENGTH) errors.mNo = `분전반No는 정확히 ${M_NO_LENGTH}자리여야 합니다.`
 
   if (!isValidIntegerString(form.circuitCount)) {
     errors.circuitCount = '회로 개수는 정수로 입력해주세요.'
@@ -153,9 +153,22 @@ export function formatPanelStatus(status) {
   return labelOf(PANEL_STATUS_LABELS, status)
 }
 
+// 회로 카드 위험도 — 실시간모니터링/이상감지 참고자료처럼 이상 상태에만 색을 입히기 위한 매핑
+export function getCircuitRiskLevel(status) {
+  if (status === 'RISK') return 'danger'
+  if (status === 'CAUTION') return 'warning'
+  if (status === 'OFFLINE') return 'offline'
+  return 'normal'
+}
+
 // 경보 유형 라벨
 export function formatAlertType(type) {
   return labelOf(ALERT_TYPE_LABELS, type)
+}
+
+// 경보 처리상태 라벨
+export function formatAlertStatus(status) {
+  return labelOf(ALERT_STATUS_LABELS, status)
 }
 
 // 통신 상태 라벨
@@ -174,6 +187,11 @@ export function formatDateTimeCell(value) {
 export function formatValue(value, unit = '') {
   if (value == null || value === '') return '-'
   return `${value}${unit ? ` ${unit}` : ''}`
+}
+
+// 주의 임계값 한 줄 요약 — "누설전류 20mA · 온도 80도 · ..."
+export function formatThresholdSummary(panel) {
+  return THRESHOLD_FIELDS.map((field) => `${field.label.replace(' 기준', '')} ${formatValue(panel[field.key], field.unit)}`).join(' · ')
 }
 
 // 서버 오류 메시지 추출
