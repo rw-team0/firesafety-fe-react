@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { matchPath, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { NAV_GROUP_ORDER, getNavItems, routeConfig } from '@/app/routing/routeConfig'
 import { useAuth } from '@/features/auth/useAuth'
+import { useMonitoring } from '@/features/monitoring/useMonitoring'
 import { useSite } from '@/features/sites/useSite'
 import { canManageSites } from '@/features/sites/utils/sitePolicy'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
@@ -62,6 +63,8 @@ function CurrentSiteBadge() {
 function ContentHeader({ title }) {
   const actions = usePageHeaderActions() // 화면이 usePageActions()로 등록한 페이지별 버튼
   const subtitle = usePageHeaderSubtitle() // 화면이 usePageSubtitle()로 등록한 부제(예: 설비 모니터링 / 선택된 분전반명)
+  const { unreadAlertCount } = useMonitoring()
+  const navigate = useNavigate()
 
   return (
     <header className="default-layout__content-header">
@@ -84,8 +87,8 @@ function ContentHeader({ title }) {
         </div>
       </div>
       <div className="default-layout__header-right">
-        {/* 알림은 페이지 액션 유무와 무관하게 항상 먼저 — 실제 동작(미확인 건수 배지 포함)은 경보 기능 구현 시 연결 */}
-        <button type="button" className="default-layout__bell">
+        {/* 알림은 페이지 액션 유무와 무관하게 항상 먼저 — 미확인 건수는 MonitoringProvider(WS/폴링)가 계산한 값 */}
+        <button type="button" className="default-layout__bell" onClick={() => navigate(ROUTE_PATHS.alerts)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path
               d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"
@@ -97,6 +100,7 @@ function ContentHeader({ title }) {
             <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
           </svg>
           알림
+          {unreadAlertCount > 0 && <span className="default-layout__bell-badge">{unreadAlertCount}</span>}
         </button>
         {actions}
       </div>

@@ -36,6 +36,7 @@
 
 /* 알림/전체메뉴 아이콘 버튼 — 손가락으로 누를 영역 확보 위해 정사각 */
 .mobile-layout__icon-btn {
+  position: relative;
   flex-shrink: 0;
   width: 36px;
   height: 36px;
@@ -48,6 +49,25 @@
 
 .mobile-layout__icon-btn:active {
   background: rgba(255, 255, 255, 0.12);
+}
+
+/* 미확인 경보 건수 — MonitoringProvider가 WS/폴링으로 갱신 */
+.mobile-layout__icon-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--color-danger);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .mobile-layout__content {

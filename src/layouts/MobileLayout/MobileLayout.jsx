@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { getMobileNavItems } from '@/app/routing/routeConfig'
 import { useAuth } from '@/features/auth/useAuth'
+import { useMonitoring } from '@/features/monitoring/useMonitoring'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
 import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 import MobileDrawer from './MobileDrawer'
@@ -12,6 +13,7 @@ import './MobileLayout.css'
 // 사용자 정보/현장/로그아웃은 헤더가 아니라 삼선 → 드로어(MobileDrawer)로 이동
 export default function MobileLayout() {
   const { logout } = useAuth()
+  const { unreadAlertCount } = useMonitoring()
   const navigate = useNavigate()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
@@ -48,6 +50,7 @@ export default function MobileLayout() {
             />
             <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
           </svg>
+          {unreadAlertCount > 0 && <span className="mobile-layout__icon-badge">{unreadAlertCount}</span>}
         </button>
         <button
           type="button"

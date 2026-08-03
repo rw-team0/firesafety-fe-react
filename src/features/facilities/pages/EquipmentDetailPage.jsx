@@ -5,6 +5,7 @@ import PanelMonitoringDetail, { PanelStatusSubtitle, PanelThresholdSummary } fro
 import { canManageFacilities } from '../utils/facilityPolicy'
 import { extractServerMessage } from '../utils/facilityFormatters'
 import { useAuth } from '@/features/auth/useAuth'
+import { useMonitoring } from '@/features/monitoring/useMonitoring'
 import { useSite } from '@/features/sites/useSite'
 import { usePageActions, usePageSubtitle } from '@/layouts/DefaultLayout/usePageActions'
 import Button from '@/shared/components/buttons/Button'
@@ -19,6 +20,7 @@ export default function EquipmentDetailPage() {
   const { panelId } = useParams()
   const { role } = useAuth()
   const { currentSiteId } = useSite()
+  const { refreshedAt } = useMonitoring()
   const navigate = useNavigate()
   const requestSeqRef = useRef(0)
 
@@ -27,39 +29,44 @@ export default function EquipmentDetailPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
 
-  // 분전반 상세 조회
-  const load = useCallback(async () => {
-    const seq = requestSeqRef.current + 1
-    requestSeqRef.current = seq
-    setPanel(null)
-    setLoading(true)
-    setLoadError('')
-
-    try {
-      const data = await getPanelDetail(panelId)
-      if (requestSeqRef.current !== seq) return
-      if (currentSiteId && data?.siteId !== currentSiteId) {
-        setLoadError('현재 선택 현장에 속한 설비가 아닙니다.')
-        return
+  // 분전반 상세 조회. silent=true면 WS/폴링으로 온 백그라운드 갱신 — 화면 깜빡임 없이 값만 조용히 교체한다
+  const load = useCallback(
+    async ({ silent = false } = {}) => {
+      const seq = requestSeqRef.current + 1
+      requestSeqRef.current = seq
+      if (!silent) {
+        setPanel(null)
+        setLoading(true)
+        setLoadError('')
       }
-      setPanel(data)
-    } catch (error) {
-      if (requestSeqRef.current !== seq) return
-      const status = error?.response?.status
-      setLoadError(
-        extractServerMessage(
-          error,
-          status === 403
-            ? '이 설비를 조회할 권한이 없습니다.'
-            : status === 404
-              ? '분전반을 찾을 수 없습니다.'
-              : '설비 상세를 불러오지 못했습니다.',
-        ),
-      )
-    } finally {
-      if (requestSeqRef.current === seq) setLoading(false)
-    }
-  }, [panelId, currentSiteId])
+
+      try {
+        const data = await getPanelDetail(panelId)
+        if (requestSeqRef.current !== seq) return
+        if (currentSiteId && data?.siteId !== currentSiteId) {
+          if (!silent) setLoadError('현재 선택 현장에 속한 설비가 아닙니다.')
+          return
+        }
+        setPanel(data)
+      } catch (error) {
+        if (requestSeqRef.current !== seq || silent) return
+        const status = error?.response?.status
+        setLoadError(
+          extractServerMessage(
+            error,
+            status === 403
+              ? '이 설비를 조회할 권한이 없습니다.'
+              : status === 404
+                ? '분전반을 찾을 수 없습니다.'
+                : '설비 상세를 불러오지 못했습니다.',
+          ),
+        )
+      } finally {
+        if (requestSeqRef.current === seq && !silent) setLoading(false)
+      }
+    },
+    [panelId, currentSiteId],
+  )
 
   useEffect(() => {
     // currentSite가 바뀐 상태에서 이전 상세 응답이 남지 않도록 요청 순서를 끊는다.
@@ -69,6 +76,12 @@ export default function EquipmentDetailPage() {
       requestSeqRef.current += 1
     }
   }, [load])
+
+  useEffect(() => {
+    // MonitoringProvider가 WS/폴링으로 새 신호를 줄 때마다 조용히 다시 조회(REQ-201)
+    if (!refreshedAt) return
+    load({ silent: true })
+  }, [refreshedAt, load])
 
   // 분전반 선택은 모든 역할이 목록으로 돌아가는 진입점, 회로 관리는 ADMIN 이상만 노출한다.
   const actions = useMemo(

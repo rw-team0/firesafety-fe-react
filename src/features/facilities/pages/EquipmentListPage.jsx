@@ -4,6 +4,7 @@ import { getPanels } from '../api/facilityApi'
 import { extractServerMessage, formatDateTimeCell, formatOnline, formatPanelStatus } from '../utils/facilityFormatters'
 import { canManageFacilities } from '../utils/facilityPolicy'
 import { useAuth } from '@/features/auth/useAuth'
+import { useMonitoring } from '@/features/monitoring/useMonitoring'
 import { useSite } from '@/features/sites/useSite'
 import { getDashboardSummary } from '@/features/dashboard/api/dashboardApi'
 import { usePageActions } from '@/layouts/DefaultLayout/usePageActions'
@@ -36,6 +37,7 @@ function getPanelCardClassName(status) {
 export default function EquipmentListPage() {
   const { role } = useAuth()
   const { currentSiteId } = useSite()
+  const { refreshedAt } = useMonitoring()
   const navigate = useNavigate()
   const panelSeqRef = useRef(0)
   const canManage = canManageFacilities(role)
@@ -62,7 +64,8 @@ export default function EquipmentListPage() {
     } catch {
       // 요약 실패는 목록 조회 자체를 막지 않는다 — 아래 loadPanels 에러 처리로 충분
     }
-  }, [currentSiteId])
+    // refreshedAt은 함수 안에서 쓰진 않지만, MonitoringProvider가 WS/폴링으로 새 신호를 줄 때마다 재조회하려고 의존성에 넣는다
+  }, [currentSiteId, refreshedAt])
 
   // 현재 현장 분전반 카드 목록 조회 — 검색어/상태/페이지는 서버가 필터·페이징한다(API-505)
   const loadPanels = useCallback(async () => {
@@ -103,7 +106,8 @@ export default function EquipmentListPage() {
     } finally {
       if (panelSeqRef.current === seq) setPanelLoading(false)
     }
-  }, [currentSiteId, keyword, statusFilter, page])
+    // refreshedAt은 함수 안에서 쓰진 않지만, MonitoringProvider가 WS/폴링으로 새 신호를 줄 때마다 재조회하려고 의존성에 넣는다
+  }, [currentSiteId, keyword, statusFilter, page, refreshedAt])
 
   useEffect(() => {
     // 현장이 바뀌면 이전 현장 목록/선택/상세가 잠시라도 남지 않게 비우고 stale 응답을 무시한다.

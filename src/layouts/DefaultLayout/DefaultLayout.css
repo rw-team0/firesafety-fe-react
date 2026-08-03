@@ -276,6 +276,7 @@
 
 /* 페이지 안의 다른 버튼(.btn, 36px)과 높이를 맞춤 */
 .default-layout__bell {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--space-8);
@@ -286,6 +287,25 @@
   color: var(--color-text-secondary);
   font-size: var(--font-size-body);
   font-weight: 600;
+}
+
+/* 미확인 경보 건수 — MonitoringProvider가 WS/폴링으로 갱신 */
+.default-layout__bell-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--color-danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .default-layout__bell:hover {

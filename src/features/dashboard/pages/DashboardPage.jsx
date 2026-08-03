@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getPendingAlerts, getAlerts } from '@/features/alerts/api/alertApi'
+import { useMonitoring } from '@/features/monitoring/useMonitoring'
 import { useSite } from '@/features/sites/useSite'
 import { getDashboardSummary } from '../api/dashboardApi'
 import Button from '@/shared/components/buttons/Button'
@@ -86,6 +87,7 @@ function formatRiskReason(panel) {
 // SCR-201 대시보드 — 현재 선택 현장의 설비/경보 요약을 조회한다.
 export default function DashboardPage() {
   const { currentSiteId } = useSite()
+  const { refreshedAt } = useMonitoring()
   const navigate = useNavigate()
   const requestSeqRef = useRef(0)
 
@@ -154,7 +156,8 @@ export default function DashboardPage() {
     }
 
     setLoading(false)
-  }, [currentSiteId])
+    // refreshedAt은 함수 안에서 쓰진 않지만, MonitoringProvider가 WS/폴링으로 새 신호를 줄 때마다 재조회하려고 의존성에 넣는다
+  }, [currentSiteId, refreshedAt])
 
   useEffect(() => {
     // 현장 변경 시 이전 현장 데이터가 남지 않도록 초기화하고, 늦게 도착한 응답은 무시한다.
