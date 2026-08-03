@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getPanelDetail, updatePanel } from '../api/facilityApi'
+import { MAX_CIRCUIT_COUNT, MIN_CIRCUIT_COUNT, M_NO_LENGTH } from '../constants/facilityConstants'
 import {
   extractServerMessage,
   formatDateTimeCell,
@@ -14,6 +15,7 @@ import {
 } from '../utils/facilityFormatters'
 import ThresholdFields from './ThresholdFields'
 import { useAuth } from '@/features/auth/useAuth'
+import { useSite } from '@/features/sites/useSite'
 import Button from '@/shared/components/buttons/Button'
 import Input from '@/shared/components/forms/Input'
 import BaseModal from '@/shared/components/modals/BaseModal'
@@ -36,6 +38,8 @@ function DetailItem({ label, value }) {
 // 설비관리 목록에서 행을 누르면 뜨는 모달 — 조회/수정 두 모드를 겸한다(accounts AccountDetailModal과 동일 패턴)
 export default function PanelDetailModal({ visible, panelId, canManage, onClose, onUpdated }) {
   const { user } = useAuth()
+  const { currentSiteId } = useSite()
+  const requestSeqRef = useRef(0)
   const [mode, setMode] = useState('view')
   const [panel, setPanel] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -46,30 +50,49 @@ export default function PanelDetailModal({ visible, panelId, canManage, onClose,
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
 
+  // A 클릭 직후 B 클릭 같은 stale 응답을 막기 위해 요청 순번을 기록하고, 응답 시점에 최신 요청인지 +
+  // 응답 panel.siteId가 요청 당시 currentSiteId와 같은지 함께 검증한다.
   async function load() {
+    const requestedPanelId = panelId
+    const requestedSiteId = currentSiteId
+    const seq = requestSeqRef.current + 1
+    requestSeqRef.current = seq
+
     setLoading(true)
     setLoadError('')
     try {
-      const data = await getPanelDetail(panelId)
+      const data = await getPanelDetail(requestedPanelId)
+      if (requestSeqRef.current !== seq) return // 이후 다른 panelId/currentSite 요청이 이미 시작됨
+      if (requestedSiteId && data?.siteId !== requestedSiteId) {
+        setPanel(null)
+        setLoadError('현재 선택 현장에 속한 설비가 아닙니다.')
+        return
+      }
       setPanel(data)
       setForm(panelToForm(data))
     } catch (error) {
+      if (requestSeqRef.current !== seq) return
       setLoadError(extractServerMessage(error, '분전반 정보를 불러오지 못했습니다.'))
     } finally {
-      setLoading(false)
+      if (requestSeqRef.current === seq) setLoading(false)
     }
   }
 
   useEffect(() => {
     if (!visible || !panelId) return
-    // 모달을 열 때마다 조회 모드로 시작 + 최신 정보를 다시 불러온다
+    // 모달을 열 때마다(대상 변경·현장 변경 포함) 조회 모드로 시작 + 이전 상세·오류 상태를 비우고 다시 불러온다
     setMode('view')
+    setPanel(null)
     setErrors({})
     setServerMessage('')
     setResult(null)
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
-  }, [visible, panelId])
+    return () => {
+      // 모달이 닫히거나 대상/현장이 바뀌면 그 시점까지의 요청은 전부 무효화(응답이 와도 무시)
+      requestSeqRef.current += 1
+    }
+  }, [visible, panelId, currentSiteId])
 
   function updateField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -78,6 +101,7 @@ export default function PanelDetailModal({ visible, panelId, canManage, onClose,
   }
 
   function startEdit() {
+    if (!canManage) return
     setServerMessage('')
     setMode('edit')
   }
@@ -91,6 +115,7 @@ export default function PanelDetailModal({ visible, panelId, canManage, onClose,
 
   // 분전반 수정
   async function handleSubmit() {
+    if (!canManage) return
     const nextErrors = validatePanelForm(form)
     setErrors(nextErrors)
     if (Object.values(nextErrors).some(Boolean)) return
@@ -186,7 +211,11 @@ export default function PanelDetailModal({ visible, panelId, canManage, onClose,
 
         {!loading && !loadError && mode === 'edit' && (
           <div className="facility-form">
-            {serverMessage && <p className="banner banner-danger">{serverMessage}</p>}
+            {serverMessage && (
+              <p className="banner banner-danger" role="alert">
+                {serverMessage}
+              </p>
+            )}
             <p className="facility-form__legend-desc">
               <span className="field-required">*</span> 표시는 필수 항목입니다.
             </p>
@@ -210,8 +239,8 @@ export default function PanelDetailModal({ visible, panelId, canManage, onClose,
               <Input
                 label="분전반No"
                 requiredMark
-                placeholder="예: 10001 (5자리 필수)"
-                maxLength={5}
+                placeholder={`예: 10001 (${M_NO_LENGTH}자리 필수)`}
+                maxLength={M_NO_LENGTH}
                 value={form.mNo}
                 error={errors.mNo}
                 onChange={(event) => updateField('mNo', event.target.value)}
@@ -220,9 +249,9 @@ export default function PanelDetailModal({ visible, panelId, canManage, onClose,
                 label="회로 개수"
                 requiredMark
                 type="number"
-                min="1"
-                max="10"
-                placeholder="최대 10개"
+                min={MIN_CIRCUIT_COUNT}
+                max={MAX_CIRCUIT_COUNT}
+                placeholder={`최대 ${MAX_CIRCUIT_COUNT}개`}
                 value={form.circuitCount}
                 error={errors.circuitCount}
                 onChange={(event) => updateField('circuitCount', event.target.value)}

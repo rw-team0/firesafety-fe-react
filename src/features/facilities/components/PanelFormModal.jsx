@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Button from '@/shared/components/buttons/Button'
 import Input from '@/shared/components/forms/Input'
 import BaseModal from '@/shared/components/modals/BaseModal'
+import { MAX_CIRCUIT_COUNT, MIN_CIRCUIT_COUNT, M_NO_LENGTH } from '../constants/facilityConstants'
 import { extractServerMessage, getEmptyPanelForm, panelFormToPayload, validatePanelForm } from '../utils/facilityFormatters'
 import ThresholdFields from './ThresholdFields'
 
@@ -66,7 +67,11 @@ export default function PanelFormModal({ visible, onClose, onSubmit }) {
         </>
       }
     >
-      {serverMessage && <p className="banner banner-danger">{serverMessage}</p>}
+      {serverMessage && (
+        <p className="banner banner-danger" role="alert">
+          {serverMessage}
+        </p>
+      )}
       <div className="facility-form">
         <p className="facility-form__legend-desc">
           <span className="field-required">*</span> 표시는 필수 항목입니다.
@@ -91,8 +96,8 @@ export default function PanelFormModal({ visible, onClose, onSubmit }) {
           <Input
             label="분전반No"
             requiredMark
-            placeholder="예: 10001 (5자리 필수)"
-            maxLength={5}
+            placeholder={`예: 10001 (${M_NO_LENGTH}자리 필수)`}
+            maxLength={M_NO_LENGTH}
             value={form.mNo}
             error={errors.mNo}
             onChange={(event) => updateField('mNo', event.target.value)}
@@ -101,9 +106,9 @@ export default function PanelFormModal({ visible, onClose, onSubmit }) {
             label="회로 개수"
             requiredMark
             type="number"
-            min="1"
-            max="10"
-            placeholder="최대 10개"
+            min={MIN_CIRCUIT_COUNT}
+            max={MAX_CIRCUIT_COUNT}
+            placeholder={`최대 ${MAX_CIRCUIT_COUNT}개`}
             value={form.circuitCount}
             error={errors.circuitCount}
             onChange={(event) => updateField('circuitCount', event.target.value)}

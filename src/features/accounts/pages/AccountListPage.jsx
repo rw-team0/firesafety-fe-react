@@ -178,11 +178,6 @@ export default function AccountListPage() {
 
   return (
     <div className="account-list">
-      {/* 읽기 전용 사용자에겐 "버튼만 빠진 화면"이 아니라 연락처 확인용 화면이라는 걸 먼저 알린다 */}
-      {!canManageStaff && (
-        <p className="account-list__notice">현재 현장에서 함께 근무하는 직원의 연락처를 확인할 수 있습니다.</p>
-      )}
-
       <BaseCard className="card--filter">
         {/* 탭이 1개 이하면(SUPER_ADMIN 아니면 관리이력 탭 자체가 없음) TabBar가 알아서 아무것도 렌더하지 않는다 */}
         <TabBar tabs={tabs} />
@@ -227,7 +222,7 @@ export default function AccountListPage() {
         loading={loading}
         rows={pagedUsers}
         rowKey={(row) => row.userId}
-        onRowClick={canManageStaff ? (row) => setDetailUser(row) : undefined}
+        onRowClick={(row) => setDetailUser(row)}
         selection={
           canManageStaff
             ? {

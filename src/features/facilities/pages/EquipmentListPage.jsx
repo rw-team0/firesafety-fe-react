@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getPanels } from '../api/facilityApi'
 import PanelTable from '../components/PanelTable'
+import { EQUIPMENT_LIST_PAGE_SIZE } from '../constants/facilityConstants'
 import { includesPanelKeyword, PANEL_STATUS_OPTIONS } from '../utils/facilityFormatters'
 import { useSite } from '@/features/sites/useSite'
 import BaseCard from '@/shared/components/data-display/BaseCard'
@@ -13,11 +14,11 @@ import FilterBar from '@/shared/components/layout/FilterBar'
 import { buildPath, ROUTE_PATHS } from '@/shared/constants/routePaths'
 import './FacilityPages.css'
 
-const PAGE_SIZE = 11
+const PAGE_SIZE = EQUIPMENT_LIST_PAGE_SIZE
 
-// 설비 목록 화면 — 조회 전용. 등록/수정/삭제는 설비관리(SCR-502)에서만 한다.
+// 설비 모니터링 화면(SCR-501) — 조회 전용. 등록/수정/삭제는 설비관리(SCR-502)에서만 한다.
 export default function EquipmentListPage() {
-  const { currentSite, currentSiteId } = useSite()
+  const { currentSiteId } = useSite()
   const navigate = useNavigate()
   const requestSeqRef = useRef(0)
 
@@ -39,7 +40,7 @@ export default function EquipmentListPage() {
 
     if (!siteId) {
       setLoading(false)
-      setLoadError('설비 목록은 현장 선택 후 이용할 수 있습니다.')
+      setLoadError('설비 모니터링은 현장 선택 후 이용할 수 있습니다.')
       return
     }
 
@@ -52,7 +53,7 @@ export default function EquipmentListPage() {
     } catch (error) {
       if (requestSeqRef.current !== seq) return
       const statusCode = error?.response?.status
-      setLoadError(statusCode === 403 ? '현재 현장의 설비를 조회할 권한이 없습니다.' : '설비 목록을 불러오지 못했습니다.')
+      setLoadError(statusCode === 403 ? '현재 현장의 설비를 조회할 권한이 없습니다.' : '설비 모니터링 목록을 불러오지 못했습니다.')
     } finally {
       if (requestSeqRef.current === seq) setLoading(false)
     }

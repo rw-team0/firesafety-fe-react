@@ -38,11 +38,20 @@ export default function AccountDetailModal({ visible, user: targetUser, onClose,
   const userId = targetUser?.userId
   // GET /users/audit-logs는 백엔드가 SUPER_ADMIN 전용으로 막아둠(관리이력 페이지와 동일 기준) — 그 외 역할은 호출 자체를 안 함
   const canViewHistory = actorRole === ROLES.SUPER_ADMIN
+  const editable = targetUser ? canEditTarget(actorRole, targetUser.role) : false
+  const updatableRoles = targetUser ? getUpdatableRoles(actorRole, targetUser.role) : []
 
   async function load() {
     setLoading(true)
     setLoadError('')
     try {
+      setLogs([])
+      if (!editable && !canViewHistory) {
+        // GENERAL 읽기 전용 상세는 목록 데이터만으로 충분하다. 관리용 배정/이력 API는 호출하지 않는다.
+        setSelectedSiteIds(currentSiteId ? [currentSiteId] : [])
+        return
+      }
+
       const [assignments, auditLogs] = await Promise.all([
         getSiteAssignments(userId),
         canViewHistory ? getUserAuditLogs() : Promise.resolve([]),
@@ -72,10 +81,7 @@ export default function AccountDetailModal({ visible, user: targetUser, onClose,
     })
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
-  }, [visible, userId])
-
-  const editable = targetUser ? canEditTarget(actorRole, targetUser.role) : false
-  const updatableRoles = targetUser ? getUpdatableRoles(actorRole, targetUser.role) : []
+  }, [visible, userId, actorRole, currentSiteId])
 
   function updateField(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -86,6 +92,7 @@ export default function AccountDetailModal({ visible, user: targetUser, onClose,
   }
 
   function startEdit() {
+    if (!editable) return
     setErrorMessage('')
     setMode('edit')
   }
@@ -117,6 +124,7 @@ export default function AccountDetailModal({ visible, user: targetUser, onClose,
   }
 
   async function handleConfirmSubmit() {
+    if (!editable) return
     setConfirmOpen(false)
     setSubmitting(true)
     try {

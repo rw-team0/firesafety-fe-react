@@ -60,6 +60,17 @@
   background: var(--color-surface);
 }
 
+/* 센서 카드 상태 강조 — 임계값 초과(warning)/하드웨어 알람(danger). getSensorFieldStatus()가 계산한 값만 반영 */
+.facility-detail__item--warning {
+  border-color: var(--color-warning);
+  background: var(--color-warning-bg);
+}
+
+.facility-detail__item--danger {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
 .facility-detail__item-label {
   display: block;
   margin-bottom: var(--space-6);
@@ -156,12 +167,6 @@
 
 .facility-circuit-card__title {
   font-weight: 700;
-}
-
-.facility-circuit-card__top input[type='checkbox'] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--color-brand);
 }
 
 /* 등록/삭제 버튼은 카드 우측 하단에 작게 — 슬롯 카드가 좁아서 기본 버튼 크기는 과하다 */

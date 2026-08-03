@@ -1,9 +1,9 @@
 import DataTable from '@/shared/components/data-display/DataTable'
-import Button from '@/shared/components/buttons/Button'
 import StatusBadge from '@/shared/components/feedback/StatusBadge'
 import { formatDateTimeCell, formatOnline, formatPanelStatus } from '../utils/facilityFormatters'
 
-// 분전반 테이블
+// 분전반 테이블 — 행 클릭으로 상세/관리 모달을 여는 화면에서 공용으로 쓴다.
+// 수정은 행 클릭 시 열리는 모달(PanelDetailModal) 안에서 처리하므로 이 테이블 자체에는 수정 버튼 컬럼이 없다.
 export default function PanelTable({
   panels,
   loading,
@@ -12,7 +12,6 @@ export default function PanelTable({
   onToggle,
   onToggleAll,
   onRowClick,
-  onEdit,
   emptyDescription,
 }) {
   const columns = [
@@ -27,24 +26,6 @@ export default function PanelTable({
     { key: 'isOnline', header: '통신 상태', render: (row) => formatOnline(row.isOnline) },
     { key: 'lastCommunicatedAt', header: '최근 통신 시각', render: (row) => formatDateTimeCell(row.lastCommunicatedAt) },
   ]
-
-  if (onEdit) {
-    columns.push({
-      key: 'actions',
-      header: '관리',
-      render: (row) => (
-        <Button
-          variant="secondary"
-          onClick={(event) => {
-            event.stopPropagation()
-            onEdit(row)
-          }}
-        >
-          수정
-        </Button>
-      ),
-    })
-  }
 
   return (
     <DataTable

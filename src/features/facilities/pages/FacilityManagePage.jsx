@@ -14,6 +14,7 @@ import CircuitFormModal from '../components/CircuitFormModal'
 import PanelDetailModal from '../components/PanelDetailModal'
 import PanelFormModal from '../components/PanelFormModal'
 import PanelTable from '../components/PanelTable'
+import { FACILITY_MANAGE_PAGE_SIZE, FACILITY_MANAGE_TABS, MAX_CIRCUIT_CHANNEL } from '../constants/facilityConstants'
 import { canManageFacilities } from '../utils/facilityPolicy'
 import {
   extractServerMessage,
@@ -21,6 +22,7 @@ import {
   formatPanelStatus,
   formatValue,
   includesPanelKeyword,
+  summarizeSettledResults,
   THRESHOLD_FIELDS,
 } from '../utils/facilityFormatters'
 import { useAuth } from '@/features/auth/useAuth'
@@ -29,8 +31,10 @@ import { usePageActions } from '@/layouts/DefaultLayout/usePageActions'
 import Button from '@/shared/components/buttons/Button'
 import BaseCard from '@/shared/components/data-display/BaseCard'
 import Pagination from '@/shared/components/data-display/Pagination'
+import EmptyState from '@/shared/components/feedback/EmptyState'
 import ErrorState from '@/shared/components/feedback/ErrorState'
 import LoadingState from '@/shared/components/feedback/LoadingState'
+import Checkbox from '@/shared/components/forms/Checkbox'
 import Input from '@/shared/components/forms/Input'
 import Select from '@/shared/components/forms/Select'
 import FilterBar from '@/shared/components/layout/FilterBar'
@@ -39,14 +43,8 @@ import ConfirmModal from '@/shared/components/modals/ConfirmModal'
 import { formatResultDateTime } from '@/shared/utils/formatters'
 import './FacilityPages.css'
 
-const PAGE_SIZE = 8
-const VALID_TABS = ['panels', 'circuits']
-
-// 삭제 결과 요약
-function deleteSummary(results) {
-  const successCount = results.filter((result) => result.status === 'fulfilled').length
-  return { successCount, failCount: results.length - successCount }
-}
+const PAGE_SIZE = FACILITY_MANAGE_PAGE_SIZE
+const VALID_TABS = FACILITY_MANAGE_TABS
 
 // 설비 관리 화면
 export default function FacilityManagePage() {
@@ -106,7 +104,7 @@ export default function FacilityManagePage() {
     } catch (error) {
       if (panelSeqRef.current !== seq) return
       const status = error?.response?.status
-      setPanelError(status === 403 ? '현재 현장의 설비를 관리할 권한이 없습니다.' : '분전반 목록을 불러오지 못했습니다.')
+      setPanelError(status === 403 ? '현재 현장의 설비를 조회할 권한이 없습니다.' : '분전반 목록을 불러오지 못했습니다.')
     } finally {
       if (panelSeqRef.current === seq) setPanelLoading(false)
     }
@@ -192,11 +190,13 @@ export default function FacilityManagePage() {
 
   // 분전반 선택
   function toggleSelect(panelId) {
+    if (!canManage) return
     setSelectedPanelIds((prev) => (prev.includes(panelId) ? prev.filter((id) => id !== panelId) : [...prev, panelId]))
   }
 
   // 현재 페이지 전체 선택
   function toggleSelectAll() {
+    if (!canManage) return
     const pageIds = pagedPanels.map((panel) => panel.panelId)
     const allChecked = pageIds.length > 0 && pageIds.every((id) => selectedPanelIds.includes(id))
     setSelectedPanelIds((prev) =>
@@ -206,6 +206,7 @@ export default function FacilityManagePage() {
 
   // 분전반 등록
   async function handleCreatePanel(payload) {
+    if (!canManage) return
     await createPanel(currentSiteId, payload)
     await loadPanels()
     setActionResult({
@@ -222,13 +223,16 @@ export default function FacilityManagePage() {
 
   // 선택 분전반 삭제
   async function handleDeletePanels() {
+    if (!canManage) return
     const results = await Promise.allSettled(selectedPanelIds.map((panelId) => deletePanel(panelId)))
-    const { successCount, failCount } = deleteSummary(results)
+    const { successCount, failCount, failureReason } = summarizeSettledResults(results)
     setPanelDeleteOpen(false)
     setActionResult({
       type: failCount ? (successCount ? 'warning' : 'danger') : 'success',
       title: failCount ? (successCount ? '일부 삭제되었습니다.' : '삭제에 실패했습니다.') : '삭제가 완료되었습니다.',
-      subtitle: failCount ? `성공 ${successCount}건, 실패 ${failCount}건` : '선택한 분전반이 삭제되었습니다.',
+      subtitle: failCount
+        ? `성공 ${successCount}건, 실패 ${failCount}건${failureReason ? ` (${failureReason})` : ''}`
+        : '선택한 분전반이 삭제되었습니다.',
       infoRows: [
         { label: '삭제 항목', value: `${successCount}건` },
         { label: '삭제 시각', value: formatResultDateTime() },
@@ -240,6 +244,7 @@ export default function FacilityManagePage() {
 
   // 회로 등록
   async function handleCreateCircuit(payload) {
+    if (!canManage) return
     await createCircuit(selectedPanelId, payload)
     await loadCircuitsForPanel()
     setActionResult({
@@ -256,6 +261,7 @@ export default function FacilityManagePage() {
 
   // 연결 기기 수정
   async function handleUpdateCircuit(payload) {
+    if (!canManage) return
     await updateCircuit(editCircuitTarget.circuitId, payload)
     await loadCircuitsForPanel()
     setActionResult({
@@ -273,6 +279,7 @@ export default function FacilityManagePage() {
 
   // 회로 선택
   function toggleCircuitSelect(circuitId) {
+    if (!canManage) return
     setSelectedCircuitIds((prev) =>
       prev.includes(circuitId) ? prev.filter((id) => id !== circuitId) : [...prev, circuitId],
     )
@@ -280,14 +287,17 @@ export default function FacilityManagePage() {
 
   // 선택 회로 삭제
   async function handleDeleteCircuits() {
+    if (!canManage) return
     const results = await Promise.allSettled(selectedCircuitIds.map((circuitId) => deleteCircuit(circuitId)))
-    const { successCount, failCount } = deleteSummary(results)
+    const { successCount, failCount, failureReason } = summarizeSettledResults(results)
     setCircuitDeleteOpen(false)
     setSelectedCircuitIds([])
     setActionResult({
       type: failCount ? (successCount ? 'warning' : 'danger') : 'success',
       title: failCount ? (successCount ? '일부 삭제되었습니다.' : '삭제에 실패했습니다.') : '삭제가 완료되었습니다.',
-      subtitle: failCount ? `성공 ${successCount}건, 실패 ${failCount}건` : '선택한 회로가 삭제되었습니다.',
+      subtitle: failCount
+        ? `성공 ${successCount}건, 실패 ${failCount}건${failureReason ? ` (${failureReason})` : ''}`
+        : '선택한 회로가 삭제되었습니다.',
       infoRows: [
         { label: '삭제 항목', value: `${successCount}건` },
         { label: '삭제 시각', value: formatResultDateTime() },
@@ -302,7 +312,7 @@ export default function FacilityManagePage() {
     [circuits],
   )
 
-  const slots = Array.from({ length: 10 }, (_, index) => {
+  const slots = Array.from({ length: MAX_CIRCUIT_CHANNEL }, (_, index) => {
     const channelNo = index + 1
     return {
       channelNo,
@@ -314,25 +324,29 @@ export default function FacilityManagePage() {
   // 분전반 등록은 분전반관리 탭에서만 의미가 있어 헤더 액션도 그 탭에서만 노출한다
   const actions = useMemo(
     () =>
-      activeTab === 'panels' ? (
+      canManage && activeTab === 'panels' ? (
         <Button variant="primary" onClick={() => setPanelCreateOpen(true)}>
           분전반 등록
         </Button>
       ) : null,
-    [activeTab],
+    [activeTab, canManage],
   )
   usePageActions(actions)
 
-  if (!canManage) return <ErrorState message="설비 관리 권한이 없습니다." />
   if (panelError) return <ErrorState message={panelError} onRetry={loadPanels} />
 
   return (
     <div className="facility-page">
       {/* 쿼리파라미터 탭이라 route 기반 TabBar 컴포넌트는 못 쓰지만, 직원관리 화면과 동일하게 탭+필터를 한 카드에 묶는다 */}
       <BaseCard className="card--filter">
-        <nav className="tab-bar" aria-label="설비 관리 탭">
+        <nav className="tab-bar" role="tablist" aria-label="설비 관리 탭">
           <button
             type="button"
+            id="facility-tab-panels"
+            role="tab"
+            aria-selected={activeTab === 'panels'}
+            aria-controls="facility-tabpanel-panels"
+            tabIndex={activeTab === 'panels' ? 0 : -1}
             className={`tab-bar__tab ${activeTab === 'panels' ? 'is-active' : ''}`.trim()}
             onClick={() => switchTab('panels')}
           >
@@ -340,6 +354,11 @@ export default function FacilityManagePage() {
           </button>
           <button
             type="button"
+            id="facility-tab-circuits"
+            role="tab"
+            aria-selected={activeTab === 'circuits'}
+            aria-controls="facility-tabpanel-circuits"
+            tabIndex={activeTab === 'circuits' ? 0 : -1}
             className={`tab-bar__tab ${activeTab === 'circuits' ? 'is-active' : ''}`.trim()}
             onClick={() => switchTab('circuits')}
           >
@@ -353,9 +372,11 @@ export default function FacilityManagePage() {
               setPage(1)
             }}
             actions={
-              <Button variant="danger" disabled={selectedPanelIds.length === 0} onClick={() => setPanelDeleteOpen(true)}>
-                선택 삭제 ({selectedPanelIds.length})
-              </Button>
+              canManage ? (
+                <Button variant="danger" disabled={selectedPanelIds.length === 0} onClick={() => setPanelDeleteOpen(true)}>
+                  선택 삭제 ({selectedPanelIds.length})
+                </Button>
+              ) : null
             }
           >
             <Input
@@ -373,7 +394,7 @@ export default function FacilityManagePage() {
           <FilterBar>
             <div className="facility-inline-field">
               <label htmlFor="circuit-panel-select" className="facility-inline-field__label">
-              분전반 선택 :
+                분전반 선택 :
               </label>
               <Select
                 id="circuit-panel-select"
@@ -391,16 +412,21 @@ export default function FacilityManagePage() {
       </BaseCard>
 
       {activeTab === 'panels' && (
-        <>
+        <div
+          id="facility-tabpanel-panels"
+          role="tabpanel"
+          aria-labelledby="facility-tab-panels"
+          className="facility-page"
+        >
           <PanelTable
             loading={panelLoading}
             panels={pagedPanels}
-            canManage
+            canManage={canManage}
             selectedIds={selectedPanelIds}
             onToggle={toggleSelect}
             onToggleAll={toggleSelectAll}
             onRowClick={(panel) => setDetailPanelId(panel.panelId)}
-            emptyDescription="분전반 등록 버튼을 눌러 현재 현장에 설비를 추가할 수 있습니다."
+            emptyDescription={canManage ? '분전반 등록 버튼을 눌러 현재 현장에 설비를 추가할 수 있습니다.' : undefined}
           />
 
           {!panelLoading && filteredPanels.length > 0 && (
@@ -411,11 +437,16 @@ export default function FacilityManagePage() {
               <Pagination page={currentPage} totalPages={totalPages} onChange={setPage} />
             </div>
           )}
-        </>
+        </div>
       )}
 
       {activeTab === 'circuits' && (
-        <div className="facility-manage__layout">
+        <div
+          id="facility-tabpanel-circuits"
+          role="tabpanel"
+          aria-labelledby="facility-tab-circuits"
+          className="facility-manage__layout"
+        >
           <BaseCard>
             <h3 className="facility-section-title">선택 분전반</h3>
             {selectedPanelDetail ? (
@@ -449,7 +480,9 @@ export default function FacilityManagePage() {
                 </div>
               </div>
             ) : (
-              <p className="facility-muted">분전반을 선택하면 회로 슬롯을 관리할 수 있습니다.</p>
+              <p className="facility-muted">
+                {canManage ? '분전반을 선택하면 회로 슬롯을 관리할 수 있습니다.' : '분전반을 선택하면 회로 슬롯을 확인할 수 있습니다.'}
+              </p>
             )}
           </BaseCard>
 
@@ -459,20 +492,28 @@ export default function FacilityManagePage() {
                 <h3 className="facility-section-title">회로 슬롯</h3>
                 {selectedPanelDetail && (
                   <p className="facility-muted">
-                    등록 가능 채널: 1~{selectedPanelDetail.circuitCount} / 상태 {formatPanelStatus(selectedPanelDetail.status)}
+                    {canManage ? '등록 가능 채널' : '사용 채널'}: 1~{selectedPanelDetail.circuitCount} / 상태{' '}
+                    {formatPanelStatus(selectedPanelDetail.status)}
                   </p>
                 )}
               </div>
-              <Button
-                variant="danger"
-                disabled={selectedCircuitIds.length === 0}
-                onClick={() => setCircuitDeleteOpen(true)}
-              >
-                선택 삭제 ({selectedCircuitIds.length})
-              </Button>
+              {canManage && (
+                <Button
+                  variant="danger"
+                  disabled={selectedCircuitIds.length === 0}
+                  onClick={() => setCircuitDeleteOpen(true)}
+                >
+                  선택 삭제 ({selectedCircuitIds.length})
+                </Button>
+              )}
             </div>
             {panelLoading && <LoadingState label="분전반 목록을 불러오는 중입니다..." />}
-            {!panelLoading && panels.length === 0 && <p className="facility-muted">회로를 등록할 분전반이 없습니다.</p>}
+            {!panelLoading && panels.length === 0 && (
+              <EmptyState
+                message={canManage ? '회로를 등록할 분전반이 없습니다.' : '조회할 분전반이 없습니다.'}
+                description={canManage ? '분전반관리 탭에서 분전반을 먼저 등록해주세요.' : undefined}
+              />
+            )}
             {!panelLoading && panels.length > 0 && (
               <>
                 {circuitLoading && <LoadingState label="회로 정보를 불러오는 중입니다..." />}
@@ -487,9 +528,8 @@ export default function FacilityManagePage() {
                         <div>
                           <div className="facility-circuit-card__top">
                             <span className="facility-circuit-card__title">채널 {slot.channelNo}</span>
-                            {slot.circuit && (
-                              <input
-                                type="checkbox"
+                            {canManage && slot.circuit && (
+                              <Checkbox
                                 checked={selectedCircuitIds.includes(slot.circuit.circuitId)}
                                 onChange={() => toggleCircuitSelect(slot.circuit.circuitId)}
                                 aria-label={`채널 ${slot.channelNo} 선택`}
@@ -502,7 +542,7 @@ export default function FacilityManagePage() {
                           )}
                           {!slot.disabled && !slot.circuit && <p className="facility-muted">빈 채널</p>}
                         </div>
-                        {!slot.disabled && slot.circuit && (
+                        {canManage && !slot.disabled && slot.circuit && (
                           <div className="facility-circuit-card__footer">
                             <Button
                               className="facility-circuit-card__btn facility-circuit-card__btn--edit"
@@ -513,7 +553,7 @@ export default function FacilityManagePage() {
                             </Button>
                           </div>
                         )}
-                        {!slot.disabled && !slot.circuit && (
+                        {canManage && !slot.disabled && !slot.circuit && (
                           <div className="facility-circuit-card__footer">
                             <Button
                               className="facility-circuit-card__btn"
@@ -534,7 +574,27 @@ export default function FacilityManagePage() {
         </div>
       )}
 
-      <PanelFormModal visible={panelCreateOpen} onClose={() => setPanelCreateOpen(false)} onSubmit={handleCreatePanel} />
+      {canManage && (
+        <>
+          <PanelFormModal visible={panelCreateOpen} onClose={() => setPanelCreateOpen(false)} onSubmit={handleCreatePanel} />
+          <CircuitFormModal
+            visible={Boolean(circuitCreateChannel)}
+            mode="create"
+            channelNo={circuitCreateChannel}
+            panelName={selectedPanelDetail?.name}
+            onClose={() => setCircuitCreateChannel(null)}
+            onSubmit={handleCreateCircuit}
+          />
+          <CircuitFormModal
+            visible={Boolean(editCircuitTarget)}
+            mode="edit"
+            circuit={editCircuitTarget}
+            panelName={selectedPanelDetail?.name}
+            onClose={() => setEditCircuitTarget(null)}
+            onSubmit={handleUpdateCircuit}
+          />
+        </>
+      )}
       <PanelDetailModal
         visible={Boolean(detailPanelId)}
         panelId={detailPanelId}
@@ -545,85 +605,73 @@ export default function FacilityManagePage() {
           loadCircuitsForPanel()
         }}
       />
-      <CircuitFormModal
-        visible={Boolean(circuitCreateChannel)}
-        mode="create"
-        channelNo={circuitCreateChannel}
-        panelName={selectedPanelDetail?.name}
-        onClose={() => setCircuitCreateChannel(null)}
-        onSubmit={handleCreateCircuit}
-      />
-      <CircuitFormModal
-        visible={Boolean(editCircuitTarget)}
-        mode="edit"
-        circuit={editCircuitTarget}
-        panelName={selectedPanelDetail?.name}
-        onClose={() => setEditCircuitTarget(null)}
-        onSubmit={handleUpdateCircuit}
-      />
 
-      <ConfirmModal
-        visible={panelDeleteOpen}
-        title="분전반 삭제"
-        message="선택한 분전반을 삭제하시겠습니까?"
-        danger
-        confirmLabel="삭제"
-        onCancel={() => setPanelDeleteOpen(false)}
-        onConfirm={handleDeletePanels}
-      >
-        <div className="confirm-modal__summary">
-          <span className="confirm-modal__summary-icon" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-          <div className="confirm-modal__summary-body">
-            <p className="confirm-modal__summary-row">
-              <span className="confirm-modal__summary-label">대상</span>
-              <span className="confirm-modal__summary-value">{selectedPanelIds.length}건</span>
-              <span className="confirm-modal__summary-badge">삭제</span>
-            </p>
-            <p className="confirm-modal__summary-detail">선택한 분전반 전체가 삭제되어 일반 목록에서 제외됩니다.</p>
+      {canManage && (
+        <ConfirmModal
+          visible={panelDeleteOpen}
+          title="분전반 삭제"
+          message="선택한 분전반을 삭제하시겠습니까?"
+          danger
+          confirmLabel="삭제"
+          onCancel={() => setPanelDeleteOpen(false)}
+          onConfirm={handleDeletePanels}
+        >
+          <div className="confirm-modal__summary">
+            <span className="confirm-modal__summary-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <div className="confirm-modal__summary-body">
+              <p className="confirm-modal__summary-row">
+                <span className="confirm-modal__summary-label">대상</span>
+                <span className="confirm-modal__summary-value">{selectedPanelIds.length}건</span>
+                <span className="confirm-modal__summary-badge">삭제</span>
+              </p>
+              <p className="confirm-modal__summary-detail">선택한 분전반 전체가 삭제되어 일반 목록에서 제외됩니다.</p>
+            </div>
           </div>
-        </div>
-      </ConfirmModal>
-      <ConfirmModal
-        visible={circuitDeleteOpen}
-        title="회로 삭제"
-        message="선택한 회로를 삭제하시겠습니까?"
-        danger
-        confirmLabel="삭제"
-        onCancel={() => setCircuitDeleteOpen(false)}
-        onConfirm={handleDeleteCircuits}
-      >
-        <div className="confirm-modal__summary">
-          <span className="confirm-modal__summary-icon" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-          <div className="confirm-modal__summary-body">
-            <p className="confirm-modal__summary-row">
-              <span className="confirm-modal__summary-label">대상</span>
-              <span className="confirm-modal__summary-value">{selectedCircuitIds.length}건</span>
-              <span className="confirm-modal__summary-badge">삭제</span>
-            </p>
-            <p className="confirm-modal__summary-detail">선택한 회로 전체가 삭제되어 일반 목록에서 제외됩니다.</p>
+        </ConfirmModal>
+      )}
+      {canManage && (
+        <ConfirmModal
+          visible={circuitDeleteOpen}
+          title="회로 삭제"
+          message="선택한 회로를 삭제하시겠습니까?"
+          danger
+          confirmLabel="삭제"
+          onCancel={() => setCircuitDeleteOpen(false)}
+          onConfirm={handleDeleteCircuits}
+        >
+          <div className="confirm-modal__summary">
+            <span className="confirm-modal__summary-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <div className="confirm-modal__summary-body">
+              <p className="confirm-modal__summary-row">
+                <span className="confirm-modal__summary-label">대상</span>
+                <span className="confirm-modal__summary-value">{selectedCircuitIds.length}건</span>
+                <span className="confirm-modal__summary-badge">삭제</span>
+              </p>
+              <p className="confirm-modal__summary-detail">선택한 회로 전체가 삭제되어 일반 목록에서 제외됩니다.</p>
+            </div>
           </div>
-        </div>
-      </ConfirmModal>
+        </ConfirmModal>
+      )}
 
       <ActionResultModal
         visible={Boolean(actionResult)}

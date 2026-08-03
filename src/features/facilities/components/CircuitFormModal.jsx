@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Input from '@/shared/components/forms/Input'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
+import { LOAD_TYPE_MAX_LENGTH } from '../constants/facilityConstants'
 import { extractServerMessage } from '../utils/facilityFormatters'
 
 // 회로 등록/연결 기기 수정 확인 모달 — 채널 번호는 등록 시(또는 자동생성 시) 이미 정해지고
@@ -23,8 +24,8 @@ export default function CircuitFormModal({ visible, mode = 'create', channelNo, 
 
   // 회로 등록 또는 연결 기기 수정
   async function handleConfirm() {
-    if (loadType.trim().length > 50) {
-      setError('연결 기기는 50자 이하로 입력해주세요.')
+    if (loadType.trim().length > LOAD_TYPE_MAX_LENGTH) {
+      setError(`연결 기기는 ${LOAD_TYPE_MAX_LENGTH}자 이하로 입력해주세요.`)
       return
     }
     setServerMessage('')
@@ -57,12 +58,16 @@ export default function CircuitFormModal({ visible, mode = 'create', channelNo, 
       onCancel={onClose}
       onConfirm={handleConfirm}
     >
-      {serverMessage && <p className="banner banner-danger">{serverMessage}</p>}
+      {serverMessage && (
+        <p className="banner banner-danger" role="alert">
+          {serverMessage}
+        </p>
+      )}
       <Input
         label="연결 기기"
         placeholder="예: 조명 (참고용, 선택 입력)"
         value={loadType}
-        maxLength={50}
+        maxLength={LOAD_TYPE_MAX_LENGTH}
         error={error}
         onChange={(event) => {
           setLoadType(event.target.value)

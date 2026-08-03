@@ -8,6 +8,8 @@ import {
   formatOnline,
   formatPanelStatus,
   formatValue,
+  getSensorFieldStatus,
+  SENSOR_FIELDS,
   THRESHOLD_FIELDS,
 } from '../utils/facilityFormatters'
 import { useAuth } from '@/features/auth/useAuth'
@@ -15,21 +17,30 @@ import { useSite } from '@/features/sites/useSite'
 import { usePageActions } from '@/layouts/DefaultLayout/usePageActions'
 import Button from '@/shared/components/buttons/Button'
 import BaseCard from '@/shared/components/data-display/BaseCard'
+import DataTable from '@/shared/components/data-display/DataTable'
+import EmptyState from '@/shared/components/feedback/EmptyState'
 import ErrorState from '@/shared/components/feedback/ErrorState'
 import LoadingState from '@/shared/components/feedback/LoadingState'
 import StatusBadge from '@/shared/components/feedback/StatusBadge'
 import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 import './FacilityPages.css'
 
-// 상세 항목 렌더링
-function DetailItem({ label, value, children }) {
+// 상세 항목 렌더링 — status가 'warning'/'danger'면 카드에 색을 입힌다(하드웨어 알람·임계값 초과 표시용)
+function DetailItem({ label, value, status }) {
+  const statusClass = status && status !== 'normal' ? ` facility-detail__item--${status}` : ''
   return (
-    <div className="facility-detail__item">
+    <div className={`facility-detail__item${statusClass}`}>
       <span className="facility-detail__item-label">{label}</span>
-      <span className="facility-detail__item-value">{children ?? value ?? '-'}</span>
+      <span className="facility-detail__item-value">{value ?? '-'}</span>
     </div>
   )
 }
+
+const RECENT_ALERT_COLUMNS = [
+  { key: 'alertId', header: '경보 ID' },
+  { key: 'type', header: '유형', render: (row) => formatAlertType(row.type) },
+  { key: 'triggeredAt', header: '발생 시각', render: (row) => formatDateTimeCell(row.triggeredAt) },
+]
 
 // 설비 상세 화면
 export default function EquipmentDetailPage() {
@@ -107,7 +118,7 @@ export default function EquipmentDetailPage() {
         <ErrorState message={loadError} onRetry={load} />
         <div>
           <Button variant="secondary" onClick={() => navigate(ROUTE_PATHS.equipmentList)}>
-            설비 목록으로
+            설비 모니터링으로
           </Button>
         </div>
       </div>
@@ -148,15 +159,19 @@ export default function EquipmentDetailPage() {
       <BaseCard>
         <h3 className="facility-section-title">최신 센서값</h3>
         <div className="facility-detail__grid">
-          <DetailItem label="전체전류" value={formatValue(panel.totalCurrent, 'A')} />
-          <DetailItem label="누설전류" value={formatValue(panel.leakMa, 'mA')} />
-          <DetailItem label="전압" value={formatValue(panel.voltV, 'V')} />
-          <DetailItem label="전체전력" value={formatValue(panel.totalPower, 'W')} />
-          <DetailItem label="도어" value={panel.doorStatus == null ? '-' : panel.doorStatus ? '열림' : '닫힘'} />
-          <DetailItem label="온도" value={formatValue(panel.temperature, '도')} />
-          <DetailItem label="습도" value={formatValue(panel.humidity, '%')} />
-          <DetailItem label="불꽃센서" value={formatValue(panel.fireRaw)} />
-          <DetailItem label="가스센서" value={formatValue(panel.gasRaw)} />
+          {SENSOR_FIELDS.map((field) => (
+            <DetailItem
+              key={field.key}
+              label={field.label}
+              value={formatValue(panel[field.key], field.unit)}
+              status={getSensorFieldStatus(panel, field)}
+            />
+          ))}
+          <DetailItem
+            label="도어"
+            value={panel.doorStatus == null ? '-' : panel.doorStatus ? '열림' : '닫힘'}
+            status={panel.doorStatus ? 'danger' : 'normal'}
+          />
         </div>
       </BaseCard>
 
@@ -186,36 +201,18 @@ export default function EquipmentDetailPage() {
             ))}
           </div>
         ) : (
-          <p className="facility-muted">등록된 회로가 없습니다.</p>
+          <EmptyState message="등록된 회로가 없습니다." />
         )}
       </BaseCard>
 
       <BaseCard>
         <h3 className="facility-section-title">최근 경보</h3>
-        {panel.recentAlerts?.length ? (
-          <div className="data-table__wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>경보 ID</th>
-                  <th>유형</th>
-                  <th>발생 시각</th>
-                </tr>
-              </thead>
-              <tbody>
-                {panel.recentAlerts.map((alert) => (
-                  <tr key={alert.alertId}>
-                    <td>{alert.alertId}</td>
-                    <td>{formatAlertType(alert.type)}</td>
-                    <td>{formatDateTimeCell(alert.triggeredAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="facility-muted">최근 경보가 없습니다.</p>
-        )}
+        <DataTable
+          rows={panel.recentAlerts ?? []}
+          rowKey={(row) => row.alertId}
+          columns={RECENT_ALERT_COLUMNS}
+          emptyMessage="최근 경보가 없습니다."
+        />
       </BaseCard>
     </div>
   )
