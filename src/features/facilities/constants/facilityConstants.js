@@ -7,7 +7,7 @@ export const MAX_CIRCUIT_CHANNEL = 10 // 채널 슬롯 물리적 상한(circuitC
 export const M_NO_LENGTH = 5
 export const LOAD_TYPE_MAX_LENGTH = 50
 
-export const EQUIPMENT_LIST_PAGE_SIZE = 11
+export const EQUIPMENT_LIST_PAGE_SIZE = 8 // 설비 모니터링 카드 목록: 데스크톱 4열 x 2행
 export const FACILITY_MANAGE_PAGE_SIZE = 8
 
 export const FACILITY_MANAGE_TABS = ['panels', 'circuits']

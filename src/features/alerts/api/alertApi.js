@@ -7,6 +7,12 @@ export async function getAlerts(params = {}, config = {}) {
   return unwrap(res)
 }
 
+// 미처리 조치 목록 조회
+export async function getPendingAlerts(params = {}, config = {}) {
+  const res = await httpRequester.get('/alerts/pending', { ...config, params })
+  return unwrap(res)
+}
+
 // 경보 확인 처리 — UNCONFIRMED → CONFIRMED
 export async function confirmAlert(alertId) {
   const res = await httpRequester.patch(`/alerts/${alertId}/confirm`)

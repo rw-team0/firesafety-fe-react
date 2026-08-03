@@ -70,17 +70,23 @@ export default function EquipmentDetailPage() {
     }
   }, [load])
 
-  // 등록/수정/삭제는 설비관리(SCR-502) 전용 — 이 화면은 조회만 담당하므로 회로관리 이동 링크만 남긴다.
+  // 분전반 선택은 모든 역할이 목록으로 돌아가는 진입점, 회로 관리는 ADMIN 이상만 노출한다.
   const actions = useMemo(
-    () =>
-      canManage && panel ? (
-        <Button
-          variant="secondary"
-          onClick={() => navigate(`${ROUTE_PATHS.settingsFacilities}?tab=circuits&panelId=${panel.panelId}`)}
-        >
-          회로 관리
+    () => (
+      <>
+        {canManage && panel && (
+          <Button
+            variant="secondary"
+            onClick={() => navigate(`${ROUTE_PATHS.settingsFacilities}?tab=circuits&panelId=${panel.panelId}`)}
+          >
+            회로 관리
+          </Button>
+        )}
+        <Button variant="primary" onClick={() => navigate(ROUTE_PATHS.equipmentList)}>
+          분전반 선택 →
         </Button>
-      ) : null,
+      </>
+    ),
     [canManage, navigate, panel],
   )
   usePageActions(actions)
