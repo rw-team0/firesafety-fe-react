@@ -20,3 +20,17 @@ export function usePageActions(actions) {
 export function usePageHeaderActions() {
   return usePageHeaderContext().actions
 }
+
+// 화면에서 호출: usePageSubtitle(<span>...</span>) — 페이지 제목 옆에 "/ 부제목" 형태로 붙는다
+// subtitle도 반드시 useMemo로 감싸서 넘길 것(actions와 동일한 이유)
+export function usePageSubtitle(subtitle) {
+  const { setSubtitle } = usePageHeaderContext()
+  useEffect(() => {
+    setSubtitle(subtitle)
+    return () => setSubtitle(null)
+  }, [subtitle, setSubtitle])
+}
+
+export function usePageHeaderSubtitle() {
+  return usePageHeaderContext().subtitle
+}

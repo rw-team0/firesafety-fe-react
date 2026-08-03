@@ -9,7 +9,7 @@ import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 import { hasRequiredRole } from '@/shared/constants/roles'
 import { USER_ROLE_LABELS } from '@/shared/constants/domainLabels'
 import { PageHeaderProvider } from './PageHeaderContext'
-import { usePageHeaderActions } from './usePageActions'
+import { usePageHeaderActions, usePageHeaderSubtitle } from './usePageActions'
 import './DefaultLayout.css'
 
 // 현재 경로와 일치하는 routeConfig 항목의 title을 찾는다 — 화면이 매번 제목을 넘길 필요 없게
@@ -61,11 +61,22 @@ function CurrentSiteBadge() {
 
 function ContentHeader({ title }) {
   const actions = usePageHeaderActions() // 화면이 usePageActions()로 등록한 페이지별 버튼
+  const subtitle = usePageHeaderSubtitle() // 화면이 usePageSubtitle()로 등록한 부제(예: 설비 모니터링 / 선택된 분전반명)
 
   return (
     <header className="default-layout__content-header">
       <div className="default-layout__title-group">
-        <h1 className="default-layout__title">{title}</h1>
+        <h1 className="default-layout__title">
+          {title}
+          {subtitle && (
+            <span className="default-layout__title-subtitle">
+              <span className="default-layout__title-slash" aria-hidden="true">
+                /
+              </span>
+              {subtitle}
+            </span>
+          )}
+        </h1>
         {/* 날짜/현재 현장은 페이지 제목과 달리 모든 화면에 고정으로 붙는 부제 */}
         <div className="default-layout__meta">
           <span className="default-layout__today">{formatTodayLabel()}</span>
