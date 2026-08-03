@@ -255,10 +255,9 @@ export default function AccountHistoryPage() {
         title="복구가 완료되었습니다."
         subtitle="삭제되었던 직원 계정이 복구되었습니다."
         infoRows={[
-          { label: '처리 항목', value: restoreResult?.name },
-          { label: '처리 시각', value: formatResultDateTime() },
-          { label: '처리 내용', value: '직원 복구' },
-          { label: '처리자', value: user?.name },
+          { label: '복구 항목', value: restoreResult?.name },
+          { label: '복구 시각', value: formatResultDateTime() },
+          { label: '복구자', value: user?.name },
         ]}
         onClose={() => setRestoreResult(null)}
       />

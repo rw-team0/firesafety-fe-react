@@ -292,10 +292,9 @@ export default function SiteCreateModal({ visible, onClose, onCreated }) {
         title="등록이 완료되었습니다."
         subtitle="현장과 현장관리자 계정이 함께 등록되었습니다."
         infoRows={[
-          { label: '처리 항목', value: result?.siteName },
-          { label: '처리 시각', value: formatResultDateTime() },
-          { label: '처리 내용', value: '현장 등록' },
-          { label: '처리자', value: user?.name },
+          { label: '등록 항목', value: result?.siteName },
+          { label: '등록 시각', value: formatResultDateTime() },
+          { label: '등록자', value: user?.name },
         ]}
         onClose={handleResultClose}
       />

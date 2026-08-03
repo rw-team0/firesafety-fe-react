@@ -311,10 +311,9 @@ export default function AccountCreateModal({ visible, onClose, onCreated }) {
           result?.partial
             ? []
             : [
-                { label: '처리 항목', value: result?.name },
-                { label: '처리 시각', value: formatResultDateTime() },
-                { label: '처리 내용', value: '직원 등록' },
-                { label: '처리자', value: user?.name },
+                { label: '등록 항목', value: result?.name },
+                { label: '등록 시각', value: formatResultDateTime() },
+                { label: '등록자', value: user?.name },
               ]
         }
         onClose={handleResultClose}

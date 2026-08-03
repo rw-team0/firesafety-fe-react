@@ -291,10 +291,9 @@ export default function AccountListPage() {
         title="삭제가 완료되었습니다."
         subtitle="선택한 직원이 삭제되었습니다."
         infoRows={[
-          { label: '처리 항목', value: `${deleteResult?.count}건` },
-          { label: '처리 시각', value: formatResultDateTime() },
-          { label: '처리 내용', value: '직원 삭제' },
-          { label: '처리자', value: user?.name },
+          { label: '삭제 항목', value: `${deleteResult?.count}건` },
+          { label: '삭제 시각', value: formatResultDateTime() },
+          { label: '삭제자', value: user?.name },
         ]}
         onClose={() => setDeleteResult(null)}
       />

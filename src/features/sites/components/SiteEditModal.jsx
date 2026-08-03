@@ -246,11 +246,11 @@ export default function SiteEditModal({ visible, site, onClose, onUpdated, onDel
         type="success"
         title="수정이 완료되었습니다."
         subtitle="변경된 현장 정보가 저장되었습니다."
+        desc="수정된 내용은 즉시 반영됩니다."
         infoRows={[
-          { label: '처리 항목', value: result?.name },
-          { label: '처리 시각', value: formatResultDateTime() },
-          { label: '처리 내용', value: '현장 정보 수정' },
-          { label: '처리자', value: user?.name },
+          { label: '수정 항목', value: result?.name },
+          { label: '수정 시각', value: formatResultDateTime() },
+          { label: '수정자', value: user?.name },
         ]}
         onClose={handleResultClose}
       />
@@ -261,10 +261,9 @@ export default function SiteEditModal({ visible, site, onClose, onUpdated, onDel
         title="삭제가 완료되었습니다."
         subtitle="선택한 현장이 삭제되었습니다."
         infoRows={[
-          { label: '처리 항목', value: deleteResult?.name },
-          { label: '처리 시각', value: formatResultDateTime() },
-          { label: '처리 내용', value: '현장 삭제' },
-          { label: '처리자', value: user?.name },
+          { label: '삭제 항목', value: deleteResult?.name },
+          { label: '삭제 시각', value: formatResultDateTime() },
+          { label: '삭제자', value: user?.name },
         ]}
         onClose={handleDeleteResultClose}
       />

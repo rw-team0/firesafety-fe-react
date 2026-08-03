@@ -351,14 +351,14 @@ export default function AccountDetailModal({ visible, user: targetUser, onClose,
         type={result?.partial ? 'warning' : 'success'}
         title={result?.partial ? '직원 수정' : '수정이 완료되었습니다.'}
         subtitle={result?.message}
+        desc={result?.partial ? undefined : '수정된 내용은 즉시 반영됩니다.'}
         infoRows={
           result?.partial
             ? []
             : [
-                { label: '처리 항목', value: result?.name },
-                { label: '처리 시각', value: formatResultDateTime() },
-                { label: '처리 내용', value: '직원 정보 수정' },
-                { label: '처리자', value: actor?.name },
+                { label: '수정 항목', value: result?.name },
+                { label: '수정 시각', value: formatResultDateTime() },
+                { label: '수정자', value: actor?.name },
               ]
         }
         onClose={handleResultClose}
