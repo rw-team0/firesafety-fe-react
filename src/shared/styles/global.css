@@ -384,8 +384,8 @@
 
 /* flex-grow를 주면 초기화 버튼이 밀려 다음 줄로 넘어가므로 늘어나지 않고 필요할 때만 줄어들게 */
 .filter-bar__fields > .field {
-  min-width: 160px;
-  flex: 0 1 200px;
+  min-width: 210px;
+  flex: 0 1 260px;
 }
 
 /* select는 옵션 글자가 짧아서 검색창만큼 넓을 필요가 없음 */
