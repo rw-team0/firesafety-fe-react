@@ -274,6 +274,10 @@
   background: var(--color-surface-accent);
 }
 
+.default-layout__bell-wrap {
+  position: relative;
+}
+
 /* 페이지 안의 다른 버튼(.btn, 36px)과 높이를 맞춤 */
 .default-layout__bell {
   position: relative;
@@ -310,6 +314,90 @@
 
 .default-layout__bell:hover {
   color: var(--color-text-primary);
+  background: var(--color-surface-accent);
+}
+
+/* 최근 5건 요약 드롭다운 — 헤더 바로 아래, 사이드바 위로 뜨게 z-dropdown */
+.default-layout__bell-menu {
+  position: absolute;
+  top: calc(100% + var(--space-8));
+  right: 0;
+  width: 340px;
+  max-height: 420px;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-dropdown);
+  overflow: hidden;
+}
+
+.default-layout__bell-menu-title {
+  padding: var(--space-12) var(--space-16);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.default-layout__bell-menu-empty {
+  padding: var(--space-24) var(--space-16);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.default-layout__bell-menu-list {
+  overflow-y: auto;
+}
+
+.default-layout__bell-menu-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-12) var(--space-16);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.default-layout__bell-menu-item:hover {
+  background: var(--color-surface-accent);
+}
+
+.default-layout__bell-menu-type {
+  display: inline-flex;
+  padding: 2px var(--space-8);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-accent);
+  color: var(--color-brand-strong);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.default-layout__bell-menu-desc {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-primary);
+}
+
+.default-layout__bell-menu-time {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.default-layout__bell-menu-footer {
+  flex-shrink: 0;
+  padding: var(--space-12) var(--space-16);
+  text-align: center;
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  color: var(--color-brand-strong);
+  border-top: 1px solid var(--color-border);
+}
+
+.default-layout__bell-menu-footer:hover {
   background: var(--color-surface-accent);
 }
 

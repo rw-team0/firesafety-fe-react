@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { matchPath, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { NAV_GROUP_ORDER, getNavItems, routeConfig } from '@/app/routing/routeConfig'
+import { getAlerts } from '@/features/alerts/api/alertApi'
+import { formatAlertType, formatDateTimeCell } from '@/features/alerts/utils/alertFormatters'
 import { useAuth } from '@/features/auth/useAuth'
 import { useMonitoring } from '@/features/monitoring/useMonitoring'
 import { useSite } from '@/features/sites/useSite'
@@ -64,7 +66,58 @@ function ContentHeader({ title }) {
   const actions = usePageHeaderActions() // 화면이 usePageActions()로 등록한 페이지별 버튼
   const subtitle = usePageHeaderSubtitle() // 화면이 usePageSubtitle()로 등록한 부제(예: 설비 모니터링 / 선택된 분전반명)
   const { unreadAlertCount } = useMonitoring()
+  const { currentSiteId } = useSite()
   const navigate = useNavigate()
+
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [recentAlerts, setRecentAlerts] = useState([])
+  const [recentLoading, setRecentLoading] = useState(false)
+  const menuRef = useRef(null)
+
+  // 열릴 때마다 미확인 알림 5건을 새로 조회 — 확인 처리된 알림은 뱃지 건수와 마찬가지로 여기서도 빠진다
+  useEffect(() => {
+    if (!menuOpen || !currentSiteId) return
+    let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRecentLoading(true)
+    getAlerts({ siteId: currentSiteId, status: 'UNCONFIRMED', page: 0, size: 5 })
+      .then((data) => {
+        if (!cancelled) setRecentAlerts(data?.content ?? [])
+      })
+      .finally(() => {
+        if (!cancelled) setRecentLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [menuOpen, currentSiteId])
+
+  // 바깥 클릭/ESC로 닫기
+  useEffect(() => {
+    if (!menuOpen) return undefined
+    function handlePointerDown(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) setMenuOpen(false)
+    }
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [menuOpen])
+
+  function handleRecentAlertClick(alert) {
+    setMenuOpen(false)
+    navigate(`${ROUTE_PATHS.alerts}?alertId=${encodeURIComponent(alert.alertId)}`)
+  }
+
+  function handleViewAllClick() {
+    setMenuOpen(false)
+    navigate(ROUTE_PATHS.alerts)
+  }
 
   return (
     <header className="default-layout__content-header">
@@ -88,20 +141,59 @@ function ContentHeader({ title }) {
       </div>
       <div className="default-layout__header-right">
         {/* 알림은 페이지 액션 유무와 무관하게 항상 먼저 — 미확인 건수는 MonitoringProvider(WS/폴링)가 계산한 값 */}
-        <button type="button" className="default-layout__bell" onClick={() => navigate(ROUTE_PATHS.alerts)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
-          알림
-          {unreadAlertCount > 0 && <span className="default-layout__bell-badge">{unreadAlertCount}</span>}
-        </button>
+        <div className="default-layout__bell-wrap" ref={menuRef}>
+          <button
+            type="button"
+            className="default-layout__bell"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+            알림
+            {unreadAlertCount > 0 && <span className="default-layout__bell-badge">{unreadAlertCount}</span>}
+          </button>
+
+          {menuOpen && (
+            <div className="default-layout__bell-menu" role="menu">
+              <p className="default-layout__bell-menu-title">알림</p>
+              {recentLoading ? (
+                <p className="default-layout__bell-menu-empty">불러오는 중...</p>
+              ) : recentAlerts.length === 0 ? (
+                <p className="default-layout__bell-menu-empty">미확인 알림이 없습니다.</p>
+              ) : (
+                <ul className="default-layout__bell-menu-list">
+                  {recentAlerts.map((alert) => (
+                    <li key={alert.alertId}>
+                      <button
+                        type="button"
+                        className="default-layout__bell-menu-item"
+                        onClick={() => handleRecentAlertClick(alert)}
+                      >
+                        <span className="default-layout__bell-menu-type">{formatAlertType(alert.type)}</span>
+                        <span className="default-layout__bell-menu-desc">
+                          {alert.panelName ?? '-'} 분전반에서 경보가 발생했습니다.
+                        </span>
+                        <span className="default-layout__bell-menu-time">{formatDateTimeCell(alert.triggeredAt)}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <button type="button" className="default-layout__bell-menu-footer" onClick={handleViewAllClick}>
+                전체 알림 보기
+              </button>
+            </div>
+          )}
+        </div>
         {actions}
       </div>
     </header>
