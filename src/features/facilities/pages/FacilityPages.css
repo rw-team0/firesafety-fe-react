@@ -80,6 +80,50 @@
   font-size: var(--font-size-subtitle);
 }
 
+/* "회로 슬롯" 제목 + "등록 가능 채널..." 안내문을 한 줄 좌우로 배치 */
+.facility-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-12);
+}
+
+.facility-section-header .facility-section-title {
+  margin-bottom: 0;
+}
+
+/* 제목 + "등록 가능 채널..." 안내문을 왼쪽에 묶어서, 오른쪽 "선택 삭제" 버튼과 분리 */
+.facility-section-header__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  flex-wrap: wrap;
+}
+
+/* "분전반 선택 : [선택바]" — 라벨을 select 위가 아니라 옆에 붙이고, 선택바 폭도 검색창만큼 넉넉하게 */
+.facility-inline-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 320px;
+  padding-left: var(--space-8);
+  flex: 0 1 420px;
+}
+
+.facility-inline-field__label {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+}
+
+.facility-inline-field .field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .facility-card-list {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -87,6 +131,9 @@
 }
 
 .facility-circuit-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   min-height: 104px;
   padding: var(--space-12);
   border: 1px solid var(--color-border);
@@ -111,17 +158,43 @@
   font-weight: 700;
 }
 
-.facility-manage__layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
-  gap: var(--space-16);
-  align-items: start;
+.facility-circuit-card__top input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-brand);
 }
 
-.facility-panel-picker {
+/* 등록/삭제 버튼은 카드 우측 하단에 작게 — 슬롯 카드가 좁아서 기본 버튼 크기는 과하다 */
+.facility-circuit-card__footer {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
+  justify-content: flex-end;
+  margin-top: var(--space-8);
+}
+
+.facility-circuit-card__btn {
+  height: 24px;
+  padding: 0 var(--space-12);
+  font-size: var(--font-size-caption);
+}
+
+/* "수정"은 등록(파랑)/삭제(빨강)와 구분되는 앰버 톤 — Button 공용 variant를 늘리지 않고 이 화면에서만 색 덧입힘
+   평상시 흰 배경 + 앰버 테두리/글자, hover 시에만 옅은 앰버 배경(secondary 버튼의 hover 패턴과 동일) */
+.facility-circuit-card__btn--edit {
+  border-color: var(--color-warning);
+  background: var(--color-surface);
+  color: var(--color-warning);
+}
+
+.facility-circuit-card__btn--edit:hover:not(:disabled) {
+  background: var(--color-warning-bg);
+}
+
+/* 왼쪽: 선택 분전반 정보(좁게), 오른쪽: 회로 슬롯 그리드(넓게) — 시선이 좌→우로 흐르는 순서에 맞춤 */
+.facility-manage__layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.4fr);
+  gap: var(--space-16);
+  align-items: start;
 }
 
 .facility-form {
@@ -152,10 +225,6 @@
 /* accounts의 modal-panel--wide(520px)와 동일한 폭 — 임계값 2열 그리드가 있어도 이 정도면 충분하다 */
 .facility-modal {
   width: min(520px, calc(100vw - 32px));
-}
-
-.facility-modal--small {
-  width: min(460px, calc(100vw - 32px));
 }
 
 /* PanelDetailModal 조회모드 — accounts AccountDetailModal(account-modal__*)과 동일한 라벨/값 그리드,
@@ -236,6 +305,11 @@
   .facility-list__count {
     top: 0;
     transform: none;
+  }
+
+  .facility-inline-field {
+    min-width: 0;
+    width: 100%;
   }
 }
 

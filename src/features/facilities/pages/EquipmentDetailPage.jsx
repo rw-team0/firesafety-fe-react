@@ -179,7 +179,7 @@ export default function EquipmentDetailPage() {
                   <span className="facility-circuit-card__title">회로 {circuit.channelNo}</span>
                   <StatusBadge status={circuit.status} label={formatPanelStatus(circuit.status)} />
                 </div>
-                <p className="facility-muted">{circuit.loadType || '부하 종류 없음'}</p>
+                <p className="facility-muted">{circuit.loadType || '연결 기기 없음'}</p>
                 <p className="facility-muted">전류 {formatValue(circuit.currentA, 'A')}</p>
                 <p className="facility-muted">아크 {circuit.arcCounter ?? 0}회</p>
               </div>

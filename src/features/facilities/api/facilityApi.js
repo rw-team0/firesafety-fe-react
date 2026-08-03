@@ -51,3 +51,9 @@ export async function deleteCircuit(circuitId) {
   const res = await httpRequester.delete(`/circuits/${circuitId}`)
   return unwrap(res)
 }
+
+// 회로 연결 기기(loadType) 수정 — 채널번호/분전반은 변경 불가, loadType만 수정 가능
+export async function updateCircuit(circuitId, payload) {
+  const res = await httpRequester.put(`/circuits/${circuitId}`, payload)
+  return unwrap(res)
+}

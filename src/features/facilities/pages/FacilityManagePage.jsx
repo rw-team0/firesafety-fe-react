@@ -8,13 +8,21 @@ import {
   getCircuits,
   getPanelDetail,
   getPanels,
+  updateCircuit,
 } from '../api/facilityApi'
 import CircuitFormModal from '../components/CircuitFormModal'
 import PanelDetailModal from '../components/PanelDetailModal'
 import PanelFormModal from '../components/PanelFormModal'
 import PanelTable from '../components/PanelTable'
 import { canManageFacilities } from '../utils/facilityPolicy'
-import { extractServerMessage, formatDateTimeCell, formatPanelStatus, includesPanelKeyword } from '../utils/facilityFormatters'
+import {
+  extractServerMessage,
+  formatDateTimeCell,
+  formatPanelStatus,
+  formatValue,
+  includesPanelKeyword,
+  THRESHOLD_FIELDS,
+} from '../utils/facilityFormatters'
 import { useAuth } from '@/features/auth/useAuth'
 import { useSite } from '@/features/sites/useSite'
 import { usePageActions } from '@/layouts/DefaultLayout/usePageActions'
@@ -23,7 +31,6 @@ import BaseCard from '@/shared/components/data-display/BaseCard'
 import Pagination from '@/shared/components/data-display/Pagination'
 import ErrorState from '@/shared/components/feedback/ErrorState'
 import LoadingState from '@/shared/components/feedback/LoadingState'
-import StatusBadge from '@/shared/components/feedback/StatusBadge'
 import Input from '@/shared/components/forms/Input'
 import Select from '@/shared/components/forms/Select'
 import FilterBar from '@/shared/components/layout/FilterBar'
@@ -43,7 +50,7 @@ function deleteSummary(results) {
 
 // 설비 관리 화면
 export default function FacilityManagePage() {
-  const { role } = useAuth()
+  const { role, user } = useAuth()
   const { currentSiteId } = useSite()
   const [searchParams, setSearchParams] = useSearchParams()
   const panelSeqRef = useRef(0)
@@ -70,7 +77,9 @@ export default function FacilityManagePage() {
   const [circuitLoading, setCircuitLoading] = useState(false)
   const [circuitError, setCircuitError] = useState('')
   const [circuitCreateChannel, setCircuitCreateChannel] = useState(null)
-  const [deleteCircuitTarget, setDeleteCircuitTarget] = useState(null)
+  const [editCircuitTarget, setEditCircuitTarget] = useState(null)
+  const [selectedCircuitIds, setSelectedCircuitIds] = useState([])
+  const [circuitDeleteOpen, setCircuitDeleteOpen] = useState(false)
   const [actionResult, setActionResult] = useState(null)
 
   // 분전반 목록 조회
@@ -132,6 +141,7 @@ export default function FacilityManagePage() {
     setSelectedPanelDetail(null)
     setCircuits([])
     setCircuitError('')
+    setSelectedCircuitIds([])
 
     if (!panelId) return
 
@@ -198,7 +208,16 @@ export default function FacilityManagePage() {
   async function handleCreatePanel(payload) {
     await createPanel(currentSiteId, payload)
     await loadPanels()
-    setActionResult({ type: 'success', title: '분전반 등록 완료', subtitle: '현재 현장에 분전반이 등록되었습니다.' })
+    setActionResult({
+      type: 'success',
+      title: '등록이 완료되었습니다.',
+      subtitle: '현재 현장에 분전반이 등록되었습니다.',
+      infoRows: [
+        { label: '등록 항목', value: payload.name },
+        { label: '등록 시각', value: formatResultDateTime() },
+        { label: '등록자', value: user?.name },
+      ],
+    })
   }
 
   // 선택 분전반 삭제
@@ -208,8 +227,13 @@ export default function FacilityManagePage() {
     setPanelDeleteOpen(false)
     setActionResult({
       type: failCount ? (successCount ? 'warning' : 'danger') : 'success',
-      title: failCount ? (successCount ? '분전반 일부 삭제 완료' : '분전반 삭제 실패') : '분전반 삭제 완료',
-      subtitle: failCount ? `성공 ${successCount}건, 실패 ${failCount}건` : `${successCount}건이 삭제되었습니다.`,
+      title: failCount ? (successCount ? '일부 삭제되었습니다.' : '삭제에 실패했습니다.') : '삭제가 완료되었습니다.',
+      subtitle: failCount ? `성공 ${successCount}건, 실패 ${failCount}건` : '선택한 분전반이 삭제되었습니다.',
+      infoRows: [
+        { label: '삭제 항목', value: `${successCount}건` },
+        { label: '삭제 시각', value: formatResultDateTime() },
+        { label: '삭제자', value: user?.name },
+      ],
     })
     await loadPanels()
   }
@@ -218,20 +242,59 @@ export default function FacilityManagePage() {
   async function handleCreateCircuit(payload) {
     await createCircuit(selectedPanelId, payload)
     await loadCircuitsForPanel()
-    setActionResult({ type: 'success', title: '회로 등록 완료', subtitle: `${payload.channelNo}번 채널에 회로가 등록되었습니다.` })
+    setActionResult({
+      type: 'success',
+      title: '등록이 완료되었습니다.',
+      subtitle: `${payload.channelNo}번 채널에 회로가 등록되었습니다.`,
+      infoRows: [
+        { label: '등록 항목', value: `${payload.channelNo}번 채널` },
+        { label: '등록 시각', value: formatResultDateTime() },
+        { label: '등록자', value: user?.name },
+      ],
+    })
   }
 
-  // 회로 삭제
-  async function handleDeleteCircuit() {
-    try {
-      await deleteCircuit(deleteCircuitTarget.circuitId)
-      setDeleteCircuitTarget(null)
-      setActionResult({ type: 'success', title: '회로 삭제 완료', subtitle: '회로가 일반 목록에서 제외되었습니다.' })
-      await loadCircuitsForPanel()
-    } catch (error) {
-      setDeleteCircuitTarget(null)
-      setActionResult({ type: 'danger', title: '회로 삭제 실패', subtitle: extractServerMessage(error, '회로 삭제에 실패했습니다.') })
-    }
+  // 연결 기기 수정
+  async function handleUpdateCircuit(payload) {
+    await updateCircuit(editCircuitTarget.circuitId, payload)
+    await loadCircuitsForPanel()
+    setActionResult({
+      type: 'success',
+      title: '수정이 완료되었습니다.',
+      subtitle: '변경사항이 저장되었습니다.',
+      desc: '수정된 내용은 즉시 반영됩니다.',
+      infoRows: [
+        { label: '수정 항목', value: `${editCircuitTarget.channelNo}번 채널 연결 기기` },
+        { label: '수정 시각', value: formatResultDateTime() },
+        { label: '수정자', value: user?.name },
+      ],
+    })
+  }
+
+  // 회로 선택
+  function toggleCircuitSelect(circuitId) {
+    setSelectedCircuitIds((prev) =>
+      prev.includes(circuitId) ? prev.filter((id) => id !== circuitId) : [...prev, circuitId],
+    )
+  }
+
+  // 선택 회로 삭제
+  async function handleDeleteCircuits() {
+    const results = await Promise.allSettled(selectedCircuitIds.map((circuitId) => deleteCircuit(circuitId)))
+    const { successCount, failCount } = deleteSummary(results)
+    setCircuitDeleteOpen(false)
+    setSelectedCircuitIds([])
+    setActionResult({
+      type: failCount ? (successCount ? 'warning' : 'danger') : 'success',
+      title: failCount ? (successCount ? '일부 삭제되었습니다.' : '삭제에 실패했습니다.') : '삭제가 완료되었습니다.',
+      subtitle: failCount ? `성공 ${successCount}건, 실패 ${failCount}건` : '선택한 회로가 삭제되었습니다.',
+      infoRows: [
+        { label: '삭제 항목', value: `${successCount}건` },
+        { label: '삭제 시각', value: formatResultDateTime() },
+        { label: '삭제자', value: user?.name },
+      ],
+    })
+    await loadCircuitsForPanel()
   }
 
   const circuitsByChannel = useMemo(
@@ -306,6 +369,25 @@ export default function FacilityManagePage() {
             />
           </FilterBar>
         )}
+        {activeTab === 'circuits' && !panelLoading && panels.length > 0 && (
+          <FilterBar>
+            <div className="facility-inline-field">
+              <label htmlFor="circuit-panel-select" className="facility-inline-field__label">
+              분전반 선택 :
+              </label>
+              <Select
+                id="circuit-panel-select"
+                value={selectedPanelId}
+                onChange={(event) => {
+                  const nextPanelId = event.target.value
+                  setSelectedPanelId(nextPanelId)
+                  setSearchParams({ tab: 'circuits', panelId: nextPanelId })
+                }}
+                options={panelOptions}
+              />
+            </div>
+          </FilterBar>
+        )}
       </BaseCard>
 
       {activeTab === 'panels' && (
@@ -335,29 +417,64 @@ export default function FacilityManagePage() {
       {activeTab === 'circuits' && (
         <div className="facility-manage__layout">
           <BaseCard>
-            <h3 className="facility-section-title">회로 슬롯</h3>
+            <h3 className="facility-section-title">선택 분전반</h3>
+            {selectedPanelDetail ? (
+              <div className="facility-modal__body">
+                <h4 className="facility-modal__section-title">기본 정보</h4>
+                <div className="facility-modal__grid">
+                  <div>
+                    <span className="facility-modal__grid-label">분전반명</span>
+                    <p className="facility-modal__grid-value">{selectedPanelDetail.name}</p>
+                  </div>
+                  <div>
+                    <span className="facility-modal__grid-label">분전반No</span>
+                    <p className="facility-modal__grid-value">{selectedPanelDetail.mNo}</p>
+                  </div>
+                  <div>
+                    <span className="facility-modal__grid-label">최근 통신</span>
+                    <p className="facility-modal__grid-value">{formatDateTimeCell(selectedPanelDetail.lastCommunicatedAt)}</p>
+                  </div>
+                </div>
+
+                <h4 className="facility-modal__section-title">주의 임계값</h4>
+                <div className="facility-modal__grid">
+                  {THRESHOLD_FIELDS.map((field) => (
+                    <div key={field.key}>
+                      <span className="facility-modal__grid-label">{field.label}</span>
+                      <p className="facility-modal__grid-value">
+                        {formatValue(selectedPanelDetail[field.key], field.unit)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="facility-muted">분전반을 선택하면 회로 슬롯을 관리할 수 있습니다.</p>
+            )}
+          </BaseCard>
+
+          <BaseCard>
+            <div className="facility-section-header">
+              <div className="facility-section-header__left">
+                <h3 className="facility-section-title">회로 슬롯</h3>
+                {selectedPanelDetail && (
+                  <p className="facility-muted">
+                    등록 가능 채널: 1~{selectedPanelDetail.circuitCount} / 상태 {formatPanelStatus(selectedPanelDetail.status)}
+                  </p>
+                )}
+              </div>
+              <Button
+                variant="danger"
+                disabled={selectedCircuitIds.length === 0}
+                onClick={() => setCircuitDeleteOpen(true)}
+              >
+                선택 삭제 ({selectedCircuitIds.length})
+              </Button>
+            </div>
             {panelLoading && <LoadingState label="분전반 목록을 불러오는 중입니다..." />}
             {!panelLoading && panels.length === 0 && <p className="facility-muted">회로를 등록할 분전반이 없습니다.</p>}
             {!panelLoading && panels.length > 0 && (
               <>
-                <div className="facility-panel-picker">
-                  <Select
-                    label="분전반 선택"
-                    value={selectedPanelId}
-                    onChange={(event) => {
-                      const nextPanelId = event.target.value
-                      setSelectedPanelId(nextPanelId)
-                      setSearchParams({ tab: 'circuits', panelId: nextPanelId })
-                    }}
-                    options={panelOptions}
-                  />
-                  {selectedPanelDetail && (
-                    <p className="facility-muted">
-                      등록 가능 채널: 1~{selectedPanelDetail.circuitCount} / 상태 {formatPanelStatus(selectedPanelDetail.status)}
-                    </p>
-                  )}
-                </div>
-
                 {circuitLoading && <LoadingState label="회로 정보를 불러오는 중입니다..." />}
                 {circuitError && <ErrorState message={circuitError} onRetry={loadCircuitsForPanel} />}
                 {!circuitLoading && !circuitError && (
@@ -367,56 +484,51 @@ export default function FacilityManagePage() {
                         key={slot.channelNo}
                         className={`facility-circuit-card ${slot.disabled ? 'is-disabled' : ''}`.trim()}
                       >
-                        <div className="facility-circuit-card__top">
-                          <span className="facility-circuit-card__title">채널 {slot.channelNo}</span>
-                          {slot.circuit && (
-                            <StatusBadge status={slot.circuit.status} label={formatPanelStatus(slot.circuit.status)} />
+                        <div>
+                          <div className="facility-circuit-card__top">
+                            <span className="facility-circuit-card__title">채널 {slot.channelNo}</span>
+                            {slot.circuit && (
+                              <input
+                                type="checkbox"
+                                checked={selectedCircuitIds.includes(slot.circuit.circuitId)}
+                                onChange={() => toggleCircuitSelect(slot.circuit.circuitId)}
+                                aria-label={`채널 ${slot.channelNo} 선택`}
+                              />
+                            )}
+                          </div>
+                          {slot.disabled && <p className="facility-muted">회로 개수 초과</p>}
+                          {!slot.disabled && slot.circuit && (
+                            <p className="facility-muted">{slot.circuit.loadType || '연결 기기 없음'}</p>
                           )}
+                          {!slot.disabled && !slot.circuit && <p className="facility-muted">빈 채널</p>}
                         </div>
-                        {slot.disabled && <p className="facility-muted">분전반 회로 개수 초과</p>}
                         {!slot.disabled && slot.circuit && (
-                          <>
-                            <p className="facility-muted">{slot.circuit.loadType || '부하 종류 없음'}</p>
-                            <Button variant="danger" onClick={() => setDeleteCircuitTarget(slot.circuit)}>
-                              삭제
+                          <div className="facility-circuit-card__footer">
+                            <Button
+                              className="facility-circuit-card__btn facility-circuit-card__btn--edit"
+                              variant="secondary"
+                              onClick={() => setEditCircuitTarget(slot.circuit)}
+                            >
+                              수정
                             </Button>
-                          </>
+                          </div>
                         )}
                         {!slot.disabled && !slot.circuit && (
-                          <>
-                            <p className="facility-muted">빈 채널</p>
-                            <Button variant="primary" onClick={() => setCircuitCreateChannel(slot.channelNo)}>
-                              회로 등록
+                          <div className="facility-circuit-card__footer">
+                            <Button
+                              className="facility-circuit-card__btn"
+                              variant="primary"
+                              onClick={() => setCircuitCreateChannel(slot.channelNo)}
+                            >
+                              등록
                             </Button>
-                          </>
+                          </div>
                         )}
                       </div>
                     ))}
                   </div>
                 )}
               </>
-            )}
-          </BaseCard>
-
-          <BaseCard>
-            <h3 className="facility-section-title">선택 분전반</h3>
-            {selectedPanelDetail ? (
-              <div className="facility-detail__grid">
-                <div className="facility-detail__item">
-                  <span className="facility-detail__item-label">분전반명</span>
-                  <span className="facility-detail__item-value">{selectedPanelDetail.name}</span>
-                </div>
-                <div className="facility-detail__item">
-                  <span className="facility-detail__item-label">분전반No</span>
-                  <span className="facility-detail__item-value">{selectedPanelDetail.mNo}</span>
-                </div>
-                <div className="facility-detail__item">
-                  <span className="facility-detail__item-label">최근 통신</span>
-                  <span className="facility-detail__item-value">{formatDateTimeCell(selectedPanelDetail.lastCommunicatedAt)}</span>
-                </div>
-              </div>
-            ) : (
-              <p className="facility-muted">분전반을 선택하면 회로 슬롯을 관리할 수 있습니다.</p>
             )}
           </BaseCard>
         </div>
@@ -435,10 +547,19 @@ export default function FacilityManagePage() {
       />
       <CircuitFormModal
         visible={Boolean(circuitCreateChannel)}
+        mode="create"
         channelNo={circuitCreateChannel}
         panelName={selectedPanelDetail?.name}
         onClose={() => setCircuitCreateChannel(null)}
         onSubmit={handleCreateCircuit}
+      />
+      <CircuitFormModal
+        visible={Boolean(editCircuitTarget)}
+        mode="edit"
+        circuit={editCircuitTarget}
+        panelName={selectedPanelDetail?.name}
+        onClose={() => setEditCircuitTarget(null)}
+        onSubmit={handleUpdateCircuit}
       />
 
       <ConfirmModal
@@ -473,13 +594,13 @@ export default function FacilityManagePage() {
         </div>
       </ConfirmModal>
       <ConfirmModal
-        visible={Boolean(deleteCircuitTarget)}
+        visible={circuitDeleteOpen}
         title="회로 삭제"
         message="선택한 회로를 삭제하시겠습니까?"
         danger
         confirmLabel="삭제"
-        onCancel={() => setDeleteCircuitTarget(null)}
-        onConfirm={handleDeleteCircuit}
+        onCancel={() => setCircuitDeleteOpen(false)}
+        onConfirm={handleDeleteCircuits}
       >
         <div className="confirm-modal__summary">
           <span className="confirm-modal__summary-icon" aria-hidden="true">
@@ -496,10 +617,10 @@ export default function FacilityManagePage() {
           <div className="confirm-modal__summary-body">
             <p className="confirm-modal__summary-row">
               <span className="confirm-modal__summary-label">대상</span>
-              <span className="confirm-modal__summary-value">{deleteCircuitTarget?.channelNo}번 채널</span>
+              <span className="confirm-modal__summary-value">{selectedCircuitIds.length}건</span>
               <span className="confirm-modal__summary-badge">삭제</span>
             </p>
-            <p className="confirm-modal__summary-detail">삭제된 회로는 일반 목록에서 제외됩니다.</p>
+            <p className="confirm-modal__summary-detail">선택한 회로 전체가 삭제되어 일반 목록에서 제외됩니다.</p>
           </div>
         </div>
       </ConfirmModal>
@@ -509,7 +630,8 @@ export default function FacilityManagePage() {
         type={actionResult?.type}
         title={actionResult?.title}
         subtitle={actionResult?.subtitle}
-        infoRows={[{ label: '처리 시각', value: formatResultDateTime() }]}
+        desc={actionResult?.desc}
+        infoRows={actionResult?.infoRows ?? [{ label: '처리 시각', value: formatResultDateTime() }]}
         onClose={() => setActionResult(null)}
       />
     </div>

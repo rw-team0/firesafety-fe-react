@@ -13,6 +13,7 @@ import {
   validatePanelForm,
 } from '../utils/facilityFormatters'
 import ThresholdFields from './ThresholdFields'
+import { useAuth } from '@/features/auth/useAuth'
 import Button from '@/shared/components/buttons/Button'
 import Input from '@/shared/components/forms/Input'
 import BaseModal from '@/shared/components/modals/BaseModal'
@@ -34,6 +35,7 @@ function DetailItem({ label, value }) {
 
 // 설비관리 목록에서 행을 누르면 뜨는 모달 — 조회/수정 두 모드를 겸한다(accounts AccountDetailModal과 동일 패턴)
 export default function PanelDetailModal({ visible, panelId, canManage, onClose, onUpdated }) {
+  const { user } = useAuth()
   const [mode, setMode] = useState('view')
   const [panel, setPanel] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -243,11 +245,13 @@ export default function PanelDetailModal({ visible, panelId, canManage, onClose,
       <ActionResultModal
         visible={Boolean(result)}
         type="success"
-        title="분전반 수정 완료"
-        subtitle="분전반 정보와 임계값이 수정되었습니다."
+        title="수정이 완료되었습니다."
+        subtitle="변경사항이 저장되었습니다."
+        desc="수정된 내용은 즉시 반영됩니다."
         infoRows={[
-          { label: '처리 항목', value: result?.name },
-          { label: '처리 시각', value: formatResultDateTime() },
+          { label: '수정 항목', value: result?.name },
+          { label: '수정 시각', value: formatResultDateTime() },
+          { label: '수정자', value: user?.name },
         ]}
         onClose={handleResultClose}
       />
