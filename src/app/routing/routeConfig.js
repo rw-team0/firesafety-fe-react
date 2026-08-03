@@ -4,6 +4,7 @@ import LoginPage from '@/features/auth/pages/LoginPage'
 import MobileLoginPage from '@/features/auth/pages/MobileLoginPage'
 import PasswordResetConfirmPage from '@/features/auth/pages/PasswordResetConfirmPage'
 import PasswordResetRequestPage from '@/features/auth/pages/PasswordResetRequestPage'
+import DashboardPage from '@/features/dashboard/pages/DashboardPage'
 import EquipmentDetailPage from '@/features/facilities/pages/EquipmentDetailPage'
 import EquipmentListPage from '@/features/facilities/pages/EquipmentListPage'
 import FacilityManagePage from '@/features/facilities/pages/FacilityManagePage'
@@ -78,6 +79,7 @@ export const routeConfig = [
     scrId: 'SCR-201',
     requiresSite: true,
     navGroup: '관제',
+    page: DashboardPage,
   },
   {
     path: ROUTE_PATHS.alerts,
