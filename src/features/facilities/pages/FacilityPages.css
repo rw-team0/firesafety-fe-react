@@ -1,0 +1,247 @@
+.facility-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.facility-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  flex-wrap: wrap;
+}
+
+.facility-summary__title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-subtitle);
+  font-weight: 700;
+}
+
+.facility-summary__meta,
+.facility-muted {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+}
+
+/* 총 건수 + 페이지네이션 한 줄 — Pagination이 가운데 정렬이라 건수는 왼쪽에 절대배치로 겹침(account-list와 동일 패턴) */
+.facility-list__footer {
+  position: relative;
+  margin-top: var(--space-16);
+}
+
+.facility-list__footer .pagination {
+  margin-top: 0;
+}
+
+.facility-list__count {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+.facility-detail__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-12);
+}
+
+.facility-detail__item {
+  min-height: 72px;
+  padding: var(--space-12);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.facility-detail__item-label {
+  display: block;
+  margin-bottom: var(--space-6);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+}
+
+.facility-detail__item-value {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.facility-section-title {
+  margin: 0 0 var(--space-12);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-subtitle);
+}
+
+.facility-card-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-12);
+}
+
+.facility-circuit-card {
+  min-height: 104px;
+  padding: var(--space-12);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.facility-circuit-card.is-disabled {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+.facility-circuit-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  margin-bottom: var(--space-8);
+}
+
+.facility-circuit-card__title {
+  font-weight: 700;
+}
+
+.facility-manage__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+  gap: var(--space-16);
+  align-items: start;
+}
+
+.facility-panel-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.facility-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.facility-form__split,
+.facility-form__thresholds {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-12);
+}
+
+.facility-form__section-title {
+  margin: 0 0 var(--space-8);
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.facility-form__legend-desc {
+  margin: calc(-1 * var(--space-4)) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+/* accounts의 modal-panel--wide(520px)와 동일한 폭 — 임계값 2열 그리드가 있어도 이 정도면 충분하다 */
+.facility-modal {
+  width: min(520px, calc(100vw - 32px));
+}
+
+.facility-modal--small {
+  width: min(460px, calc(100vw - 32px));
+}
+
+/* PanelDetailModal 조회모드 — accounts AccountDetailModal(account-modal__*)과 동일한 라벨/값 그리드,
+   테두리 박스(facility-detail__item) 대신 카드 없이 텍스트만 배치 */
+.facility-modal__eyebrow {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.facility-modal__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
+}
+
+.facility-modal__heading h3 {
+  font-size: var(--font-size-subtitle);
+  font-weight: 700;
+}
+
+.facility-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.facility-modal__section-title {
+  padding-top: var(--space-16);
+  margin-top: var(--space-8);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--font-size-body);
+  font-weight: 700;
+}
+
+.facility-modal__body > .facility-modal__section-title:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.facility-modal__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-16);
+}
+
+.facility-modal__grid-label {
+  display: block;
+  margin-bottom: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.facility-modal__grid-value {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .facility-detail__grid,
+  .facility-card-list,
+  .facility-manage__layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .facility-form__split,
+  .facility-form__thresholds {
+    grid-template-columns: 1fr;
+  }
+
+  .facility-list__footer {
+    padding-top: 28px;
+  }
+
+  .facility-list__count {
+    top: 0;
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .facility-modal__grid {
+    display: flex;
+    flex-direction: column;
+  }
+}

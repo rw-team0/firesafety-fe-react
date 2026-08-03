@@ -4,13 +4,16 @@ import LoginPage from '@/features/auth/pages/LoginPage'
 import MobileLoginPage from '@/features/auth/pages/MobileLoginPage'
 import PasswordResetConfirmPage from '@/features/auth/pages/PasswordResetConfirmPage'
 import PasswordResetRequestPage from '@/features/auth/pages/PasswordResetRequestPage'
+import EquipmentDetailPage from '@/features/facilities/pages/EquipmentDetailPage'
+import EquipmentListPage from '@/features/facilities/pages/EquipmentListPage'
+import FacilityManagePage from '@/features/facilities/pages/FacilityManagePage'
 import MobileSiteSelectPage from '@/features/sites/pages/MobileSiteSelectPage'
 import SiteSelectPage from '@/features/sites/pages/SiteSelectPage'
 import SiteUnassignedPage from '@/features/sites/pages/SiteUnassignedPage'
 import { ROLES } from '@/shared/constants/roles'
 import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 
-// 화면 실 구현은 다음 Phase, 지금은 PlaceholderPage 연결 + 라우트/권한/사이드바 골격만
+// page가 지정된 라우트는 실제 화면, 없는 라우트는 PlaceholderPage로 렌더된다.
 // REQ-701/703은 범위 제외 확정 — route/menu/placeholder 어디에도 없음 (명세에 남아있어도 무시)
 
 // layout: 'auth' | 'default' | 'mobile'. navGroup 있으면 DefaultLayout 사이드바 노출
@@ -93,6 +96,7 @@ export const routeConfig = [
     scrId: 'SCR-501',
     requiresSite: true,
     navGroup: '관제',
+    page: EquipmentListPage,
   },
   {
     path: ROUTE_PATHS.equipmentDetail,
@@ -101,6 +105,7 @@ export const routeConfig = [
     title: '설비 상세',
     scrId: 'SCR-202',
     requiresSite: true,
+    page: EquipmentDetailPage,
   },
 
   // 통계 (PC)
@@ -124,6 +129,7 @@ export const routeConfig = [
     scrId: 'SCR-502',
     requiresSite: true,
     navGroup: '관리',
+    page: FacilityManagePage,
   },
   {
     path: ROUTE_PATHS.settingsFacilitiesHistory,
