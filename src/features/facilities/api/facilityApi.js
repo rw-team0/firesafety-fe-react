@@ -1,11 +1,14 @@
 import httpRequester from '@/shared/api/httpRequester'
 import { unwrap } from '@/shared/api/response'
 
-// 분전반 목록 조회
-export async function getPanels({ siteId, status } = {}, config = {}) {
+// 분전반 목록 조회 — 응답은 { content, totalElements } 페이지 형태
+export async function getPanels({ siteId, status, keyword, page, size } = {}, config = {}) {
   const params = {}
   if (siteId) params.siteId = siteId
   if (status) params.status = status
+  if (keyword) params.keyword = keyword
+  if (page != null) params.page = page
+  if (size != null) params.size = size
   const res = await httpRequester.get('/panels', { ...config, params })
   return unwrap(res)
 }

@@ -21,7 +21,6 @@ import {
   formatDateTimeCell,
   formatPanelStatus,
   formatValue,
-  includesPanelKeyword,
   summarizeSettledResults,
   THRESHOLD_FIELDS,
 } from '../utils/facilityFormatters'
@@ -45,6 +44,8 @@ import './FacilityPages.css'
 
 const PAGE_SIZE = FACILITY_MANAGE_PAGE_SIZE
 const VALID_TABS = FACILITY_MANAGE_TABS
+// 회로 관리 탭 "분전반 선택" 드롭다운은 필터링 없이 현장 전체 목록이 필요해 넉넉한 size로 한 번에 받는다
+const ALL_PANELS_SIZE = 100
 
 // 설비 관리 화면
 export default function FacilityManagePage() {
@@ -62,6 +63,12 @@ export default function FacilityManagePage() {
   const [panels, setPanels] = useState([])
   const [panelLoading, setPanelLoading] = useState(true)
   const [panelError, setPanelError] = useState('')
+
+  const [tablePanels, setTablePanels] = useState([])
+  const [tableTotalElements, setTableTotalElements] = useState(0)
+  const [tableLoading, setTableLoading] = useState(true)
+  const tableSeqRef = useRef(0)
+
   const [keyword, setKeyword] = useState('')
   const [page, setPage] = useState(1)
   const [selectedPanelIds, setSelectedPanelIds] = useState([])
@@ -80,7 +87,8 @@ export default function FacilityManagePage() {
   const [circuitDeleteOpen, setCircuitDeleteOpen] = useState(false)
   const [actionResult, setActionResult] = useState(null)
 
-  // 분전반 목록 조회
+  // 분전반 전체 목록 조회(회로 관리 탭의 "분전반 선택" 드롭다운용) — 페이지 목록과 달리 필터링 없이 현장 전체를 담아야 하므로
+  // 큰 size로 한 번에 받아온다. 화면 목록(표)는 별도로 loadTablePanels가 담당한다.
   const loadPanels = useCallback(async () => {
     const siteId = currentSiteId
     const seq = panelSeqRef.current + 1
@@ -98,9 +106,9 @@ export default function FacilityManagePage() {
     setPanelLoading(true)
     setPanelError('')
     try {
-      const data = await getPanels({ siteId })
+      const data = await getPanels({ siteId, size: ALL_PANELS_SIZE })
       if (panelSeqRef.current !== seq) return
-      setPanels(data ?? [])
+      setPanels(data?.content ?? [])
     } catch (error) {
       if (panelSeqRef.current !== seq) return
       const status = error?.response?.status
@@ -118,6 +126,39 @@ export default function FacilityManagePage() {
       panelSeqRef.current += 1
     }
   }, [loadPanels])
+
+  // 분전반 관리 탭 표: 검색어/페이지는 서버가 필터·페이징한다(API-505)
+  const loadTablePanels = useCallback(async () => {
+    const siteId = currentSiteId
+    const seq = tableSeqRef.current + 1
+    tableSeqRef.current = seq
+    setTablePanels([])
+
+    if (!siteId) {
+      setTableLoading(false)
+      return
+    }
+
+    setTableLoading(true)
+    try {
+      const data = await getPanels({ siteId, keyword: keyword.trim() || undefined, page: page - 1, size: PAGE_SIZE })
+      if (tableSeqRef.current !== seq) return
+      setTablePanels(data?.content ?? [])
+      setTableTotalElements(Number(data?.totalElements ?? 0))
+    } catch {
+      // 표 조회 실패는 loadPanels가 이미 같은 API를 호출하므로 그쪽 에러 배너로 충분 — 여기선 빈 표만 유지
+    } finally {
+      if (tableSeqRef.current === seq) setTableLoading(false)
+    }
+  }, [currentSiteId, keyword, page])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadTablePanels()
+    return () => {
+      tableSeqRef.current += 1
+    }
+  }, [loadTablePanels])
 
   useEffect(() => {
     if (!panels.length) {
@@ -175,10 +216,7 @@ export default function FacilityManagePage() {
     [panels],
   )
 
-  const filteredPanels = panels.filter((panel) => includesPanelKeyword(panel, keyword.trim()))
-  const totalPages = Math.max(1, Math.ceil(filteredPanels.length / PAGE_SIZE))
-  const currentPage = Math.min(page, totalPages)
-  const pagedPanels = filteredPanels.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const totalPages = Math.max(1, Math.ceil(tableTotalElements / PAGE_SIZE))
 
   // 탭 변경
   function switchTab(tab) {
@@ -197,7 +235,7 @@ export default function FacilityManagePage() {
   // 현재 페이지 전체 선택
   function toggleSelectAll() {
     if (!canManage) return
-    const pageIds = pagedPanels.map((panel) => panel.panelId)
+    const pageIds = tablePanels.map((panel) => panel.panelId)
     const allChecked = pageIds.length > 0 && pageIds.every((id) => selectedPanelIds.includes(id))
     setSelectedPanelIds((prev) =>
       allChecked ? prev.filter((id) => !pageIds.includes(id)) : [...new Set([...prev, ...pageIds])],
@@ -208,7 +246,7 @@ export default function FacilityManagePage() {
   async function handleCreatePanel(payload) {
     if (!canManage) return
     await createPanel(currentSiteId, payload)
-    await loadPanels()
+    await Promise.all([loadPanels(), loadTablePanels()])
     setActionResult({
       type: 'success',
       title: '등록이 완료되었습니다.',
@@ -239,7 +277,7 @@ export default function FacilityManagePage() {
         { label: '삭제자', value: user?.name },
       ],
     })
-    await loadPanels()
+    await Promise.all([loadPanels(), loadTablePanels()])
   }
 
   // 회로 등록
@@ -419,8 +457,8 @@ export default function FacilityManagePage() {
           className="facility-page"
         >
           <PanelTable
-            loading={panelLoading}
-            panels={pagedPanels}
+            loading={tableLoading}
+            panels={tablePanels}
             canManage={canManage}
             selectedIds={selectedPanelIds}
             onToggle={toggleSelect}
@@ -429,12 +467,10 @@ export default function FacilityManagePage() {
             emptyDescription={canManage ? '분전반 등록 버튼을 눌러 현재 현장에 설비를 추가할 수 있습니다.' : undefined}
           />
 
-          {!panelLoading && filteredPanels.length > 0 && (
+          {!tableLoading && tableTotalElements > 0 && (
             <div className="facility-list__footer">
-              <p className="facility-list__count">
-                총 {panels.length}건 중 {filteredPanels.length}건 조회
-              </p>
-              <Pagination page={currentPage} totalPages={totalPages} onChange={setPage} />
+              <p className="facility-list__count">총 {tableTotalElements}건 중 {tablePanels.length}건 조회</p>
+              <Pagination page={page} totalPages={totalPages} onChange={setPage} />
             </div>
           )}
         </div>

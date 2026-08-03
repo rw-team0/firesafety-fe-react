@@ -210,12 +210,3 @@ export function summarizeSettledResults(results, maxReasons = 3) {
   const failureReason = shown.length ? shown.join(', ') + (omitted > 0 ? ` 외 ${omitted}건` : '') : ''
   return { successCount, failCount: failed.length, failureReason }
 }
-
-// 분전반 키워드 검색
-export function includesPanelKeyword(panel, keyword) {
-  if (!keyword) return true
-  const normalized = keyword.toLowerCase()
-  return [panel.deviceSerial, panel.name, panel.mNo].some((value) =>
-    String(value ?? '').toLowerCase().includes(normalized),
-  )
-}
