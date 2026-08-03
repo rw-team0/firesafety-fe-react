@@ -1,0 +1,57 @@
+.alert-history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.alert-history__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+/* 총 건수 + 페이지네이션 한 줄 — Pagination이 가운데 정렬이라 건수는 왼쪽에 절대배치로 겹침(account-list와 동일 패턴) */
+.alert-history__footer {
+  position: relative;
+  margin-top: var(--space-16);
+}
+
+.alert-history__footer .pagination {
+  margin-top: 0;
+}
+
+.alert-history__count {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* 번호 열이 테이블 왼쪽 끝에 바짝 붙어 보여서 여백을 조금 더 준다 */
+.alert-history__no-cell {
+  padding-left: var(--space-16);
+}
+
+/* 24시간 이상 미처리 — 색만으로 구분되지 않게 "지연" 텍스트를 같이 붙인다(위 렌더 로직) */
+.alert-history__overdue {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+/* 시작일/종료일은 검색창만큼 넓을 필요가 없어 select 필드와 같은 폭으로 좁힌다 */
+.filter-bar__fields > .field:has(.alert-history__date-input) {
+  min-width: 130px;
+  flex: 0 1 150px;
+}
+
+/* 시작일~종료일 사이 구분 기호 — 필드들과 같은 줄 아랫단에 맞춘다(.filter-bar__fields는 align-items:flex-end) */
+.alert-history__date-separator {
+  flex: none;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-muted);
+}

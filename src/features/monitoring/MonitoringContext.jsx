@@ -96,6 +96,7 @@ export function MonitoringProvider({ children }) {
   // 연결 수명주기 — 로그인 상태/역할/담당현장 목록이 바뀔 때만 다시 계산(현재 선택 현장 전환으로는 재연결하지 않음)
   useEffect(() => {
     if (!isAuthenticated) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWsConnected(false)
       setSummary(null)
       setUnreadAlertCount(0)
@@ -104,11 +105,13 @@ export function MonitoringProvider({ children }) {
       return undefined
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshRef.current()
 
     // API 가이드 6절: SUPER_ADMIN은 이 topic을 쓰지 않음(REST 전체조회로만 동작) — 폴링만 사용
     // 담당 현장이 없으면 구독할 topic도 없음 — 폴링으로만 동작
     if (role === 'SUPER_ADMIN' || siteIds.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWsConnected(role === 'SUPER_ADMIN')
       startPolling()
       return () => stopPolling()

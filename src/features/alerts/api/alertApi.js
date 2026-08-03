@@ -24,3 +24,9 @@ export async function resolveAlert(alertId, resolutionNote) {
   const res = await httpRequester.patch(`/alerts/${alertId}/resolve`, resolutionNote ? { resolutionNote } : {})
   return unwrap(res)
 }
+
+// 경보 이력 엑셀 다운로드 — 목록 조회와 같은 필터 + alertIds(선택) 지정 시 해당 항목만. xlsx 바이너리라 unwrap 안 함
+export async function exportAlerts(params = {}, config = {}) {
+  const res = await httpRequester.get('/alerts/export', { ...config, params, responseType: 'blob' })
+  return res.data
+}

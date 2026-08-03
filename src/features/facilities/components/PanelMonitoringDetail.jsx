@@ -110,8 +110,8 @@ export default function PanelMonitoringDetail({ panel }) {
   }, [panel.panelId])
 
   useEffect(() => {
-    setAlerts([])
     // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAlerts([])
     loadAlerts()
     return () => {
       alertSeqRef.current += 1

@@ -100,64 +100,75 @@ export default function DashboardPage() {
   const [recentError, setRecentError] = useState('')
   const [pendingError, setPendingError] = useState('')
 
-  // 현재 현장 대시보드 데이터 조회
-  const loadDashboard = useCallback(async () => {
-    const siteId = currentSiteId
-    const seq = requestSeqRef.current + 1
-    requestSeqRef.current = seq
+  // 현재 현장 대시보드 데이터 조회. silent=true면 WS/폴링 백그라운드 갱신 — 화면을 비우지 않고 성공한 값만 조용히 교체한다
+  const loadDashboard = useCallback(
+    async ({ silent = false } = {}) => {
+      const siteId = currentSiteId
+      const seq = requestSeqRef.current + 1
+      requestSeqRef.current = seq
 
-    // 현장이 바뀌거나 재조회할 때 이전 현장 데이터가 잠깐 남지 않도록 먼저 비운다.
-    setSummary(EMPTY_SUMMARY)
-    setRecentAlerts([])
-    setPendingActions([])
-    setPendingTotal(0)
-    setRecentError('')
-    setPendingError('')
+      if (!silent) {
+        // 현장이 바뀌거나 초기 진입할 때만 이전 현장 데이터가 잠깐 남지 않도록 비운다.
+        setSummary(EMPTY_SUMMARY)
+        setRecentAlerts([])
+        setPendingActions([])
+        setPendingTotal(0)
+        setRecentError('')
+        setPendingError('')
+      }
 
-    if (!siteId) {
+      if (!siteId) {
+        setLoading(false)
+        if (!silent) setSummaryError('대시보드는 현장 선택 후 이용할 수 있습니다.')
+        return
+      }
+
+      if (!silent) {
+        setLoading(true)
+        setSummaryError('')
+      }
+
+      // 요약/최근경보/미처리조치는 서로 독립 영역이라 일부 실패해도 나머지 영역은 표시한다.
+      const [summaryResult, recentResult, pendingResult] = await Promise.allSettled([
+        getDashboardSummary({ siteId }),
+        getAlerts({ siteId, page: 0, size: RECENT_ALERT_SIZE }),
+        getPendingAlerts({ siteId, page: 0, size: PENDING_ACTION_SIZE }),
+      ])
+
+      // currentSite 변경 등으로 더 최신 요청이 있으면 오래된 응답은 화면에 반영하지 않는다.
+      if (requestSeqRef.current !== seq) return
+
+      // 설비 상태 요약과 위험 설비 목록 반영
+      if (summaryResult.status === 'fulfilled') {
+        setSummary({ ...EMPTY_SUMMARY, ...(summaryResult.value ?? {}) })
+        setSummaryError('')
+      } else if (!silent) {
+        setSummaryError(extractErrorMessage(summaryResult.reason, '대시보드 요약을 불러오지 못했습니다.'))
+      }
+
+      // 최근 이벤트 목록 반영
+      if (recentResult.status === 'fulfilled') {
+        setRecentAlerts(toPageContent(recentResult.value))
+        setRecentError('')
+      } else if (!silent) {
+        setRecentError(extractErrorMessage(recentResult.reason, '최근 알림을 불러오지 못했습니다.'))
+      }
+
+      // 미확인/확인 상태의 미처리 조치 목록 반영
+      if (pendingResult.status === 'fulfilled') {
+        setPendingActions(toPageContent(pendingResult.value))
+        setPendingTotal(Number(pendingResult.value?.totalElements ?? 0))
+        setPendingError('')
+      } else if (!silent) {
+        setPendingError(extractErrorMessage(pendingResult.reason, '미처리 조치 목록을 불러오지 못했습니다.'))
+      }
+
+      // silent 여부와 무관하게 "가장 최근에 접수된 응답"이 도착하면 항상 로딩을 끈다.
+      // silent 요청이 non-silent 요청을 seq로 추월했을 때도 스피너가 영원히 안 꺼지는 걸 막기 위함.
       setLoading(false)
-      setSummaryError('대시보드는 현장 선택 후 이용할 수 있습니다.')
-      return
-    }
-
-    setLoading(true)
-    setSummaryError('')
-
-    // 요약/최근경보/미처리조치는 서로 독립 영역이라 일부 실패해도 나머지 영역은 표시한다.
-    const [summaryResult, recentResult, pendingResult] = await Promise.allSettled([
-      getDashboardSummary({ siteId }),
-      getAlerts({ siteId, page: 0, size: RECENT_ALERT_SIZE }),
-      getPendingAlerts({ siteId, page: 0, size: PENDING_ACTION_SIZE }),
-    ])
-
-    // currentSite 변경 등으로 더 최신 요청이 있으면 오래된 응답은 화면에 반영하지 않는다.
-    if (requestSeqRef.current !== seq) return
-
-    // 설비 상태 요약과 위험 설비 목록 반영
-    if (summaryResult.status === 'fulfilled') {
-      setSummary({ ...EMPTY_SUMMARY, ...(summaryResult.value ?? {}) })
-    } else {
-      setSummaryError(extractErrorMessage(summaryResult.reason, '대시보드 요약을 불러오지 못했습니다.'))
-    }
-
-    // 최근 이벤트 목록 반영
-    if (recentResult.status === 'fulfilled') {
-      setRecentAlerts(toPageContent(recentResult.value))
-    } else {
-      setRecentError(extractErrorMessage(recentResult.reason, '최근 알림을 불러오지 못했습니다.'))
-    }
-
-    // 미확인/확인 상태의 미처리 조치 목록 반영
-    if (pendingResult.status === 'fulfilled') {
-      setPendingActions(toPageContent(pendingResult.value))
-      setPendingTotal(Number(pendingResult.value?.totalElements ?? 0))
-    } else {
-      setPendingError(extractErrorMessage(pendingResult.reason, '미처리 조치 목록을 불러오지 못했습니다.'))
-    }
-
-    setLoading(false)
-    // refreshedAt은 함수 안에서 쓰진 않지만, MonitoringProvider가 WS/폴링으로 새 신호를 줄 때마다 재조회하려고 의존성에 넣는다
-  }, [currentSiteId, refreshedAt])
+    },
+    [currentSiteId],
+  )
 
   useEffect(() => {
     // 현장 변경 시 이전 현장 데이터가 남지 않도록 초기화하고, 늦게 도착한 응답은 무시한다.
@@ -167,6 +178,13 @@ export default function DashboardPage() {
       requestSeqRef.current += 1
     }
   }, [loadDashboard])
+
+  useEffect(() => {
+    // MonitoringProvider가 WS/폴링으로 새 신호를 줄 때마다 화면 깜빡임 없이 조용히 다시 조회(REQ-201)
+    if (!refreshedAt) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadDashboard({ silent: true })
+  }, [refreshedAt, loadDashboard])
 
   // 상단 핵심 요약 카드 목록 구성
   const kpiItems = useMemo(
@@ -252,11 +270,20 @@ export default function DashboardPage() {
     [navigate],
   )
 
-  // 경보 목록 이동
+  // 경보 목록 이동 — 전체 이력 탭에서 상세 모달 자동으로 열림
   const handleAlertClick = useCallback(
     (alert) => {
       if (!alert?.alertId) return
       navigate(`${ROUTE_PATHS.alerts}?alertId=${encodeURIComponent(alert.alertId)}`)
+    },
+    [navigate],
+  )
+
+  // 미처리 이력 목록 이동 — 미처리 조치 탭에서 상태에 맞는 확인/조치완료 모달 자동으로 열림
+  const handlePendingAlertClick = useCallback(
+    (alert) => {
+      if (!alert?.alertId) return
+      navigate(`${ROUTE_PATHS.alerts}?tab=pending&alertId=${encodeURIComponent(alert.alertId)}`)
     },
     [navigate],
   )
@@ -266,9 +293,14 @@ export default function DashboardPage() {
     navigate(ROUTE_PATHS.equipmentList)
   }, [navigate])
 
-  // 알림 이력 목록 이동
+  // 알림 이력 목록 이동 — 전체 이력 탭
   const handleAlertsClick = useCallback(() => {
     navigate(ROUTE_PATHS.alerts)
+  }, [navigate])
+
+  // 미처리 조치 목록 이동 — 미처리 조치 탭
+  const handlePendingAlertsClick = useCallback(() => {
+    navigate(`${ROUTE_PATHS.alerts}?tab=pending`)
   }, [navigate])
 
   if (loading) return <LoadingState label="대시보드 데이터를 불러오는 중입니다..." />
@@ -338,7 +370,7 @@ export default function DashboardPage() {
                   <span className="dashboard-heading-count"> / {formatNumber(pendingTotal)}건</span>
                 </h2>
               </div>
-              <Button variant="ghost" onClick={handleAlertsClick}>
+              <Button variant="ghost" onClick={handlePendingAlertsClick}>
                 전체 보기 →
               </Button>
             </>
@@ -352,7 +384,7 @@ export default function DashboardPage() {
               rows={pendingActions}
               rowKey={(row) => row.alertId}
               emptyMessage="미처리 조치가 없습니다."
-              onRowClick={handleAlertClick}
+              onRowClick={handlePendingAlertClick}
             />
           ) : (
             <EmptyState message="미처리 조치가 없습니다." description="현재 선택 현장의 미확인·확인 경보가 없습니다." />

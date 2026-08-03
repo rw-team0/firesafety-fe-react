@@ -41,7 +41,7 @@ export default function DataTable({
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => {
+          {rows.map((row, rowIndex) => {
             const key = rowKey(row)
             return (
               <tr
@@ -64,7 +64,7 @@ export default function DataTable({
                 )}
                 {columns.map((column) => (
                   <td key={column.key} className={column.className}>
-                    {column.render ? column.render(row) : row[column.key]}
+                    {column.render ? column.render(row, rowIndex) : row[column.key]}
                   </td>
                 ))}
               </tr>

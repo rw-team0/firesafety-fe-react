@@ -64,50 +64,57 @@ export default function EquipmentListPage() {
     } catch {
       // 요약 실패는 목록 조회 자체를 막지 않는다 — 아래 loadPanels 에러 처리로 충분
     }
-    // refreshedAt은 함수 안에서 쓰진 않지만, MonitoringProvider가 WS/폴링으로 새 신호를 줄 때마다 재조회하려고 의존성에 넣는다
-  }, [currentSiteId, refreshedAt])
+  }, [currentSiteId])
 
   // 현재 현장 분전반 카드 목록 조회 — 검색어/상태/페이지는 서버가 필터·페이징한다(API-505)
-  const loadPanels = useCallback(async () => {
-    const siteId = currentSiteId
-    const seq = panelSeqRef.current + 1
-    panelSeqRef.current = seq
+  // silent=true면 WS/폴링 백그라운드 갱신 — 카드 그리드를 비우지 않고 성공한 값만 조용히 교체한다
+  const loadPanels = useCallback(
+    async ({ silent = false } = {}) => {
+      const siteId = currentSiteId
+      const seq = panelSeqRef.current + 1
+      panelSeqRef.current = seq
 
-    setPanels([])
+      if (!silent) setPanels([])
 
-    if (!siteId) {
-      setPanelLoading(false)
-      setPanelError('설비 모니터링은 현장 선택 후 이용할 수 있습니다.')
-      return
-    }
+      if (!siteId) {
+        setPanelLoading(false)
+        if (!silent) setPanelError('설비 모니터링은 현장 선택 후 이용할 수 있습니다.')
+        return
+      }
 
-    setPanelLoading(true)
-    setPanelError('')
-    try {
-      const data = await getPanels({
-        siteId,
-        keyword: keyword.trim() || undefined,
-        status: statusFilter || undefined,
-        page: page - 1,
-        size: EQUIPMENT_LIST_PAGE_SIZE,
-      })
-      if (panelSeqRef.current !== seq) return
-      setPanels(data?.content ?? [])
-      setTotalElements(Number(data?.totalElements ?? 0))
-    } catch (error) {
-      if (panelSeqRef.current !== seq) return
-      const status = error?.response?.status
-      setPanelError(
-        extractServerMessage(
-          error,
-          status === 403 ? '현재 현장의 설비를 조회할 권한이 없습니다.' : '설비 모니터링 목록을 불러오지 못했습니다.',
-        ),
-      )
-    } finally {
-      if (panelSeqRef.current === seq) setPanelLoading(false)
-    }
-    // refreshedAt은 함수 안에서 쓰진 않지만, MonitoringProvider가 WS/폴링으로 새 신호를 줄 때마다 재조회하려고 의존성에 넣는다
-  }, [currentSiteId, keyword, statusFilter, page, refreshedAt])
+      if (!silent) {
+        setPanelLoading(true)
+        setPanelError('')
+      }
+      try {
+        const data = await getPanels({
+          siteId,
+          keyword: keyword.trim() || undefined,
+          status: statusFilter || undefined,
+          page: page - 1,
+          size: EQUIPMENT_LIST_PAGE_SIZE,
+        })
+        if (panelSeqRef.current !== seq) return
+        setPanels(data?.content ?? [])
+        setTotalElements(Number(data?.totalElements ?? 0))
+        if (!silent) setPanelError('')
+      } catch (error) {
+        if (panelSeqRef.current !== seq || silent) return
+        const status = error?.response?.status
+        setPanelError(
+          extractServerMessage(
+            error,
+            status === 403 ? '현재 현장의 설비를 조회할 권한이 없습니다.' : '설비 모니터링 목록을 불러오지 못했습니다.',
+          ),
+        )
+      } finally {
+        // silent 여부와 무관하게 "가장 최근에 접수된 응답"이 도착하면 항상 로딩을 끈다.
+        // silent 요청이 non-silent 요청을 seq로 추월했을 때도 스피너가 영원히 안 꺼지는 걸 막기 위함.
+        if (panelSeqRef.current === seq) setPanelLoading(false)
+      }
+    },
+    [currentSiteId, keyword, statusFilter, page],
+  )
 
   useEffect(() => {
     // 현장이 바뀌면 이전 현장 목록/선택/상세가 잠시라도 남지 않게 비우고 stale 응답을 무시한다.
@@ -122,6 +129,14 @@ export default function EquipmentListPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadSummary()
   }, [loadSummary])
+
+  useEffect(() => {
+    // MonitoringProvider가 WS/폴링으로 새 신호를 줄 때마다 화면 깜빡임 없이 조용히 다시 조회(REQ-201)
+    if (!refreshedAt) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadPanels({ silent: true })
+    loadSummary()
+  }, [refreshedAt, loadPanels, loadSummary])
 
   useEffect(() => {
     // 현장이 바뀌면 검색/상태 필터/페이지도 새 현장 기준으로 초기화한다.

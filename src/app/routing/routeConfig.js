@@ -1,5 +1,6 @@
 import AccountHistoryPage from '@/features/accounts/pages/AccountHistoryPage'
 import AccountListPage from '@/features/accounts/pages/AccountListPage'
+import AlertHistoryPage from '@/features/alerts/pages/AlertHistoryPage'
 import LoginPage from '@/features/auth/pages/LoginPage'
 import MobileLoginPage from '@/features/auth/pages/MobileLoginPage'
 import PasswordResetConfirmPage from '@/features/auth/pages/PasswordResetConfirmPage'
@@ -89,6 +90,7 @@ export const routeConfig = [
     scrId: 'SCR-301',
     requiresSite: true,
     navGroup: '관제',
+    page: AlertHistoryPage,
   },
   {
     path: ROUTE_PATHS.equipmentList,

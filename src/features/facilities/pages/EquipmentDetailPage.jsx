@@ -62,7 +62,9 @@ export default function EquipmentDetailPage() {
           ),
         )
       } finally {
-        if (requestSeqRef.current === seq && !silent) setLoading(false)
+        // silent 여부와 무관하게 "가장 최근에 접수된 응답"이 도착하면 항상 로딩을 끈다.
+        // silent 요청이 non-silent 요청을 seq로 추월했을 때도 스피너가 영원히 안 꺼지는 걸 막기 위함.
+        if (requestSeqRef.current === seq) setLoading(false)
       }
     },
     [panelId, currentSiteId],
@@ -80,6 +82,7 @@ export default function EquipmentDetailPage() {
   useEffect(() => {
     // MonitoringProvider가 WS/폴링으로 새 신호를 줄 때마다 조용히 다시 조회(REQ-201)
     if (!refreshedAt) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load({ silent: true })
   }, [refreshedAt, load])
 
