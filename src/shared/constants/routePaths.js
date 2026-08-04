@@ -34,6 +34,7 @@ export const ROUTE_PATHS = {
   mobileSiteSelect: '/m/select-site',
   mobileDashboard: '/m/dashboard',
   mobileAlerts: '/m/alerts',
+  mobileAlertSettings: '/m/alerts/settings',
   mobileEquipmentList: '/m/equipment',
   mobileEquipmentDetail: '/m/equipment/:panelId',
   mobileInspection: '/m/inspections',

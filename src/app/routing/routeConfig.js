@@ -1,6 +1,8 @@
 import AccountHistoryPage from '@/features/accounts/pages/AccountHistoryPage'
 import AccountListPage from '@/features/accounts/pages/AccountListPage'
 import AlertHistoryPage from '@/features/alerts/pages/AlertHistoryPage'
+import MobileAlertSettingsPage from '@/features/alerts/pages/MobileAlertSettingsPage'
+import MobileAlertsPage from '@/features/alerts/pages/MobileAlertsPage'
 import LoginPage from '@/features/auth/pages/LoginPage'
 import MobileLoginPage from '@/features/auth/pages/MobileLoginPage'
 import PasswordResetConfirmPage from '@/features/auth/pages/PasswordResetConfirmPage'
@@ -271,6 +273,17 @@ export const routeConfig = [
     menuLabel: '알림이력',
     scrId: 'SCR-301-M',
     requiresSite: true,
+    page: MobileAlertsPage,
+  },
+  // 알림 목록 화면의 톱니 버튼으로만 진입 — 탭/드로어 어디에도 노출 안 함
+  {
+    path: ROUTE_PATHS.mobileAlertSettings,
+    layout: 'mobile',
+    requiredRole: ROLES.GENERAL,
+    title: '알림 설정',
+    scrId: 'SCR-301-M',
+    requiresSite: true,
+    page: MobileAlertSettingsPage,
   },
 ]
 

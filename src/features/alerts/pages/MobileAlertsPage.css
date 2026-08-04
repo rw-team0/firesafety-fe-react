@@ -1,0 +1,135 @@
+.mobile-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.mobile-alerts__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+.mobile-alerts__header h1 {
+  margin: 0;
+  font-size: var(--font-size-title);
+}
+
+.mobile-alerts__actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.mobile-alerts__bulk-btn {
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 var(--space-12);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mobile-alerts__settings-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.mobile-alerts__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.mobile-alerts__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-12);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+}
+
+/* 미확인(읽지 않음) — 강조 배경 + 파란 점 */
+.mobile-alerts__item.is-unread {
+  background: var(--color-surface-accent);
+  border-color: var(--color-brand);
+}
+
+/* 확인됨(읽음) — 흐리게 */
+.mobile-alerts__item.is-read {
+  opacity: 0.64;
+}
+
+.mobile-alerts__dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-brand);
+}
+
+.mobile-alerts__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mobile-alerts__row-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+/* 이상 유형(아크/과전류 등) — 뱃지형 */
+.mobile-alerts__type-badge {
+  flex-shrink: 0;
+  padding: 2px var(--space-8);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-accent);
+  color: var(--color-brand-strong);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mobile-alerts__panel {
+  min-width: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-alerts__time {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.mobile-alerts__sentinel {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

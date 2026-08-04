@@ -7,6 +7,7 @@ import { getDashboardSummary } from '@/features/dashboard/api/dashboardApi'
 import { useSite } from '@/features/sites/useSite'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
 import { ROUTE_PATHS, buildPath } from '@/shared/constants/routePaths'
+import { isInAppAlertsMuted } from '@/shared/utils/notificationPrefs'
 import { createMonitoringSocket } from './monitoringSocket'
 import { MonitoringContext } from './monitoringContextObject'
 
@@ -66,7 +67,8 @@ export function MonitoringProvider({ children }) {
       setSummary(data)
       setUnreadAlertCount(Number(data?.unconfirmedAlertCount ?? 0))
       setRefreshedAt(Date.now())
-      if (newRisk) {
+      // 인앱 알림을 로컬로 꺼둔 경우에도 배지/미확인 건수는 그대로 갱신하고 팝업+경보음만 건너뛴다
+      if (newRisk && !isInAppAlertsMuted()) {
         setRiskPopup({ panelId: newRisk.panelId, panelName: newRisk.name, alertType: null })
         playAlertBeep()
         // 요약 API엔 위험 유형이 없어(상태값만) 그 분전반의 최신 미확인 경보에서 유형만 따로 가져온다(FCM 푸시도 같은 값을 씀)
