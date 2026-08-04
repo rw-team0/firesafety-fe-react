@@ -156,7 +156,6 @@ export default function InspectionHistoryPage() {
   const columns = useMemo(
     () => [
       { key: 'inspectedAt', header: '점검일시', render: (row) => formatInspectionDateTime(row.inspectedAt) },
-      { key: 'inspectorName', header: '점검자', render: (row) => row.inspectorName || '-' },
       {
         key: 'summary',
         header: '결과 요약',
@@ -171,7 +170,7 @@ export default function InspectionHistoryPage() {
           )
         },
       },
-      { key: 'note', header: '비고', render: (row) => row.note || '-' },
+      { key: 'inspectorName', header: '점검자', render: (row) => row.inspectorName || '-' },
     ],
     [],
   )
@@ -303,7 +302,7 @@ export default function InspectionHistoryPage() {
                       <p className="facility-list__count">
                         총 {totalElements.toLocaleString('ko-KR')}건 중 {histories.length.toLocaleString('ko-KR')}건 조회
                       </p>
-                      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+                      <Pagination page={page} totalPages={totalPages} onChange={setPage} pageWindow={8} />
                     </div>
                   ) : null
                 }

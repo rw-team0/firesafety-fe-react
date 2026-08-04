@@ -52,12 +52,14 @@ export default function InspectionHistoryDetailModal({ visible, history, onClose
         </div>
 
         <h4 className="facility-modal__section-title">항목별 결과</h4>
-        <DataTable
-          columns={columns}
-          rows={history.results ?? []}
-          rowKey={(item) => item.itemId}
-          emptyMessage="점검 결과 항목이 없습니다."
-        />
+        <div className="inspection-apply-table">
+          <DataTable
+            columns={columns}
+            rows={history.results ?? []}
+            rowKey={(item) => item.itemId}
+            emptyMessage="점검 결과 항목이 없습니다."
+          />
+        </div>
       </div>
     </BaseModal>
   )
