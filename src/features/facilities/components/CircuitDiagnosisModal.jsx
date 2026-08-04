@@ -4,13 +4,14 @@ import { extractServerMessage, formatDateTimeCell } from '../utils/facilityForma
 import { VERDICT_LABELS } from '@/shared/constants/domainLabels'
 import Button from '@/shared/components/buttons/Button'
 import DataTable from '@/shared/components/data-display/DataTable'
+import Pagination from '@/shared/components/data-display/Pagination'
 import ErrorState from '@/shared/components/feedback/ErrorState'
 import StatusBadge from '@/shared/components/feedback/StatusBadge'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
 import BaseModal from '@/shared/components/modals/BaseModal'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 6
 
 function formatConfidence(value) {
   return value == null ? '-' : `${Math.round(value * 100)}%`
@@ -20,6 +21,7 @@ function formatConfidence(value) {
 export default function CircuitDiagnosisModal({ circuit, visible, onClose }) {
   const [history, setHistory] = useState([])
   const [totalElements, setTotalElements] = useState(0)
+  const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [triggerConfirmOpen, setTriggerConfirmOpen] = useState(false)
@@ -30,14 +32,21 @@ export default function CircuitDiagnosisModal({ circuit, visible, onClose }) {
     if (!circuit) return
     setLoading(true)
     setLoadError('')
-    getCircuitDiagnosis(circuit.circuitId, { page: 0, size: PAGE_SIZE })
+    getCircuitDiagnosis(circuit.circuitId, { page: page - 1, size: PAGE_SIZE })
       .then((data) => {
         setHistory(data?.content ?? [])
         setTotalElements(Number(data?.totalElements ?? 0))
       })
       .catch((error) => setLoadError(extractServerMessage(error, 'AI 진단 이력을 불러오지 못했습니다.')))
       .finally(() => setLoading(false))
-  }, [circuit])
+  }, [circuit, page])
+
+  // 모달을 열 때(또는 대상 회로가 바뀔 때)마다 1페이지부터 다시 본다
+  useEffect(() => {
+    if (!visible) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(1)
+  }, [visible, circuit])
 
   useEffect(() => {
     if (!visible) return
@@ -55,6 +64,7 @@ export default function CircuitDiagnosisModal({ circuit, visible, onClose }) {
       await triggerCircuitDiagnosis(circuit.circuitId)
       const data = await getCircuitDiagnosis(circuit.circuitId, { page: 0, size: PAGE_SIZE })
       const freshHistory = data?.content ?? []
+      setPage(1)
       setHistory(freshHistory)
       setTotalElements(Number(data?.totalElements ?? 0))
 
@@ -77,7 +87,7 @@ export default function CircuitDiagnosisModal({ circuit, visible, onClose }) {
           title: '새 판정이 생성되지 않았습니다.',
           infoRows: [
             { label: '대상 회로', value: `회로 ${circuit.channelNo}` },
-            { label: '사유', value: '최근 샘플이 부족했을 수 있습니다. 센서 데이터가 더 쌓이면 자동으로 재시도됩니다.' },
+            { label: '사유', value: '최근 샘플이 부족합니다. (최소 30개 이상 필요)' },
           ],
         })
       }
@@ -144,6 +154,14 @@ export default function CircuitDiagnosisModal({ circuit, visible, onClose }) {
               emptyMessage="AI 진단 이력이 없습니다."
               emptyDescription="진단 실행 버튼으로 지금 바로 진단할 수 있습니다."
             />
+            {!loading && totalElements > 0 && (
+              <Pagination
+                page={page}
+                totalPages={Math.max(1, Math.ceil(totalElements / PAGE_SIZE))}
+                onChange={setPage}
+                pageWindow={5}
+              />
+            )}
           </>
         )}
       </BaseModal>
@@ -151,11 +169,32 @@ export default function CircuitDiagnosisModal({ circuit, visible, onClose }) {
       <ConfirmModal
         visible={triggerConfirmOpen}
         title="AI 진단 실행"
-        message={`회로 ${circuit?.channelNo}에 대해 AI 진단을 즉시 실행하시겠습니까?`}
         confirmLabel="실행"
         onCancel={() => setTriggerConfirmOpen(false)}
         onConfirm={handleTrigger}
-      />
+      >
+        <div className="confirm-modal__summary confirm-modal__summary--neutral">
+          <span className="confirm-modal__summary-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <div className="confirm-modal__summary-body">
+            <p className="confirm-modal__summary-row">
+              <span className="confirm-modal__summary-label">대상 회로</span>
+              <span className="confirm-modal__summary-value">회로 {circuit?.channelNo}</span>
+              <span className="confirm-modal__summary-badge">진단 실행</span>
+            </p>
+            <p className="confirm-modal__summary-detail">현재까지 쌓인 센서 데이터로 즉시 AI 판정을 실행합니다.</p>
+          </div>
+        </div>
+      </ConfirmModal>
 
       <ActionResultModal
         visible={Boolean(triggerResult)}

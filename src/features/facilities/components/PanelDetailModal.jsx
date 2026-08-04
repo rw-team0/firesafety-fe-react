@@ -20,6 +20,7 @@ import Button from '@/shared/components/buttons/Button'
 import Input from '@/shared/components/forms/Input'
 import BaseModal from '@/shared/components/modals/BaseModal'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
+import ConfirmModal from '@/shared/components/modals/ConfirmModal'
 import LoadingState from '@/shared/components/feedback/LoadingState'
 import ErrorState from '@/shared/components/feedback/ErrorState'
 import StatusBadge from '@/shared/components/feedback/StatusBadge'
@@ -49,6 +50,7 @@ export default function PanelDetailModal({ visible, panelId, canManage, onClose,
   const [serverMessage, setServerMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   // A 클릭 직후 B 클릭 같은 stale 응답을 막기 위해 요청 순번을 기록하고, 응답 시점에 최신 요청인지 +
   // 응답 panel.siteId가 요청 당시 currentSiteId와 같은지 함께 검증한다.
@@ -81,12 +83,12 @@ export default function PanelDetailModal({ visible, panelId, canManage, onClose,
   useEffect(() => {
     if (!visible || !panelId) return
     // 모달을 열 때마다(대상 변경·현장 변경 포함) 조회 모드로 시작 + 이전 상세·오류 상태를 비우고 다시 불러온다
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMode('view')
     setPanel(null)
     setErrors({})
     setServerMessage('')
     setResult(null)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
     return () => {
       // 모달이 닫히거나 대상/현장이 바뀌면 그 시점까지의 요청은 전부 무효화(응답이 와도 무시)
@@ -113,13 +115,18 @@ export default function PanelDetailModal({ visible, panelId, canManage, onClose,
     setMode('view')
   }
 
-  // 분전반 수정
-  async function handleSubmit() {
+  // 분전반 수정 — 저장 전 항상 한 번 확인받는다(다른 수정 모달들과 동일한 흐름)
+  function handleSubmit() {
     if (!canManage) return
     const nextErrors = validatePanelForm(form)
     setErrors(nextErrors)
     if (Object.values(nextErrors).some(Boolean)) return
 
+    setConfirmOpen(true)
+  }
+
+  async function handleConfirmSubmit() {
+    setConfirmOpen(false)
     setSubmitting(true)
     setServerMessage('')
     try {
@@ -270,6 +277,36 @@ export default function PanelDetailModal({ visible, panelId, canManage, onClose,
           </div>
         )}
       </BaseModal>
+
+      <ConfirmModal
+        visible={confirmOpen}
+        title="분전반 수정"
+        confirmLabel="수정"
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmSubmit}
+      >
+        <div className="confirm-modal__summary confirm-modal__summary--neutral">
+          <span className="confirm-modal__summary-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <div className="confirm-modal__summary-body">
+            <p className="confirm-modal__summary-row">
+              <span className="confirm-modal__summary-label">분전반명</span>
+              <span className="confirm-modal__summary-value">{form.name}</span>
+              <span className="confirm-modal__summary-badge">수정</span>
+            </p>
+            <p className="confirm-modal__summary-detail">입력한 내용(임계값 포함)으로 즉시 반영됩니다.</p>
+          </div>
+        </div>
+      </ConfirmModal>
 
       <ActionResultModal
         visible={Boolean(result)}

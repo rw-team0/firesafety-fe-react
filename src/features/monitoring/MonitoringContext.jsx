@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { confirmAlert, getAlerts } from '@/features/alerts/api/alertApi'
+import { formatAlertType } from '@/features/alerts/utils/alertFormatters'
 import { useAuth } from '@/features/auth/useAuth'
 import { getDashboardSummary } from '@/features/dashboard/api/dashboardApi'
 import { useSite } from '@/features/sites/useSite'
@@ -66,8 +67,17 @@ export function MonitoringProvider({ children }) {
       setUnreadAlertCount(Number(data?.unconfirmedAlertCount ?? 0))
       setRefreshedAt(Date.now())
       if (newRisk) {
-        setRiskPopup({ panelId: newRisk.panelId, panelName: newRisk.name })
+        setRiskPopup({ panelId: newRisk.panelId, panelName: newRisk.name, alertType: null })
         playAlertBeep()
+        // 요약 API엔 위험 유형이 없어(상태값만) 그 분전반의 최신 미확인 경보에서 유형만 따로 가져온다(FCM 푸시도 같은 값을 씀)
+        getAlerts({ panelId: newRisk.panelId, status: 'UNCONFIRMED', size: 1 })
+          .then((alertData) => {
+            const alertType = alertData?.content?.[0]?.type
+            if (alertType) setRiskPopup((prev) => (prev?.panelId === newRisk.panelId ? { ...prev, alertType } : prev))
+          })
+          .catch(() => {
+            // 유형 조회 실패해도 팝업 자체(분전반명)는 이미 떠 있으니 무시
+          })
       }
     } catch {
       // 실패 알림은 인터셉터가 이미 처리 — 다음 폴링/WS 메시지에서 다시 시도된다
@@ -183,13 +193,36 @@ export function MonitoringProvider({ children }) {
       <ConfirmModal
         visible={Boolean(riskPopup)}
         title="위험 상태가 감지되었습니다."
-        message={`${riskPopup?.panelName ?? ''} 분전반이 위험 상태로 전환되었습니다. 즉시 확인해주세요.`}
         danger
         cancelLabel="닫기"
         confirmLabel="상세보기"
         onCancel={clearRiskPopup}
         onConfirm={handleRiskPopupDetail}
-      />
+      >
+        <div className="confirm-modal__summary">
+          <span className="confirm-modal__summary-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <div className="confirm-modal__summary-body">
+            <p className="confirm-modal__summary-row">
+              <span className="confirm-modal__summary-label">분전반명</span>
+              <span className="confirm-modal__summary-value">{riskPopup?.panelName ?? '-'}</span>
+              <span className="confirm-modal__summary-badge">
+                {riskPopup?.alertType ? formatAlertType(riskPopup.alertType) : '위험'}
+              </span>
+            </p>
+            <p className="confirm-modal__summary-detail">상세보기에서 최근 경보를 확인해주세요.</p>
+          </div>
+        </div>
+      </ConfirmModal>
     </MonitoringContext.Provider>
   )
 }

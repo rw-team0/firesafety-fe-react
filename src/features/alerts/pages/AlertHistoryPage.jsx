@@ -652,11 +652,6 @@ export default function AlertHistoryPage() {
         <ConfirmModal
           visible={Boolean(actionTarget)}
           title={actionTarget.mode === 'confirm' ? '경보 확인' : '조치완료 처리'}
-          message={
-            actionTarget.mode === 'confirm'
-              ? `${formatAlertType(actionTarget.alert.type)} 경보를 확인하시겠습니까?`
-              : `${formatAlertType(actionTarget.alert.type)} 경보를 조치완료 처리하시겠습니까?`
-          }
           confirmLabel={actionTarget.mode === 'confirm' ? '확인' : '조치완료'}
           onCancel={() => {
             setActionTarget(null)
@@ -665,6 +660,29 @@ export default function AlertHistoryPage() {
           }}
           onConfirm={handleActionConfirm}
         >
+          <div className="confirm-modal__summary">
+            <span className="confirm-modal__summary-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <div className="confirm-modal__summary-body">
+              <p className="confirm-modal__summary-row">
+                <span className="confirm-modal__summary-label">대상 경보</span>
+                <span className="confirm-modal__summary-value">{formatAlertType(actionTarget.alert.type)}</span>
+                <span className="confirm-modal__summary-badge">{actionTarget.mode === 'confirm' ? '확인' : '조치완료'}</span>
+              </p>
+              <p className="confirm-modal__summary-detail">
+                {actionTarget.alert.panelName ?? '-'} 분전반 · {formatDateTimeCell(actionTarget.alert.triggeredAt)} 발생
+              </p>
+            </div>
+          </div>
           {actionError && (
             <p className="banner banner-danger" role="alert">
               {actionError}
@@ -759,20 +777,62 @@ export default function AlertHistoryPage() {
       <ConfirmModal
         visible={bulkConfirmOpen}
         title="선택 확인 처리"
-        message={`선택한 항목 중 미확인 상태인 ${selectedConfirmableCount}건을 확인 처리하시겠습니까?`}
         confirmLabel="확인 처리"
         onCancel={() => setBulkConfirmOpen(false)}
         onConfirm={handleBulkConfirm}
-      />
+      >
+        <div className="confirm-modal__summary">
+          <span className="confirm-modal__summary-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <div className="confirm-modal__summary-body">
+            <p className="confirm-modal__summary-row">
+              <span className="confirm-modal__summary-label">대상</span>
+              <span className="confirm-modal__summary-value">{selectedConfirmableCount}건</span>
+              <span className="confirm-modal__summary-badge">확인 처리</span>
+            </p>
+            <p className="confirm-modal__summary-detail">선택한 항목 중 미확인 상태인 경보만 확인 처리됩니다.</p>
+          </div>
+        </div>
+      </ConfirmModal>
 
       <ConfirmModal
         visible={bulkResolveOpen}
         title="선택 조치완료 처리"
-        message={`선택한 항목 중 확인됨 상태인 ${selectedResolvableCount}건을 조치완료 처리하시겠습니까?`}
         confirmLabel="조치완료"
         onCancel={() => setBulkResolveOpen(false)}
         onConfirm={handleBulkResolve}
-      />
+      >
+        <div className="confirm-modal__summary">
+          <span className="confirm-modal__summary-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <div className="confirm-modal__summary-body">
+            <p className="confirm-modal__summary-row">
+              <span className="confirm-modal__summary-label">대상</span>
+              <span className="confirm-modal__summary-value">{selectedResolvableCount}건</span>
+              <span className="confirm-modal__summary-badge">조치완료</span>
+            </p>
+            <p className="confirm-modal__summary-detail">선택한 항목 중 확인됨 상태인 경보만 조치완료 처리됩니다.</p>
+          </div>
+        </div>
+      </ConfirmModal>
 
       <ActionResultModal
         visible={Boolean(actionResult)}
@@ -784,11 +844,32 @@ export default function AlertHistoryPage() {
       <ConfirmModal
         visible={exportConfirmOpen}
         title="경보 이력 출력"
-        message="현재 필터 조건의 경보 이력을 엑셀 파일로 출력하시겠습니까?"
         confirmLabel="출력"
         onCancel={() => setExportConfirmOpen(false)}
         onConfirm={handleExport}
-      />
+      >
+        <div className="confirm-modal__summary confirm-modal__summary--neutral">
+          <span className="confirm-modal__summary-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <div className="confirm-modal__summary-body">
+            <p className="confirm-modal__summary-row">
+              <span className="confirm-modal__summary-label">조회 기간</span>
+              <span className="confirm-modal__summary-value">{from} ~ {to}</span>
+              <span className="confirm-modal__summary-badge">출력</span>
+            </p>
+            <p className="confirm-modal__summary-detail">현재 필터 조건에 맞는 전체 이력이 엑셀 파일로 저장됩니다.</p>
+          </div>
+        </div>
+      </ConfirmModal>
     </div>
   )
 }
