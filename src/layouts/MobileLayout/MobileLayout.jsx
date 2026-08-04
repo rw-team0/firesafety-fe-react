@@ -9,6 +9,18 @@ import MobileDrawer from './MobileDrawer'
 import { MOBILE_NAV_ICONS } from './mobileNavIcons'
 import './MobileLayout.css'
 
+// 더보기 탭 — 드로어(전체 메뉴) 오픈 트리거, 라우트가 없어 mobileNavIcons.jsx에 안 둠
+function MoreIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="13" y="4" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="4" y="13" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="13" y="13" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  )
+}
+
 // 모바일 하단 탭 셸. PC/모바일 구분은 URL 프리픽스(/m/*)로만
 // 사용자 정보/현장/로그아웃은 헤더가 아니라 삼선 → 드로어(MobileDrawer)로 이동
 export default function MobileLayout() {
@@ -68,7 +80,7 @@ export default function MobileLayout() {
         <Outlet />
       </main>
 
-      {/* 하단 탭: mobile navGroup 항목만, 아이콘+라벨 */}
+      {/* 하단 탭: mobile navGroup 항목 + 맨 끝 "더보기"(라우트 아님, 드로어 오픈) */}
       <nav className="mobile-layout__tabbar" aria-label="하단 메뉴">
         {navItems.map((item) => {
           const Icon = MOBILE_NAV_ICONS[item.path]
@@ -83,6 +95,14 @@ export default function MobileLayout() {
             </NavLink>
           )
         })}
+        <button
+          type="button"
+          className={`mobile-layout__tab mobile-layout__tab--button ${drawerOpen ? 'is-active' : ''}`.trim()}
+          onClick={() => setDrawerOpen(true)}
+        >
+          <MoreIcon />
+          <span>더보기</span>
+        </button>
       </nav>
 
       <MobileDrawer

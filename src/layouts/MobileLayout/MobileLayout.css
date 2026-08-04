@@ -87,16 +87,25 @@
 
 .mobile-layout__tab {
   flex: 1;
+  height: 69px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: var(--space-8) 0;
-  font-size: var(--font-size-caption);
+  justify-content: center;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 15px;
   color: var(--color-text-muted);
 }
 
-/* NavLink isActive가 붙이는 클래스 */
+/* "더보기"는 버튼이라 기본 스타일 리셋 */
+.mobile-layout__tab--button {
+  background: none;
+  border: none;
+  font-family: inherit;
+}
+
+/* NavLink isActive / 더보기 버튼 활성(드로어 오픈 중)에 붙이는 클래스 */
 .mobile-layout__tab.is-active {
   color: var(--color-brand);
   font-weight: 700;
@@ -231,16 +240,17 @@
 
 .mobile-drawer__quick-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-8);
 }
 
 .mobile-drawer__quick-item {
+  height: 63px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: var(--space-4);
-  padding: var(--space-12) var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   color: var(--color-text-secondary);

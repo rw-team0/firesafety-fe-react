@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { getMobileNavItems } from '@/app/routing/routeConfig'
+import { getMobileFullMenuItems, getMobileNavItems } from '@/app/routing/routeConfig'
 import { useAuth } from '@/features/auth/useAuth'
 import { useSite } from '@/features/sites/useSite'
 import { buildSiteSelectPath } from '@/features/sites/utils/siteEntry'
@@ -14,6 +14,7 @@ export default function MobileDrawer({ open, onClose, onLogoutClick }) {
   const { currentSite, sites } = useSite()
   const navigate = useNavigate()
   const navItems = getMobileNavItems().filter((item) => hasRequiredRole(role, item.requiredRole))
+  const fullMenuItems = getMobileFullMenuItems().filter((item) => hasRequiredRole(role, item.requiredRole))
   const siteChangeable = sites.length > 1 || canManageSites(role)
 
   function handleSiteChange() {
@@ -81,14 +82,14 @@ export default function MobileDrawer({ open, onClose, onLogoutClick }) {
 
         <p className="mobile-drawer__section-title">전체 메뉴보기</p>
         <div className="mobile-drawer__full-list">
-          {navItems.map((item) => (
+          {fullMenuItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               className={({ isActive }) => `mobile-drawer__full-item ${isActive ? 'is-active' : ''}`.trim()}
               onClick={handleNavClick}
             >
-              {item.title}
+              {item.menuLabel ?? item.title}
             </NavLink>
           ))}
         </div>

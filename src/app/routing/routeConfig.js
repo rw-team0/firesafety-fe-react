@@ -211,24 +211,74 @@ export const routeConfig = [
     page: MobileLoginPage,
     guestOnly: true,
   },
+  // 하단탭 순서 고정: 설비 - 점검 - 홈 - 직원 - 더보기(라우트 아님, MobileLayout에서 드로어 오픈 버튼으로 별도 처리)
+  {
+    path: ROUTE_PATHS.mobileEquipmentList,
+    layout: 'mobile',
+    requiredRole: ROLES.GENERAL,
+    title: '설비',
+    menuLabel: '설비관리', // 드로어 "전체메뉴보기" 전용 표기(탭 라벨은 title 그대로 짧게)
+    scrId: 'SCR-501-M',
+    requiresSite: true,
+    navGroup: 'mobile',
+  },
+  {
+    path: ROUTE_PATHS.mobileEquipmentDetail,
+    layout: 'mobile',
+    requiredRole: ROLES.GENERAL,
+    title: '설비 상세',
+    scrId: 'SCR-202-M',
+    requiresSite: true,
+  },
+  {
+    path: ROUTE_PATHS.mobileInspection,
+    layout: 'mobile',
+    requiredRole: ROLES.GENERAL,
+    title: '점검',
+    menuLabel: '점검관리',
+    scrId: 'SCR-505-M',
+    requiresSite: true,
+    navGroup: 'mobile',
+  },
   {
     path: ROUTE_PATHS.mobileDashboard,
     layout: 'mobile',
     requiredRole: ROLES.GENERAL,
-    title: '대시보드',
+    title: '홈',
+    menuLabel: '대시보드',
     scrId: 'SCR-201-M',
     requiresSite: true,
     navGroup: 'mobile',
   },
   {
+    path: ROUTE_PATHS.mobileAccountsContacts,
+    layout: 'mobile',
+    requiredRole: ROLES.GENERAL,
+    title: '직원',
+    menuLabel: '직원관리',
+    scrId: 'SCR-404-M',
+    requiresSite: true,
+    navGroup: 'mobile',
+  },
+  // 하단탭에는 없음 — 헤더 종 아이콘 + 드로어 전체메뉴로만 진입
+  {
     path: ROUTE_PATHS.mobileAlerts,
     layout: 'mobile',
     requiredRole: ROLES.GENERAL,
     title: '알림 이력',
+    menuLabel: '알림이력',
     scrId: 'SCR-301-M',
     requiresSite: true,
-    navGroup: 'mobile',
   },
+]
+
+// 드로어 "전체메뉴보기" 노출 순서 고정(하단탭 순서와 다름, 알림 포함)
+const MOBILE_FULL_MENU_ORDER = [
+  ROUTE_PATHS.mobileDashboard,
+  ROUTE_PATHS.mobileAccountsContacts,
+  ROUTE_PATHS.mobileEquipmentList,
+  ROUTE_PATHS.mobileInspection,
+  ROUTE_PATHS.mobileAlerts,
 ]
 
 // 사이드바 그룹 노출 순서 고정
@@ -242,4 +292,9 @@ export function getNavItems(group) {
 // 모바일 하단탭 항목만 추출
 export function getMobileNavItems() {
   return routeConfig.filter((route) => route.navGroup === 'mobile')
+}
+
+// 드로어 "전체메뉴보기" 항목 — 하단탭과 별개 순서/구성(알림 포함)
+export function getMobileFullMenuItems() {
+  return MOBILE_FULL_MENU_ORDER.map((path) => routeConfig.find((route) => route.path === path)).filter(Boolean)
 }

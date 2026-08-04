@@ -34,6 +34,10 @@ export const ROUTE_PATHS = {
   mobileSiteSelect: '/m/select-site',
   mobileDashboard: '/m/dashboard',
   mobileAlerts: '/m/alerts',
+  mobileEquipmentList: '/m/equipment',
+  mobileEquipmentDetail: '/m/equipment/:panelId',
+  mobileInspection: '/m/inspections',
+  mobileAccountsContacts: '/m/accounts',
 
   // 개발 전용
   devDesignSystem: '/dev/design-system',
