@@ -194,6 +194,21 @@ export default function AlertHistoryPage() {
     loadPendingAlerts({ silent: true })
   }, [refreshedAt, activeTab, loadPendingAlerts])
 
+  // 전체 이력 탭에 있을 때도 "미처리 조치 (n건)" 탭 배지가 바로 보이게 건수만 미리 조회한다.
+  // (미처리 조치 탭을 클릭해야만 loadPendingAlerts가 실행돼 배지가 늦게 뜨던 문제 수정)
+  useEffect(() => {
+    if (!currentSiteId || activeTab === 'pending') return
+    let cancelled = false
+    getPendingAlerts({ siteId: currentSiteId, page: 0, size: 1 })
+      .then((data) => {
+        if (!cancelled) setPendingTotalElements(Number(data?.totalElements ?? 0))
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [currentSiteId, activeTab, refreshedAt])
+
   useEffect(() => {
     // 현장이 바뀌면 필터/선택/페이지를 새 현장 기준으로 초기화한다.
     // eslint-disable-next-line react-hooks/set-state-in-effect
