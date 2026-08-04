@@ -42,10 +42,14 @@ export default function MobileLayout() {
     <div className="mobile-layout">
       {/* 헤더: 로고 + 알림(자리 표시자) + 삼선(전체 메뉴) */}
       <header className="mobile-layout__header">
-        <span className="mobile-layout__brand">
+        <button
+          type="button"
+          className="mobile-layout__brand"
+          onClick={() => navigate(ROUTE_PATHS.mobileDashboard)}
+        >
           <img src="/ArcGuard.png" alt="" className="mobile-layout__logo" />
           ArcGuard
-        </span>
+        </button>
         <button
           type="button"
           className="mobile-layout__icon-btn"

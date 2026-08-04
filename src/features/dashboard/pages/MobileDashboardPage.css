@@ -28,16 +28,14 @@
   font-size: var(--font-size-caption);
 }
 
-/* 요약 카드 2x2 — 카드 1개 173x106 고정 */
+/* 요약 카드 2x2 — 폭은 콘텐츠 영역에 맞춰 유동, 높이만 106px 고정 */
 .mobile-dashboard-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(2, 173px);
-  justify-content: space-between;
-  gap: var(--space-12) 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-12);
 }
 
 .mobile-dashboard-kpi {
-  width: 173px;
   height: 106px;
   display: flex;
   flex-direction: column;
@@ -155,16 +153,14 @@
   gap: var(--space-12);
 }
 
-/* 설비별 위험 등급도 요약 카드와 동일하게 173x106 2x2 고정 */
+/* 설비별 위험 등급도 요약 카드와 동일하게 폭 유동 2x2, 높이만 106px 고정 */
 .mobile-dashboard-risk-list {
   display: grid;
-  grid-template-columns: repeat(2, 173px);
-  justify-content: space-between;
-  gap: var(--space-12) 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-12);
 }
 
 .mobile-dashboard-risk-card {
-  width: 173px;
   height: 106px;
   padding: var(--space-12);
   display: flex;
@@ -201,7 +197,11 @@
 }
 
 .mobile-dashboard-risk-card__top strong {
+  display: block;
   font-size: var(--font-size-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mobile-dashboard-risk-card__row {
