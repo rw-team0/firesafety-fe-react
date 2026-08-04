@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { confirmAlert, getAlerts, resolveAlert } from '@/features/alerts/api/alertApi'
+import AiModelInfoModal from './AiModelInfoModal'
+import CircuitDiagnosisModal from './CircuitDiagnosisModal'
 import {
   extractServerMessage,
   formatAlertStatus,
@@ -76,6 +78,8 @@ function formatProcessedBy(row) {
 // 상태는 정상/주의/위험 한글 배지를 따로 붙이지 않고, 카드 테두리/배경 색만으로 표시한다(참고: Vue EquipmentDetailView의 circuitCardStyle과 동일한 원칙)
 export default function PanelMonitoringDetail({ panel }) {
   const { user } = useAuth()
+  const [diagnosisCircuit, setDiagnosisCircuit] = useState(null)
+  const [modelInfoOpen, setModelInfoOpen] = useState(false)
   const [alerts, setAlerts] = useState([])
   const [alertsLoading, setAlertsLoading] = useState(true)
   const [alertsError, setAlertsError] = useState('')
@@ -196,7 +200,12 @@ export default function PanelMonitoringDetail({ panel }) {
         </BaseCard>
 
         <BaseCard>
-          <h3 className="facility-section-title">회로 상태</h3>
+          <div className="facility-section-header">
+            <h3 className="facility-section-title">회로 상태</h3>
+            <Button variant="ghost" onClick={() => setModelInfoOpen(true)}>
+              AI 모델 정보
+            </Button>
+          </div>
           {panel.circuits?.length ? (
             <div className="facility-monitor-circuit-grid">
               {panel.circuits.map((circuit) => {
@@ -210,6 +219,17 @@ export default function PanelMonitoringDetail({ panel }) {
                     </div>
                     <p className="facility-circuit-card__current">{formatValue(circuit.currentA, 'A')}</p>
                     <p className="facility-muted">아크 {circuit.arcCounter ?? 0}회</p>
+                    <div className="facility-circuit-card__footer">
+                      <Button
+                        // 카드 테두리 색(정상/주의/위험)과는 별개로, AI 진단 버튼은 ARC 신호가 있다는 것 자체를 바로 눈에 띄게 빨간색으로 표시한다.
+                        // CAUTION은 "하드웨어 정상+AI ARC"라 카드가 노랗게만 보여도 AI는 이미 위험을 보내고 있는 상태 — 그 신호를 버튼에서 강조한다.
+                        variant={riskLevel === 'danger' || riskLevel === 'warning' ? 'danger' : 'secondary'}
+                        className="facility-circuit-card__btn"
+                        onClick={() => setDiagnosisCircuit(circuit)}
+                      >
+                        AI 진단
+                      </Button>
+                    </div>
                   </div>
                 )
               })}
@@ -321,6 +341,14 @@ export default function PanelMonitoringDetail({ panel }) {
           </div>
         )}
       </BaseModal>
+
+      <CircuitDiagnosisModal
+        circuit={diagnosisCircuit}
+        visible={Boolean(diagnosisCircuit)}
+        onClose={() => setDiagnosisCircuit(null)}
+      />
+
+      <AiModelInfoModal visible={modelInfoOpen} onClose={() => setModelInfoOpen(false)} />
     </>
   )
 }

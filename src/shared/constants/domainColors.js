@@ -27,4 +27,5 @@ export const STATUS_BADGE_COLOR = {
   UNCONFIRMED: 'var(--color-danger)',
   CONFIRMED: 'var(--color-warning)',
   RESOLVED: 'var(--color-success)',
+  ARC: 'var(--color-danger)',
 }

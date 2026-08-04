@@ -26,6 +26,12 @@
   font-size: var(--font-size-body);
 }
 
+/* AI 진단 이력에서 샘플 부족 등 경고 — 회로 초기에만 잠깐 나오는 값이라 별도 컬럼 대신 샘플 수 옆에 작게 붙인다 */
+.facility-diagnosis-warning {
+  color: var(--color-warning);
+  font-size: var(--font-size-caption);
+}
+
 .facility-monitoring-selector {
   max-width: 520px;
 }
