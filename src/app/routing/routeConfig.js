@@ -16,6 +16,7 @@ import MobileSiteSelectPage from '@/features/sites/pages/MobileSiteSelectPage'
 import SiteSelectPage from '@/features/sites/pages/SiteSelectPage'
 import SiteUnassignedPage from '@/features/sites/pages/SiteUnassignedPage'
 import StatisticsPage from '@/features/statistics/pages/StatisticsPage'
+import SystemAboutPage from '@/features/system/pages/SystemAboutPage'
 import { ROLES } from '@/shared/constants/roles'
 import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 
@@ -197,6 +198,7 @@ export const routeConfig = [
     title: 'SW 버전 정보',
     scrId: 'SCR-702',
     navGroup: '시스템',
+    page: SystemAboutPage,
   },
 
   // 모바일
