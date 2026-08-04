@@ -8,6 +8,7 @@ import PasswordResetRequestPage from '@/features/auth/pages/PasswordResetRequest
 import DashboardPage from '@/features/dashboard/pages/DashboardPage'
 import EquipmentDetailPage from '@/features/facilities/pages/EquipmentDetailPage'
 import EquipmentListPage from '@/features/facilities/pages/EquipmentListPage'
+import FacilityHistoryPage from '@/features/facilities/pages/FacilityHistoryPage'
 import FacilityManagePage from '@/features/facilities/pages/FacilityManagePage'
 import InspectionChecklistPage from '@/features/inspections/pages/InspectionChecklistPage'
 import InspectionHistoryPage from '@/features/inspections/pages/InspectionHistoryPage'
@@ -140,12 +141,13 @@ export const routeConfig = [
     page: FacilityManagePage,
   },
   {
+    // 감사 로그 API가 siteId 스코프 없이 전체 현장을 다뤄서 계정 관리이력(SCR-407)과 같이 requiresSite 없음
     path: ROUTE_PATHS.settingsFacilitiesHistory,
     layout: 'default',
     requiredRole: ROLES.SUPER_ADMIN,
     title: '설비 변경 이력',
     scrId: 'SCR-503',
-    requiresSite: true,
+    page: FacilityHistoryPage,
   },
   {
     path: ROUTE_PATHS.settingsAccounts,

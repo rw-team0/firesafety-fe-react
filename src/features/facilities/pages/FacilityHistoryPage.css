@@ -1,0 +1,46 @@
+/* 탭+필터 카드 다음에 표(별도 카드로 안 감쌈)가 바로 오므로 카드 자체 간격만 지정 */
+.facility-history > .card {
+  margin-bottom: var(--space-16);
+}
+
+.facility-history__time-cell {
+  white-space: nowrap;
+}
+
+/* 라벨 없는 입력창들 사이에서 "검색일"/물결이 36px 입력창과 세로로 맞게 */
+.facility-history__date-label,
+.facility-history__date-sep {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  flex-shrink: 0;
+  font-size: var(--font-size-caption);
+}
+
+.facility-history__date-label {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.facility-history__date-sep {
+  color: var(--color-text-muted);
+}
+
+/* 총 건수 + 페이지네이션 한 줄 */
+.facility-history__footer {
+  position: relative;
+  margin-top: var(--space-16);
+}
+
+.facility-history__footer .pagination {
+  margin-top: 0;
+}
+
+.facility-history__count {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   createCircuit,
   createPanel,
@@ -39,6 +39,8 @@ import Select from '@/shared/components/forms/Select'
 import FilterBar from '@/shared/components/layout/FilterBar'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
+import { ROLES } from '@/shared/constants/roles'
+import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 import { formatResultDateTime } from '@/shared/utils/formatters'
 import './FacilityPages.css'
 
@@ -402,6 +404,11 @@ export default function FacilityManagePage() {
           >
             회로 관리
           </button>
+          {role === ROLES.SUPER_ADMIN && (
+            <Link to={ROUTE_PATHS.settingsFacilitiesHistory} className="tab-bar__tab">
+              변경 이력
+            </Link>
+          )}
         </nav>
         {activeTab === 'panels' && (
           <FilterBar
