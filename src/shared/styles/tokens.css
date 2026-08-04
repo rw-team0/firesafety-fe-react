@@ -24,7 +24,7 @@
   /* Text */
   --color-text-primary: #16222a;
   --color-text-secondary: #4c5c66;
-  --color-text-muted: #7c8a93;
+  --color-text-muted: #5c6b74; /* 기존 #7c8a93은 대비가 약해 고령 사용자에게 잘 안 보인다는 피드백으로 진하게 조정 */
   --color-text-on-dark: #eef4f7;
 
   /* Borders */

@@ -6,6 +6,7 @@ import MobileLoginPage from '@/features/auth/pages/MobileLoginPage'
 import PasswordResetConfirmPage from '@/features/auth/pages/PasswordResetConfirmPage'
 import PasswordResetRequestPage from '@/features/auth/pages/PasswordResetRequestPage'
 import DashboardPage from '@/features/dashboard/pages/DashboardPage'
+import MobileDashboardPage from '@/features/dashboard/pages/MobileDashboardPage'
 import EquipmentDetailPage from '@/features/facilities/pages/EquipmentDetailPage'
 import EquipmentListPage from '@/features/facilities/pages/EquipmentListPage'
 import FacilityHistoryPage from '@/features/facilities/pages/FacilityHistoryPage'
@@ -249,6 +250,7 @@ export const routeConfig = [
     scrId: 'SCR-201-M',
     requiresSite: true,
     navGroup: 'mobile',
+    page: MobileDashboardPage,
   },
   {
     path: ROUTE_PATHS.mobileAccountsContacts,

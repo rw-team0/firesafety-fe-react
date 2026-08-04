@@ -1,0 +1,219 @@
+/* 모바일 대시보드(SCR-201-M) — PC DashboardPage.css와 클래스 접두사(mobile-dashboard-)로 완전히 분리 */
+.mobile-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+/* 상단 인사말: 현장명 + 이름 + 역할 */
+.mobile-dashboard__greeting {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.mobile-dashboard__site {
+  color: var(--color-brand-strong);
+  font-size: var(--font-size-caption);
+  font-weight: 700;
+}
+
+.mobile-dashboard__hello {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-subtitle);
+}
+
+.mobile-dashboard__role {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+/* 요약 카드 2x2 — 카드 1개 173x106 고정 */
+.mobile-dashboard-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 173px);
+  justify-content: space-between;
+  gap: var(--space-12) 0;
+}
+
+.mobile-dashboard-kpi {
+  width: 173px;
+  height: 106px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-8);
+  padding: var(--space-16);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  box-sizing: border-box;
+}
+
+.mobile-dashboard-kpi__label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+/* 3번째 줄: 배지 대신 상태 색 텍스트로만 표시 */
+.mobile-dashboard-kpi__percent {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mobile-dashboard-kpi__percent--normal {
+  color: var(--color-success);
+}
+
+.mobile-dashboard-kpi__percent--caution {
+  color: var(--color-warning);
+}
+
+.mobile-dashboard-kpi__percent--risk {
+  color: var(--color-danger);
+}
+
+.mobile-dashboard-kpi__value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-title);
+  line-height: 1;
+}
+
+.mobile-dashboard-kpi__value span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-body);
+  font-weight: 500;
+}
+
+/* 섹션 공통 헤더: 제목 + 더보기 */
+.mobile-dashboard-section-heading h2 {
+  margin: 0;
+  font-size: var(--font-size-subtitle);
+}
+
+.mobile-dashboard-heading-count {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+  font-weight: 500;
+}
+
+.mobile-dashboard-more {
+  flex-shrink: 0;
+  color: var(--color-brand-strong);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+}
+
+/* 미처리 알림 목록 */
+.mobile-dashboard-alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.mobile-dashboard-alert-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-12);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+}
+
+.mobile-dashboard-alert-row__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.mobile-dashboard-alert-row__meta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 설비별 위험 등급 섹션: BaseCard 중첩 없이 독립 섹션으로 배치(PC와 동일 이유) */
+.mobile-dashboard-section-plain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.mobile-dashboard-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+/* 설비별 위험 등급도 요약 카드와 동일하게 173x106 2x2 고정 */
+.mobile-dashboard-risk-list {
+  display: grid;
+  grid-template-columns: repeat(2, 173px);
+  justify-content: space-between;
+  gap: var(--space-12) 0;
+}
+
+.mobile-dashboard-risk-card {
+  width: 173px;
+  height: 106px;
+  padding: var(--space-12);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text-primary);
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.mobile-dashboard-risk-card--normal {
+  border-color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.mobile-dashboard-risk-card--caution {
+  border-color: var(--color-warning);
+  background: var(--color-warning-bg);
+}
+
+.mobile-dashboard-risk-card--risk {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+.mobile-dashboard-risk-card--offline {
+  border-color: var(--color-offline);
+  background: var(--color-offline-bg);
+}
+
+.mobile-dashboard-risk-card__top strong {
+  font-size: var(--font-size-body);
+}
+
+.mobile-dashboard-risk-card__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.mobile-dashboard-risk-card__row strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
