@@ -14,6 +14,7 @@ import InspectionHistoryPage from '@/features/inspections/pages/InspectionHistor
 import MobileSiteSelectPage from '@/features/sites/pages/MobileSiteSelectPage'
 import SiteSelectPage from '@/features/sites/pages/SiteSelectPage'
 import SiteUnassignedPage from '@/features/sites/pages/SiteUnassignedPage'
+import StatisticsPage from '@/features/statistics/pages/StatisticsPage'
 import { ROLES } from '@/shared/constants/roles'
 import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 
@@ -123,6 +124,7 @@ export const routeConfig = [
     scrId: 'SCR-601',
     requiresSite: true,
     navGroup: '통계',
+    page: StatisticsPage,
   },
 
   // 관리 (PC) — 설정 하위
