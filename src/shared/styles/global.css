@@ -676,3 +676,9 @@
   background: var(--color-surface-accent);
   color: var(--color-brand-strong);
 }
+
+/* 모달 안 배너는 테두리/배경 없이 글자만 — 페이지 레벨 배너(로그인 등)는 기존 박스형 유지 */
+.modal-body .banner {
+  background: none;
+  padding: 0;
+}

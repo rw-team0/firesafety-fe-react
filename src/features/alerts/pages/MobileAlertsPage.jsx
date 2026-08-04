@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { confirmAlert, getPendingAlerts, resolveAlert } from '../api/alertApi'
+import { confirmAlert, getPendingAlerts } from '../api/alertApi'
 import { extractServerMessage, formatAlertType, formatDateTimeCell, summarizeSettledResults } from '../utils/alertFormatters'
-import { useAuth } from '@/features/auth/useAuth'
 import { useMonitoring } from '@/features/monitoring/useMonitoring'
 import { useSite } from '@/features/sites/useSite'
 import EmptyState from '@/shared/components/feedback/EmptyState'
@@ -10,13 +9,12 @@ import ErrorState from '@/shared/components/feedback/ErrorState'
 import LoadingState from '@/shared/components/feedback/LoadingState'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
-import Input from '@/shared/components/forms/Input'
-import { ROUTE_PATHS } from '@/shared/constants/routePaths'
+import { useAuth } from '@/features/auth/useAuth'
+import { ROUTE_PATHS, buildPath } from '@/shared/constants/routePaths'
 import { formatResultDateTime } from '@/shared/utils/formatters'
 import './MobileAlertsPage.css'
 
 const PAGE_SIZE = 8
-const RESOLUTION_NOTE_MAX_LENGTH = 500
 // "전체 확인처리" 대상 조회용 — 서버 AlertService.MAX_SIZE(100)를 넘기면 INVALID_SIZE로 요청 자체가 실패하므로
 // 100 이하로 고정하고, 그보다 미확인이 많으면 페이지를 반복 조회해서 전부 모은다
 const BULK_CONFIRM_PAGE_SIZE = 100
@@ -28,7 +26,7 @@ export default function MobileAlertsPage() {
   const { currentSiteId } = useSite()
   const { refreshedAt, summary } = useMonitoring()
   const navigate = useNavigate()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const requestSeqRef = useRef(0)
 
   const dashboardAlertId = searchParams.get('alertId')
@@ -41,9 +39,6 @@ export default function MobileAlertsPage() {
   const [loadError, setLoadError] = useState('')
   const sentinelRef = useRef(null)
 
-  const [actionTarget, setActionTarget] = useState(null) // { alert, mode: 'confirm' | 'resolve' }
-  const [resolutionNote, setResolutionNote] = useState('')
-  const [actionError, setActionError] = useState('')
   const [actionResult, setActionResult] = useState(null)
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false)
   const [bulkError, setBulkError] = useState('')
@@ -130,57 +125,18 @@ export default function MobileAlertsPage() {
     return () => observer.disconnect()
   }, [loadMore])
 
-  // 대시보드/헤더 종 아이콘 등에서 특정 알림으로 들어온 경우 — 미처리 조치 탭과 동일하게 상태에 맞는 처리 모달을 바로 연다
+  // 대시보드/헤더 종 아이콘 등에서 특정 알림으로 들어온 경우 — 그 알림이 속한 설비 상세로 바로 넘긴다
   useEffect(() => {
     if (!dashboardAlertId || loading) return
     const matched = alerts.find((alert) => String(alert.alertId) === dashboardAlertId)
-    if (matched) {
-      handleRowClick(matched)
-      const params = new URLSearchParams(searchParams)
-      params.delete('alertId')
-      params.delete('tab')
-      setSearchParams(params, { replace: true })
-    }
+    if (matched) handleRowClick(matched)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dashboardAlertId, loading, alerts])
 
-  // 이미 확인/조치완료가 필요 없는 항목은 없다(RESOLVED가 안 옴) — 상태에 맞는 처리 모달을 연다
+  // 목록에서 항목을 눌러도 여기서 바로 처리하지 않는다 — 확인/조치완료는 설비 상세 화면 상단에서 처리한다
   function handleRowClick(alert) {
-    setResolutionNote('')
-    setActionError('')
-    setActionTarget({ alert, mode: alert.status === 'UNCONFIRMED' ? 'confirm' : 'resolve' })
-  }
-
-  async function handleActionConfirm() {
-    setActionError('')
-    try {
-      if (actionTarget.mode === 'confirm') {
-        await confirmAlert(actionTarget.alert.alertId)
-        setActionResult({
-          title: '확인 처리되었습니다.',
-          infoRows: [
-            { label: '확인 항목', value: formatAlertType(actionTarget.alert.type) },
-            { label: '확인 시각', value: formatResultDateTime() },
-            { label: '확인자', value: user?.name ?? '-' },
-          ],
-        })
-      } else {
-        await resolveAlert(actionTarget.alert.alertId, resolutionNote.trim())
-        setActionResult({
-          title: '조치완료 처리되었습니다.',
-          infoRows: [
-            { label: '조치 항목', value: formatAlertType(actionTarget.alert.type) },
-            { label: '조치 시각', value: formatResultDateTime() },
-            { label: '조치자', value: user?.name ?? '-' },
-          ],
-        })
-      }
-      setActionTarget(null)
-      setResolutionNote('')
-      loadFirstPage()
-    } catch (error) {
-      setActionError(extractServerMessage(error, '처리에 실패했습니다.'))
-    }
+    if (!alert.panelId) return
+    navigate(`${buildPath(ROUTE_PATHS.mobileEquipmentDetail, { panelId: alert.panelId })}?alertId=${encodeURIComponent(alert.alertId)}`)
   }
 
   // 서버 페이지 크기 상한(100) 안에서 미처리 알림 전체를 모을 때까지 반복 조회
@@ -318,59 +274,6 @@ export default function MobileAlertsPage() {
             </div>
           )}
         </>
-      )}
-
-      {/* 단건 확인/조치완료 — PC 미처리 조치 탭과 동일 흐름·문구 */}
-      {actionTarget && (
-        <ConfirmModal
-          visible={Boolean(actionTarget)}
-          title={actionTarget.mode === 'confirm' ? '경보 확인' : '조치완료 처리'}
-          confirmLabel={actionTarget.mode === 'confirm' ? '확인' : '조치완료'}
-          onCancel={() => {
-            setActionTarget(null)
-            setResolutionNote('')
-            setActionError('')
-          }}
-          onConfirm={handleActionConfirm}
-        >
-          <div className="confirm-modal__summary">
-            <span className="confirm-modal__summary-icon" aria-hidden="true">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-            <div className="confirm-modal__summary-body">
-              <p className="confirm-modal__summary-row">
-                <span className="confirm-modal__summary-label">대상 경보</span>
-                <span className="confirm-modal__summary-value">{formatAlertType(actionTarget.alert.type)}</span>
-                <span className="confirm-modal__summary-badge">{actionTarget.mode === 'confirm' ? '확인' : '조치완료'}</span>
-              </p>
-              <p className="confirm-modal__summary-detail">
-                {actionTarget.alert.panelName ?? '-'} 분전반 · {formatDateTimeCell(actionTarget.alert.triggeredAt)} 발생
-              </p>
-            </div>
-          </div>
-          {actionError && (
-            <p className="banner banner-danger" role="alert">
-              {actionError}
-            </p>
-          )}
-          {actionTarget.mode === 'resolve' && (
-            <Input
-              label="조치 비고"
-              placeholder="예: 케이블 재접속 (참고용, 선택 입력)"
-              value={resolutionNote}
-              maxLength={RESOLUTION_NOTE_MAX_LENGTH}
-              onChange={(event) => setResolutionNote(event.target.value)}
-            />
-          )}
-        </ConfirmModal>
       )}
 
       <ConfirmModal

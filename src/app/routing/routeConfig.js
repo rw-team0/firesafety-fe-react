@@ -13,6 +13,8 @@ import EquipmentDetailPage from '@/features/facilities/pages/EquipmentDetailPage
 import EquipmentListPage from '@/features/facilities/pages/EquipmentListPage'
 import FacilityHistoryPage from '@/features/facilities/pages/FacilityHistoryPage'
 import FacilityManagePage from '@/features/facilities/pages/FacilityManagePage'
+import MobileEquipmentDetailPage from '@/features/facilities/pages/MobileEquipmentDetailPage'
+import MobileEquipmentListPage from '@/features/facilities/pages/MobileEquipmentListPage'
 import InspectionChecklistPage from '@/features/inspections/pages/InspectionChecklistPage'
 import InspectionHistoryPage from '@/features/inspections/pages/InspectionHistoryPage'
 import MobileSiteSelectPage from '@/features/sites/pages/MobileSiteSelectPage'
@@ -224,6 +226,7 @@ export const routeConfig = [
     scrId: 'SCR-501-M',
     requiresSite: true,
     navGroup: 'mobile',
+    page: MobileEquipmentListPage,
   },
   {
     path: ROUTE_PATHS.mobileEquipmentDetail,
@@ -232,6 +235,7 @@ export const routeConfig = [
     title: '설비 상세',
     scrId: 'SCR-202-M',
     requiresSite: true,
+    page: MobileEquipmentDetailPage,
   },
   {
     path: ROUTE_PATHS.mobileInspection,

@@ -1,0 +1,359 @@
+/* 모바일 설비(SCR-501-M/SCR-202-M) 공용 — PC FacilityPages.css와 클래스 접두사로 완전히 분리 */
+.mobile-equipment-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/* 상태 필터 — PC용 박스 select가 그대로 뜨면 튀어 보여서 카드 안에 넣어 목록과 같은 톤으로 맞춘다 */
+.mobile-equipment-filter {
+  padding: var(--space-8) var(--space-12);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.mobile-equipment-filter .field-select {
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.mobile-equipment-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-12);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+}
+
+.mobile-equipment-card--caution {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning);
+}
+
+.mobile-equipment-card--risk {
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger);
+}
+
+.mobile-equipment-card--offline {
+  background: var(--color-offline-bg);
+  border-color: var(--color-offline);
+}
+
+.mobile-equipment-card__icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  color: var(--color-success);
+}
+
+.mobile-equipment-card__icon--caution {
+  color: var(--color-warning);
+}
+
+.mobile-equipment-card__icon--risk {
+  color: var(--color-danger);
+}
+
+.mobile-equipment-card__icon--offline {
+  color: var(--color-offline);
+}
+
+.mobile-equipment-card__content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-equipment-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.mobile-equipment-card__top strong {
+  font-size: var(--font-size-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-equipment-card__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.mobile-equipment-card__row strong {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+/* 상세 페이지 */
+.mobile-equipment-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.mobile-equipment-detail__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-equipment-detail__name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+.mobile-equipment-detail__name {
+  font-size: var(--font-size-title);
+}
+
+.mobile-equipment-detail__select-btn {
+  flex-shrink: 0;
+  color: var(--color-brand-strong);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+}
+
+.mobile-equipment-detail__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+}
+
+/* 상단 처리 배너 — 이 설비의 처리 필요한 경보를 바로 확인/조치완료 */
+.mobile-equipment-action-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding: var(--space-8) var(--space-16);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.mobile-equipment-action-banner__info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+  font-size: var(--font-size-body);
+}
+
+.mobile-equipment-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 var(--space-12);
+  font-size: var(--font-size-subtitle);
+}
+
+.mobile-equipment-sensor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-8);
+}
+
+.mobile-equipment-sensor-tile {
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: var(--space-8);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.mobile-equipment-sensor-tile--warning {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning);
+}
+
+.mobile-equipment-sensor-tile--danger {
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger);
+}
+
+.mobile-equipment-sensor-tile__label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.mobile-equipment-sensor-tile__value {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-subtitle);
+}
+
+.mobile-equipment-circuit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-8);
+}
+
+.mobile-equipment-circuit-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-12);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.mobile-equipment-circuit-card--warning {
+  border-color: var(--color-warning);
+  background: var(--color-warning-bg);
+}
+
+.mobile-equipment-circuit-card--danger {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+.mobile-equipment-circuit-card--offline {
+  border-color: var(--color-offline);
+  background: var(--color-offline-bg);
+}
+
+.mobile-equipment-circuit-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  font-weight: 700;
+  font-size: var(--font-size-caption);
+}
+
+.mobile-equipment-circuit-card__current {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: 700;
+}
+
+.mobile-equipment-circuit-card__meta {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+/* 최근 경보 — 카드가 아니라 줄 사이 구분선으로만 나누는 리스트 */
+.mobile-equipment-alert-divided-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-border);
+}
+
+.mobile-equipment-alert-divided-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-12) var(--space-8);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-caption);
+  text-align: left;
+}
+
+/* 유형 글자수가 달라도 뱃지 시작 위치가 흔들리지 않도록 고정폭 열로 취급 */
+.mobile-equipment-alert-divided-row__type {
+  flex: 0 0 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-equipment-alert-divided-row .badge {
+  flex-shrink: 0;
+  width: 56px;
+  text-align: center;
+}
+
+.mobile-equipment-alert-row__meta {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+/* 조치완료 경보 상세 시트 — 표 대신 뱃지 요약 + 구분선 리스트로 앱 전체 톤과 맞춤 */
+.mobile-equipment-alert-detail__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding-bottom: var(--space-16);
+  margin-bottom: var(--space-8);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-subtitle);
+}
+
+.mobile-equipment-alert-detail__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-equipment-alert-detail__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-12) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-body);
+}
+
+.mobile-equipment-alert-detail__row:last-child {
+  border-bottom: none;
+}
+
+.mobile-equipment-alert-detail__row span {
+  color: var(--color-text-muted);
+}
+
+.mobile-equipment-alert-detail__row strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.mobile-equipment-alert-detail__note {
+  margin-top: var(--space-16);
+  padding: var(--space-12);
+  background: var(--color-page-bg);
+  border-radius: var(--radius-md);
+}
+
+.mobile-equipment-alert-detail__note-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.mobile-equipment-alert-detail__note p {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+  line-height: 1.5;
+}

@@ -188,10 +188,11 @@ export default function MobileDashboardPage() {
     [navigate],
   )
 
+  // 설비 상세 상단에서 바로 확인/조치완료 처리하므로 알림 목록을 거치지 않고 바로 그 설비로 이동한다
   const handlePendingAlertClick = useCallback(
     (alert) => {
-      if (!alert?.alertId) return
-      navigate(`${ROUTE_PATHS.mobileAlerts}?tab=pending&alertId=${encodeURIComponent(alert.alertId)}`)
+      if (!alert?.alertId || !alert?.panelId) return
+      navigate(`${buildPath(ROUTE_PATHS.mobileEquipmentDetail, { panelId: alert.panelId })}?alertId=${encodeURIComponent(alert.alertId)}`)
     },
     [navigate],
   )
