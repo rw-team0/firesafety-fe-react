@@ -1,0 +1,314 @@
+/* 점검 화면 전용 스타일 — .facility-* 클래스(모달 그리드/폼/목록 하단 등)는 features/facilities/pages/FacilityPages.css를
+   그대로 재사용한다(각 페이지에서 import). 여기서 새로 정의하지 않는다 — 복붙하면 두 파일이 나중에 어긋난다. */
+
+/* 점검 화면 공통 페이지 레이아웃 */
+.inspection-page,
+.facility-page.inspection-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+/* 점검 필터 입력 폭: 분전반/날짜 선택란을 같은 210px 기준으로 맞춤 */
+.inspection-page .filter-bar__fields > .field:has(.inspection-filter-field) {
+  min-width: 210px;
+  flex: 0 0 210px;
+}
+
+/* 점검관리 점검일 필터: 라벨과 날짜 입력을 한 줄에 표시 */
+.inspection-checklist-filter-card .filter-bar__fields {
+  gap: var(--space-12);
+}
+
+.inspection-checklist-filter-card .filter-bar__fields > .field:has(.inspection-filter-field) {
+  flex-direction: row;
+  align-items: center;
+  min-width: 0;
+  flex: 0 0 auto;
+  gap: var(--space-8);
+}
+
+.inspection-checklist-filter-card .field-label {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.inspection-checklist-filter-card .inspection-filter-field {
+  width: 180px;
+}
+
+/* 점검이력 검색일 필터: 라벨과 시작일을 한 줄에 표시 */
+.inspection-history-filter-card .filter-bar__fields > .field:has(#inspection-history-from) {
+  flex-direction: row;
+  align-items: center;
+  min-width: 0;
+  flex: 0 0 auto;
+  gap: var(--space-8);
+}
+
+.inspection-history-filter-card .filter-bar__fields > .field:has(#inspection-history-to) {
+  min-width: 180px;
+  flex: 0 0 180px;
+}
+
+.inspection-history-filter-card .field:has(#inspection-history-from) .field-label {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.inspection-history-filter-card #inspection-history-from,
+.inspection-history-filter-card #inspection-history-to {
+  width: 180px;
+}
+
+/* 점검 이력 기간 구분자: 시작일과 종료일 사이의 물결 표시 */
+.inspection-filter-separator {
+  align-self: flex-end;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+/* 점검 모달 폭: 항목 등록/상세 모두 입력과 표가 안정적으로 보이는 크기 — 공용 .facility-modal(520px)보다 넓게 쓰는 화면 전용 */
+.inspection-modal {
+  width: min(560px, calc(100vw - 32px));
+}
+
+/* 점검 본문: 왼쪽 분전반 리스트, 오른쪽 점검 내용 처리 */
+.inspection-panel-layout,
+.inspection-checklist-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: var(--space-16);
+  align-items: start;
+}
+
+/* 분전반 목록 카드: 왼쪽 선택 영역 */
+.inspection-panel-list-card {
+  position: sticky;
+  top: var(--space-16);
+  padding: 10px;
+  border-color: var(--color-border-strong);
+}
+
+/* 분전반 목록: 현장에 분전반이 많아도 오른쪽 작업 영역을 밀지 않게 내부 스크롤 */
+.inspection-panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+/* 분전반 선택 항목: 이름과 분전반No를 한 줄로 표시하는 리스트 버튼 */
+.inspection-panel-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  width: 100%;
+  min-height: 42px;
+  padding-block: var(--space-10);
+  padding-inline: 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* 선택된 분전반: 진한 배경으로 현재 작업 대상 강조 */
+.inspection-panel-list__item.is-active {
+  border-color: transparent;
+  background: var(--color-brand);
+  color: white;
+}
+
+.inspection-panel-list__item:not(.is-active):hover {
+  border-color: transparent;
+  background: var(--color-surface-muted);
+}
+
+/* 분전반명: 긴 이름은 줄바꿈 대신 말줄임 */
+.inspection-panel-list__name {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 점검 필요 표시: 선택한 점검일에 저장 이력이 없을 때만 표시 */
+.inspection-panel-list__dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-warning);
+}
+
+.inspection-panel-list__item.is-active .inspection-panel-list__dot {
+  background: var(--color-warning);
+}
+
+/* 점검 오른쪽 작업 영역 */
+.inspection-content-main,
+.inspection-checklist-main {
+  min-width: 0;
+}
+
+/* 체크리스트 카드 헤더: 제목과 결과 요약 배지를 좌우로 배치 */
+.inspection-card-header {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-12);
+  flex-wrap: wrap;
+}
+
+/* 체크리스트 결과 요약 배지 묶음 */
+.inspection-summary-badges,
+.inspection-history-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+/* 점검 항목 목록: 항목 카드들을 세로로 나열 */
+.inspection-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
+}
+
+/* 점검 항목 카드: 테두리 대신 연한 행 배경으로 항목을 구분 */
+.inspection-item-card {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: var(--space-12);
+  align-items: center;
+  padding: var(--space-10) var(--space-12);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-surface-muted) 45%, white);
+}
+
+/* 점검 항목 번호: 행의 순서를 빠르게 파악 */
+.inspection-item-card__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface-muted) 45%, white);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+  font-weight: 700;
+}
+
+/* 점검 항목명/설명 영역 */
+.inspection-item-card__body {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.inspection-item-card__body strong {
+  display: block;
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.inspection-item-card__body p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+}
+
+/* 특이사항/비고 라벨: 점검 카드 제목과 같은 톤으로 표시 */
+.field:has(#inspection-note) .field-label {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-subtitle);
+  font-weight: 700;
+}
+
+/* 정상/이상/미확인 선택 버튼 그룹 */
+.inspection-result-toggle {
+  display: inline-flex;
+  gap: var(--space-6);
+  padding: var(--space-4);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-surface-muted) 45%, white);
+}
+
+/* 점검 결과 선택 버튼 */
+.inspection-result-toggle__button {
+  min-width: 64px;
+  height: 32px;
+  padding: 0 var(--space-10);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* 선택된 점검 결과 버튼 */
+.inspection-result-toggle__button.is-active {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 점검 저장 버튼 행 */
+.inspection-submit-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 점검 이력 목록 카드 */
+.inspection-history-card {
+  border-color: var(--color-border-strong);
+}
+
+@media (max-width: 720px) {
+  /* 좁은 화면에서는 분전반 리스트와 점검 항목을 세로 배치 */
+  .inspection-panel-layout,
+  .inspection-checklist-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .inspection-panel-list-card {
+    position: static;
+  }
+
+  /* 좁은 화면에서는 항목 설명과 결과 선택을 세로 배치 */
+  .inspection-item-card {
+    grid-template-columns: 1fr;
+  }
+
+  /* 좁은 화면에서는 결과 버튼이 줄바꿈될 수 있게 */
+  .inspection-result-toggle {
+    flex-wrap: wrap;
+  }
+
+  /* 좁은 화면에서는 하단 건수가 페이지네이션 위로 올라가도록 */
+  .facility-list__footer {
+    padding-top: 28px;
+  }
+
+  .facility-list__count {
+    top: 0;
+    transform: none;
+  }
+}

@@ -43,6 +43,12 @@ export const ALERT_STATUS_LABELS = {
   RESOLVED: '조치완료',
 }
 
+export const INSPECTION_RESULT_LABELS = {
+  NORMAL: '정상',
+  ABNORMAL: '이상',
+  UNCHECKED: '미확인',
+}
+
 // 매핑 없으면 원본 값 그대로 (신규 enum 대비)
 export function labelOf(map, value) {
   return map[value] ?? value

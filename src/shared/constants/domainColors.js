@@ -13,6 +13,12 @@ export const ALERT_STATUS_COLOR = {
   RESOLVED: 'var(--color-success)',
 }
 
+export const INSPECTION_RESULT_COLOR = {
+  NORMAL: 'var(--color-success)',
+  ABNORMAL: 'var(--color-danger)',
+  UNCHECKED: 'var(--color-text-muted)',
+}
+
 // 매핑 없으면 회색(muted) 대체
 export function colorOf(map, value) {
   return map[value] ?? 'var(--color-text-muted)'

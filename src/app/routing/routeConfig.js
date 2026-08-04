@@ -9,6 +9,8 @@ import DashboardPage from '@/features/dashboard/pages/DashboardPage'
 import EquipmentDetailPage from '@/features/facilities/pages/EquipmentDetailPage'
 import EquipmentListPage from '@/features/facilities/pages/EquipmentListPage'
 import FacilityManagePage from '@/features/facilities/pages/FacilityManagePage'
+import InspectionChecklistPage from '@/features/inspections/pages/InspectionChecklistPage'
+import InspectionHistoryPage from '@/features/inspections/pages/InspectionHistoryPage'
 import MobileSiteSelectPage from '@/features/sites/pages/MobileSiteSelectPage'
 import SiteSelectPage from '@/features/sites/pages/SiteSelectPage'
 import SiteUnassignedPage from '@/features/sites/pages/SiteUnassignedPage'
@@ -162,15 +164,16 @@ export const routeConfig = [
     page: AccountHistoryPage,
     forbiddenMessage: '직원 관리이력 조회 권한이 없습니다.',
   },
-  // 설비 점검 [GAP] REQ-511/512 — 백엔드 완료, 프론트 신규 구현 대상 (오늘은 placeholder만)
+  // 설비 점검 [GAP] REQ-511/512 — 사이드바는 점검 관리 1개, 화면 안 탭으로 점검관리/점검이력 전환
   {
     path: ROUTE_PATHS.settingsInspectionChecklist,
     layout: 'default',
-    requiredRole: ROLES.ADMIN,
-    title: '점검 체크리스트',
+    requiredRole: ROLES.GENERAL,
+    title: '점검 관리',
     scrId: 'SCR-505',
     requiresSite: true,
     navGroup: '관리',
+    page: InspectionChecklistPage,
   },
   {
     path: ROUTE_PATHS.settingsInspectionHistory,
@@ -179,6 +182,7 @@ export const routeConfig = [
     title: '점검 이력',
     scrId: 'SCR-506',
     requiresSite: true,
+    page: InspectionHistoryPage,
   },
 
   // 시스템 [GAP] REQ-702 — 백엔드 완료. REQ-703은 범위 제외라 여기 없음.
