@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { createInspectionItem, getInspectionHistory, getInspectionItems, saveInspection } from '../api/inspectionApi'
-import InspectionItemModal from '../components/InspectionItemModal'
+import {
+  applyInspectionItems,
+  createInspectionItem,
+  deleteInspectionItem,
+  getInspectionHistory,
+  getInspectionItems,
+  getSiteInspectionItems,
+  saveInspection,
+  updateInspectionItem,
+} from '../api/inspectionApi'
+import InspectionItemApplyModal from '../components/InspectionItemApplyModal'
 import {
   INSPECTION_PANEL_SELECT_SIZE,
   INSPECTION_RESULT_OPTIONS,
@@ -29,11 +38,8 @@ import FilterBar from '@/shared/components/layout/FilterBar'
 import TabBar from '@/shared/components/layout/TabBar'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
-import { formatResultDateTime } from '@/shared/utils/formatters'
 import '@/features/facilities/pages/FacilityPages.css'
 import './InspectionPages.css'
-
-const EMPTY_ITEM_FORM = { itemName: '', description: '' }
 
 // 현재 날짜를 date 입력값 형식으로 변환
 function formatDateInputValue(date = new Date()) {
@@ -63,11 +69,14 @@ export default function InspectionChecklistPage() {
   const panelSeqRef = useRef(0)
   const itemSeqRef = useRef(0)
   const statusSeqRef = useRef(0)
+  const siteItemSeqRef = useRef(0)
 
   const [panels, setPanels] = useState([])
   const [selectedPanelId, setSelectedPanelId] = useState('')
   const [panelLoading, setPanelLoading] = useState(true)
   const [panelError, setPanelError] = useState('')
+
+  const [siteItems, setSiteItems] = useState([])
 
   const [items, setItems] = useState([])
   const [itemLoading, setItemLoading] = useState(false)
@@ -77,32 +86,26 @@ export default function InspectionChecklistPage() {
   const [inspectedAt, setInspectedAt] = useState(formatDateInputValue())
   const [note, setNote] = useState('')
 
-  const [itemModalOpen, setItemModalOpen] = useState(false)
-  const [itemForm, setItemForm] = useState(EMPTY_ITEM_FORM)
-  const [itemFormErrors, setItemFormErrors] = useState({})
-  const [itemSaving, setItemSaving] = useState(false)
-  const [itemConfirmOpen, setItemConfirmOpen] = useState(false)
+  const [applyModalOpen, setApplyModalOpen] = useState(false)
+  const [applySaving, setApplySaving] = useState(false)
 
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [actionResult, setActionResult] = useState(null)
 
-  // 항목 등록 모달 열기
-  const openItemModal = useCallback(() => {
-    if (!canManageItems) return
-    setItemForm(EMPTY_ITEM_FORM)
-    setItemFormErrors({})
-    setItemModalOpen(true)
-  }, [canManageItems])
+  // 점검 항목 관리 모달 열기 — 분전반을 골랐으면 누구나(항목 등록만 모달 안에서 ADMIN 이상으로 갈림)
+  const openApplyModal = useCallback(() => {
+    if (!selectedPanelId) return
+    setApplyModalOpen(true)
+  }, [selectedPanelId])
 
   const actions = useMemo(
-    () =>
-      canManageItems ? (
-        <Button variant="primary" disabled={!selectedPanelId} onClick={openItemModal}>
-          항목 등록
-        </Button>
-      ) : null,
-    [canManageItems, openItemModal, selectedPanelId],
+    () => (
+      <Button variant="primary" disabled={!selectedPanelId} onClick={openApplyModal}>
+        점검 항목 관리
+      </Button>
+    ),
+    [openApplyModal, selectedPanelId],
   )
   usePageActions(actions)
 
@@ -145,6 +148,31 @@ export default function InspectionChecklistPage() {
       statusSeqRef.current += 1
     }
   }, [loadPanels])
+
+  // 현장 점검 항목 카탈로그 조회 — 항목 등록/적용 선택 모달의 후보 목록으로 쓴다
+  const loadSiteItems = useCallback(async () => {
+    const siteId = currentSiteId
+    const seq = siteItemSeqRef.current + 1
+    siteItemSeqRef.current = seq
+    setSiteItems([])
+    if (!siteId) return
+
+    try {
+      const data = await getSiteInspectionItems(siteId)
+      if (siteItemSeqRef.current !== seq) return
+      setSiteItems(data ?? [])
+    } catch {
+      // 카탈로그 조회 실패해도 체크리스트 자체(적용된 항목 목록)는 별도 API라 화면이 막히지 않는다
+    }
+  }, [currentSiteId])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadSiteItems()
+    return () => {
+      siteItemSeqRef.current += 1
+    }
+  }, [loadSiteItems])
 
   // 점검일 기준 분전반별 저장 여부 조회
   const loadPanelInspectionStatus = useCallback(async () => {
@@ -251,53 +279,49 @@ export default function InspectionChecklistPage() {
     setInspectedAt(formatDateInputValue())
   }
 
-  // 항목 등록 모달 입력 변경
-  function handleItemFormChange(key, value) {
-    setItemForm((prev) => ({ ...prev, [key]: value }))
-    setItemFormErrors((prev) => ({ ...prev, [key]: '' }))
+  // 점검 항목 등록(현장 카탈로그) — InspectionItemApplyModal 안의 인라인 폼에서 호출한다.
+  // 성공하면 새로 생긴 itemId를 돌려줘서, 모달이 그 항목을 바로 체크(선택) 상태로 만들 수 있게 한다.
+  async function handleCreateItem(payload) {
+    const res = await createInspectionItem(currentSiteId, payload)
+    await loadSiteItems()
+    return res?.itemId
   }
 
-  // 항목 등록 검증
-  function validateItemForm() {
-    const errors = {}
-    if (!itemForm.itemName.trim()) errors.itemName = '점검 항목명을 입력해주세요.'
-    setItemFormErrors(errors)
-    return Object.keys(errors).length === 0
+  // 점검 항목 수정(현장 카탈로그) — InspectionItemApplyModal 표 안의 인라인 수정에서 호출한다
+  async function handleUpdateItem(itemId, payload) {
+    await updateInspectionItem(currentSiteId, itemId, payload)
+    await loadSiteItems()
   }
 
-  // 점검 항목 등록 — 저장 전 항상 한 번 확인받는다(다른 등록/수정 모달들과 동일한 흐름)
-  function requestCreateItem() {
-    if (!canManageItems || !selectedPanelId || !validateItemForm()) return
-    setItemConfirmOpen(true)
+  // 점검 항목 삭제(현장 카탈로그) — InspectionItemApplyModal 표 안의 삭제 확인에서 호출한다
+  async function handleDeleteItem(itemId) {
+    await deleteInspectionItem(currentSiteId, itemId)
+    await loadSiteItems()
   }
 
-  async function handleCreateItem() {
-    setItemConfirmOpen(false)
-    setItemSaving(true)
+  // 분전반에 점검 항목 적용(전체교체) — 확인 단계는 InspectionItemApplyModal 안에서 처리한다
+  async function handleApplySubmit(itemIds) {
+    setApplySaving(true)
     try {
-      await createInspectionItem(selectedPanelId, {
-        itemName: itemForm.itemName.trim(),
-        description: itemForm.description.trim() || null,
-      })
-      setItemModalOpen(false)
+      await applyInspectionItems(selectedPanelId, itemIds)
+      setApplyModalOpen(false)
       setActionResult({
         type: 'success',
-        title: '점검 항목이 등록되었습니다.',
+        title: '점검 항목이 적용되었습니다.',
         infoRows: [
-          { label: '등록 항목', value: itemForm.itemName },
-          { label: '등록 시각', value: formatResultDateTime() },
-          { label: '등록자', value: user?.name ?? '-' },
+          { label: '대상 분전반', value: selectedPanel?.name ?? '-' },
+          { label: '적용 항목 수', value: `${itemIds.length}건` },
         ],
       })
       await loadInspectionItems()
     } catch (error) {
       setActionResult({
         type: 'danger',
-        title: '점검 항목 등록 실패',
-        infoRows: [{ label: '사유', value: extractInspectionServerMessage(error, '점검 항목을 등록하지 못했습니다.') }],
+        title: '점검 항목 적용 실패',
+        infoRows: [{ label: '사유', value: extractInspectionServerMessage(error, '점검 항목을 적용하지 못했습니다.') }],
       })
     } finally {
-      setItemSaving(false)
+      setApplySaving(false)
     }
   }
 
@@ -406,9 +430,13 @@ export default function InspectionChecklistPage() {
             {!itemLoading && !itemError && items.length === 0 && (
               <BaseCard className="inspection-checklist-card">
                 <EmptyState
-                  message="등록된 점검 항목이 없습니다."
+                  message={siteItems.length === 0 ? '현장에 등록된 점검 항목이 없습니다.' : '이 분전반에 적용된 점검 항목이 없습니다.'}
                   description={
-                    canManageItems ? '항목 등록 후 체크리스트를 작성할 수 있습니다.' : '관리자에게 점검 항목 등록을 요청해주세요.'
+                    siteItems.length === 0
+                      ? canManageItems
+                        ? '점검 항목 관리 버튼으로 현장 점검 항목 카탈로그를 먼저 만들어주세요.'
+                        : '관리자에게 점검 항목 등록을 요청해주세요.'
+                      : '점검 항목 관리 버튼으로 카탈로그에서 항목을 골라 이 분전반에 적용해주세요.'
                   }
                 />
               </BaseCard>
@@ -490,45 +518,19 @@ export default function InspectionChecklistPage() {
         </div>
       )}
 
-      <InspectionItemModal
-        visible={itemModalOpen}
-        form={itemForm}
-        errors={itemFormErrors}
-        loading={itemSaving}
-        onChange={handleItemFormChange}
-        onSubmit={requestCreateItem}
-        onClose={() => setItemModalOpen(false)}
+      <InspectionItemApplyModal
+        visible={applyModalOpen}
+        panel={selectedPanel}
+        siteItems={siteItems}
+        appliedItemIds={items.map((item) => item.itemId)}
+        canManageItems={canManageItems}
+        saving={applySaving}
+        onSubmit={handleApplySubmit}
+        onCreateItem={handleCreateItem}
+        onUpdateItem={handleUpdateItem}
+        onDeleteItem={handleDeleteItem}
+        onClose={() => setApplyModalOpen(false)}
       />
-
-      <ConfirmModal
-        visible={itemConfirmOpen}
-        title="점검 항목 등록"
-        confirmLabel="등록"
-        onConfirm={handleCreateItem}
-        onCancel={() => setItemConfirmOpen(false)}
-      >
-        <div className="confirm-modal__summary confirm-modal__summary--neutral">
-          <span className="confirm-modal__summary-icon" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-          <div className="confirm-modal__summary-body">
-            <p className="confirm-modal__summary-row">
-              <span className="confirm-modal__summary-label">점검 항목</span>
-              <span className="confirm-modal__summary-value">{itemForm.itemName}</span>
-              <span className="confirm-modal__summary-badge">등록</span>
-            </p>
-            <p className="confirm-modal__summary-detail">등록한 항목은 체크리스트에 즉시 추가됩니다.</p>
-          </div>
-        </div>
-      </ConfirmModal>
 
       <ConfirmModal
         visible={saveConfirmOpen}
