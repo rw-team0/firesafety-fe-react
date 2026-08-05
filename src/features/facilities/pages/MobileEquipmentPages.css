@@ -47,6 +47,23 @@
   border-color: var(--color-offline);
 }
 
+/* 위 3종은 다크모드에서도 안 바뀌는 고정 파스텔 배경이라, 그 안의 글자만 고정 어두운색으로 강제한다
+   (기본 흰 카드는 다크모드에 맞춰 배경 자체가 바뀌므로 건드리지 않는다) */
+.mobile-equipment-card--caution .mobile-equipment-card__row,
+.mobile-equipment-card--risk .mobile-equipment-card__row,
+.mobile-equipment-card--offline .mobile-equipment-card__row {
+  color: var(--color-text-muted-on-tint);
+}
+
+.mobile-equipment-card--caution .mobile-equipment-card__top strong,
+.mobile-equipment-card--risk .mobile-equipment-card__top strong,
+.mobile-equipment-card--offline .mobile-equipment-card__top strong,
+.mobile-equipment-card--caution .mobile-equipment-card__row strong,
+.mobile-equipment-card--risk .mobile-equipment-card__row strong,
+.mobile-equipment-card--offline .mobile-equipment-card__row strong {
+  color: var(--color-text-on-tint);
+}
+
 .mobile-equipment-card__icon {
   flex-shrink: 0;
   width: 32px;
@@ -208,6 +225,17 @@
   font-size: var(--font-size-subtitle);
 }
 
+/* 고정 파스텔 배경(주의/위험) 안의 글자는 다크모드에서도 고정 어두운색 */
+.mobile-equipment-sensor-tile--warning .mobile-equipment-sensor-tile__label,
+.mobile-equipment-sensor-tile--danger .mobile-equipment-sensor-tile__label {
+  color: var(--color-text-muted-on-tint);
+}
+
+.mobile-equipment-sensor-tile--warning .mobile-equipment-sensor-tile__value,
+.mobile-equipment-sensor-tile--danger .mobile-equipment-sensor-tile__value {
+  color: var(--color-text-on-tint);
+}
+
 .mobile-equipment-circuit-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -237,6 +265,19 @@
 .mobile-equipment-circuit-card--offline {
   border-color: var(--color-offline);
   background: var(--color-offline-bg);
+}
+
+/* 고정 파스텔 배경(주의/위험/통신두절) 안의 글자는 다크모드에서도 고정 어두운색 */
+.mobile-equipment-circuit-card--warning,
+.mobile-equipment-circuit-card--danger,
+.mobile-equipment-circuit-card--offline {
+  color: var(--color-text-on-tint);
+}
+
+.mobile-equipment-circuit-card--warning .mobile-equipment-circuit-card__meta,
+.mobile-equipment-circuit-card--danger .mobile-equipment-circuit-card__meta,
+.mobile-equipment-circuit-card--offline .mobile-equipment-circuit-card__meta {
+  color: var(--color-text-muted-on-tint);
 }
 
 .mobile-equipment-circuit-card__top {

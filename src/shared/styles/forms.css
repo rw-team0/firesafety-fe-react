@@ -34,6 +34,8 @@
   border-radius: var(--radius-md);
   background: var(--color-surface);
   color: var(--color-text-primary);
+  /* iOS Safari는 포커스된 입력의 font-size가 16px보다 작으면 페이지를 자동으로 확대한다 */
+  font-size: 16px;
 }
 
 /* textarea만 높이 가변 + 세로 리사이즈 허용 */

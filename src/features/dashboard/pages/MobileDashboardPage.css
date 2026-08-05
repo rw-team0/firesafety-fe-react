@@ -176,24 +176,29 @@
   box-sizing: border-box;
 }
 
+/* 색 배경 4종은 다크모드에서도 안 바뀌는 고정 파스텔이라 글자색도 고정 어두운색으로 강제한다 */
 .mobile-dashboard-risk-card--normal {
   border-color: var(--color-success);
   background: var(--color-success-bg);
+  color: var(--color-text-on-tint);
 }
 
 .mobile-dashboard-risk-card--caution {
   border-color: var(--color-warning);
   background: var(--color-warning-bg);
+  color: var(--color-text-on-tint);
 }
 
 .mobile-dashboard-risk-card--risk {
   border-color: var(--color-danger);
   background: var(--color-danger-bg);
+  color: var(--color-text-on-tint);
 }
 
 .mobile-dashboard-risk-card--offline {
   border-color: var(--color-offline);
   background: var(--color-offline-bg);
+  color: var(--color-text-on-tint);
 }
 
 .mobile-dashboard-risk-card__top strong {
@@ -209,11 +214,11 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-8);
-  color: var(--color-text-muted);
+  color: var(--color-text-muted-on-tint);
   font-size: var(--font-size-caption);
 }
 
 .mobile-dashboard-risk-card__row strong {
-  color: var(--color-text-primary);
+  color: inherit;
   font-weight: 600;
 }

@@ -175,14 +175,16 @@
   flex-wrap: wrap;
 }
 
+/* 기본(danger) 배경은 다크모드에서도 안 바뀌는 고정 파스텔이라 글자도 고정 어두운색을 쓴다 —
+   다크모드의 밝은 text-muted/text-primary를 그대로 쓰면 옅은 배경 위에서 흐리게 묻힌다 */
 .confirm-modal__summary-label {
-  color: var(--color-text-muted);
+  color: var(--color-text-muted-on-tint);
   font-size: var(--font-size-caption);
 }
 
 .confirm-modal__summary-value {
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: var(--color-text-on-tint);
 }
 
 .confirm-modal__summary-badge {
@@ -194,7 +196,7 @@
   font-weight: 600;
 }
 
-/* 복구처럼 파괴적이지 않은 확인 모달용 — 빨간색 대신 브랜드 색 */
+/* 복구처럼 파괴적이지 않은 확인 모달용 — 빨간색 대신 브랜드 색, 배경도 다크모드에 맞춰 바뀌는 색이라 글자는 테마색 그대로 되돌린다 */
 .confirm-modal__summary--neutral {
   background: var(--color-surface-accent);
 }
@@ -207,9 +209,18 @@
   background: var(--color-brand);
 }
 
+.confirm-modal__summary--neutral .confirm-modal__summary-label,
+.confirm-modal__summary--neutral .confirm-modal__summary-detail {
+  color: var(--color-text-muted);
+}
+
+.confirm-modal__summary--neutral .confirm-modal__summary-value {
+  color: var(--color-text-primary);
+}
+
 .confirm-modal__summary-detail {
   margin-top: var(--space-4);
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted-on-tint);
   font-size: var(--font-size-caption);
 }
 
