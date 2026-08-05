@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { confirmAlert, exportAlerts, getAlerts, getPendingAlerts, resolveAlert } from '../api/alertApi'
+import { bulkConfirmAlerts, bulkResolveAlerts, confirmAlert, exportAlerts, getAlerts, getPendingAlerts, resolveAlert } from '../api/alertApi'
 import {
   ALERT_STATUS_OPTIONS,
   ALERT_TYPE_OPTIONS,
@@ -10,7 +10,6 @@ import {
   formatAlertType,
   formatCircuitNo,
   formatDateTimeCell,
-  summarizeSettledResults,
 } from '../utils/alertFormatters'
 import { useAuth } from '@/features/auth/useAuth'
 import { useMonitoring } from '@/features/monitoring/useMonitoring'
@@ -344,18 +343,20 @@ export default function AlertHistoryPage() {
     loadPendingAlerts()
   }, [loadAlerts, loadPendingAlerts])
 
-  // 선택 일괄 확인 — UNCONFIRMED가 아닌 항목은 건너뛴다(FUNC-301-10)
+  // 선택 일괄 확인 — UNCONFIRMED가 아닌 항목은 건너뛴다(FUNC-301-10). 서버 일괄 API 한 번 호출로
+  // 처리해서 건별 반복 호출 시 실시간 갱신 신호가 건마다 나가 폭주하던 문제를 피한다
   async function handleBulkConfirm() {
-    const targets = activeAlerts.filter((alert) => activeSelectedIds.includes(alert.alertId) && alert.status === 'UNCONFIRMED')
+    const targetIds = activeAlerts
+      .filter((alert) => activeSelectedIds.includes(alert.alertId) && alert.status === 'UNCONFIRMED')
+      .map((alert) => alert.alertId)
     setBulkConfirmOpen(false)
-    if (!targets.length) return
-    const results = await Promise.allSettled(targets.map((alert) => confirmAlert(alert.alertId)))
-    const { successCount, failCount, failureReason } = summarizeSettledResults(results)
+    if (!targetIds.length) return
+    const { successCount, failCount, failureReasons } = await bulkConfirmAlerts(targetIds)
     setActionResult({
       title: failCount ? `선택한 항목 중 ${successCount}건이 확인 처리되었습니다.` : `선택한 ${successCount}건이 확인 처리되었습니다.`,
       infoRows: [
         { label: '처리 결과', value: `성공 ${successCount}건${failCount ? `, 실패 ${failCount}건` : ''}` },
-        ...(failureReason ? [{ label: '실패 사유', value: failureReason }] : []),
+        ...(failureReasons?.length ? [{ label: '실패 사유', value: failureReasons.join(', ') }] : []),
         { label: '처리 시각', value: formatResultDateTime() },
         { label: '확인자', value: user?.name ?? '-' },
       ],
@@ -366,16 +367,17 @@ export default function AlertHistoryPage() {
 
   // 선택 일괄 조치완료 — CONFIRMED가 아닌 항목은 건너뛴다(FUNC-301-10)
   async function handleBulkResolve() {
-    const targets = activeAlerts.filter((alert) => activeSelectedIds.includes(alert.alertId) && alert.status === 'CONFIRMED')
+    const targetIds = activeAlerts
+      .filter((alert) => activeSelectedIds.includes(alert.alertId) && alert.status === 'CONFIRMED')
+      .map((alert) => alert.alertId)
     setBulkResolveOpen(false)
-    if (!targets.length) return
-    const results = await Promise.allSettled(targets.map((alert) => resolveAlert(alert.alertId)))
-    const { successCount, failCount, failureReason } = summarizeSettledResults(results)
+    if (!targetIds.length) return
+    const { successCount, failCount, failureReasons } = await bulkResolveAlerts(targetIds)
     setActionResult({
       title: failCount ? `선택한 항목 중 ${successCount}건이 조치완료 처리되었습니다.` : `선택한 ${successCount}건이 조치완료 처리되었습니다.`,
       infoRows: [
         { label: '처리 결과', value: `성공 ${successCount}건${failCount ? `, 실패 ${failCount}건` : ''}` },
-        ...(failureReason ? [{ label: '실패 사유', value: failureReason }] : []),
+        ...(failureReasons?.length ? [{ label: '실패 사유', value: failureReasons.join(', ') }] : []),
         { label: '처리 시각', value: formatResultDateTime() },
         { label: '조치자', value: user?.name ?? '-' },
       ],

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { confirmAlert, getPendingAlerts } from '../api/alertApi'
-import { extractServerMessage, formatAlertType, formatDateTimeCell, summarizeSettledResults } from '../utils/alertFormatters'
+import { bulkConfirmAlerts, getPendingAlerts } from '../api/alertApi'
+import { extractServerMessage, formatAlertType, formatDateTimeCell } from '../utils/alertFormatters'
 import { useMonitoring } from '@/features/monitoring/useMonitoring'
 import { useSite } from '@/features/sites/useSite'
 import EmptyState from '@/shared/components/feedback/EmptyState'
@@ -18,7 +18,6 @@ const PAGE_SIZE = 8
 // "전체 확인처리" 대상 조회용 — 서버 AlertService.MAX_SIZE(100)를 넘기면 INVALID_SIZE로 요청 자체가 실패하므로
 // 100 이하로 고정하고, 그보다 미확인이 많으면 페이지를 반복 조회해서 전부 모은다
 const BULK_CONFIRM_PAGE_SIZE = 100
-const CONFIRM_BATCH_SIZE = 5 // 확인 처리 API를 한 번에 몇 건씩 동시 호출할지 — 너무 크면 로컬 백엔드가 순간 부하로 오류를 낸다
 
 // SCR-301-M 모바일 알림 — PC 미처리 조치 탭(getPendingAlerts)과 같은 데이터: UNCONFIRMED/CONFIRMED만 옴(RESOLVED 없음)
 export default function MobileAlertsPage() {
@@ -152,34 +151,23 @@ export default function MobileAlertsPage() {
     return content
   }
 
-  // 대상이 많을 때 전부 동시에 쏘면 로컬/소규모 서버가 순간 부하로 네트워크 오류를 뱉는다 — 소수씩 순차 배치로 처리
-  async function confirmInBatches(targets, batchSize = CONFIRM_BATCH_SIZE) {
-    const results = []
-    for (let i = 0; i < targets.length; i += batchSize) {
-      const batch = targets.slice(i, i + batchSize)
-      const batchResults = await Promise.allSettled(batch.map((alert) => confirmAlert(alert.alertId)))
-      results.push(...batchResults)
-    }
-    return results
-  }
-
-  // 미확인 전체 확인처리 — 사이트 전체(현재 페이지뿐 아니라) UNCONFIRMED 대상. 단건 확인과 동일 API를 배치로 반복 호출한다
+  // 미확인 전체 확인처리 — 사이트 전체(현재 페이지뿐 아니라) UNCONFIRMED 대상. 대상 ID만 모아서 서버 일괄
+  // 확인 API를 한 번만 호출한다(건별 반복 호출 시 실시간 갱신 신호가 건마다 나가 폭주하던 문제를 서버에서 해결)
   async function handleBulkConfirmAll() {
     setBulkError('')
     const siteId = currentSiteId
     if (!siteId) return
     try {
       const all = await fetchAllPendingAlerts(siteId)
-      const targets = all.filter((alert) => alert.status === 'UNCONFIRMED')
+      const targetIds = all.filter((alert) => alert.status === 'UNCONFIRMED').map((alert) => alert.alertId)
       setBulkConfirmOpen(false)
-      if (!targets.length) return
-      const results = await confirmInBatches(targets)
-      const { successCount, failCount, failureReason } = summarizeSettledResults(results)
+      if (!targetIds.length) return
+      const { successCount, failCount, failureReasons } = await bulkConfirmAlerts(targetIds)
       setActionResult({
         title: failCount ? `미확인 중 ${successCount}건이 확인 처리되었습니다.` : `미확인 ${successCount}건이 확인 처리되었습니다.`,
         infoRows: [
           { label: '처리 결과', value: `성공 ${successCount}건${failCount ? `, 실패 ${failCount}건` : ''}` },
-          ...(failureReason ? [{ label: '실패 사유', value: failureReason }] : []),
+          ...(failureReasons?.length ? [{ label: '실패 사유', value: failureReasons.join(', ') }] : []),
           { label: '처리 시각', value: formatResultDateTime() },
           { label: '확인자', value: user?.name ?? '-' },
         ],

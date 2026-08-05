@@ -12,6 +12,9 @@ import { createMonitoringSocket } from './monitoringSocket'
 import { MonitoringContext } from './monitoringContextObject'
 
 const POLL_INTERVAL_MS = 15000
+// 경보 1건 처리(확인/조치완료)마다 WS 메시지가 1개씩 오므로, 일괄 처리 중 짧은 시간에 메시지가 몰리면
+// 그만큼 getDashboardSummary GET도 폭주한다 — 메시지가 잠잠해질 때까지 기다렸다가 한 번만 새로고침한다
+const WS_REFRESH_DEBOUNCE_MS = 800
 
 // 실시간 관제 상태(통신상태/미확인알림/위험전환 팝업)를 앱 전체에서 공유(REQ-201, FUNC-201-07/08).
 // 로그인 세션 내내 떠있는 AppProviders에서 한 번만 연결해 어느 화면에 있든 위험 전환을 감지한다(../firesafety-fe monitoring.js와 동일 설계).
@@ -93,6 +96,16 @@ export function MonitoringProvider({ children }) {
     refreshRef.current = refresh
   }, [refresh])
 
+  // WS 메시지 전용 디바운스 — 짧은 시간에 여러 메시지가 몰려도 마지막 메시지 기준으로 딱 한 번만 새로고침한다
+  const wsRefreshTimerRef = useRef(null)
+  const scheduleWsRefresh = useCallback(() => {
+    if (wsRefreshTimerRef.current) clearTimeout(wsRefreshTimerRef.current)
+    wsRefreshTimerRef.current = setTimeout(() => {
+      wsRefreshTimerRef.current = null
+      refreshRef.current()
+    }, WS_REFRESH_DEBOUNCE_MS)
+  }, [])
+
   const stopPolling = useCallback(() => {
     clearInterval(pollTimerRef.current)
     pollTimerRef.current = null
@@ -132,7 +145,7 @@ export function MonitoringProvider({ children }) {
 
     const socket = createMonitoringSocket({
       siteIds,
-      onMessage: () => refreshRef.current(),
+      onMessage: () => scheduleWsRefresh(),
       onConnect: () => {
         setWsConnected(true)
         stopPolling()
@@ -146,8 +159,12 @@ export function MonitoringProvider({ children }) {
     return () => {
       socket?.deactivate()
       stopPolling()
+      if (wsRefreshTimerRef.current) {
+        clearTimeout(wsRefreshTimerRef.current)
+        wsRefreshTimerRef.current = null
+      }
     }
-  }, [isAuthenticated, role, siteIdsKey, siteIds, startPolling, stopPolling])
+  }, [isAuthenticated, role, siteIdsKey, siteIds, startPolling, stopPolling, scheduleWsRefresh])
 
   // 현재 선택 현장이 바뀌면 그 현장 기준으로 위험 판정 기준선을 새로 잡고 즉시 재조회
   useEffect(() => {

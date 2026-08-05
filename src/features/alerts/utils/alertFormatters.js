@@ -30,14 +30,3 @@ export function formatCircuitNo(value) {
 export function extractServerMessage(error, fallback) {
   return error?.response?.data?.resultMessage ?? fallback
 }
-
-// Promise.allSettled 결과 요약 — 일괄 확인/조치 처리 후 성공/실패 건수와 실패 사유를 모아 보여준다
-export function summarizeSettledResults(results, maxReasons = 3) {
-  const successCount = results.filter((result) => result.status === 'fulfilled').length
-  const failed = results.filter((result) => result.status === 'rejected')
-  const reasons = [...new Set(failed.map((result) => extractServerMessage(result.reason, '알 수 없는 오류')))]
-  const shown = reasons.slice(0, maxReasons)
-  const omitted = reasons.length - shown.length
-  const failureReason = shown.length ? shown.join(', ') + (omitted > 0 ? ` 외 ${omitted}건` : '') : ''
-  return { successCount, failCount: failed.length, failureReason }
-}
