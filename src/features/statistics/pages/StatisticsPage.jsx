@@ -1,5 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import { getStatistics } from '../api/statisticsApi'
 import { countOf, percentOf, sumCounts } from '../utils/statisticsFormatters'
 import { useSite } from '@/features/sites/useSite'
@@ -11,13 +26,16 @@ import StatusBadge from '@/shared/components/feedback/StatusBadge'
 import Input from '@/shared/components/forms/Input'
 import FilterBar from '@/shared/components/layout/FilterBar'
 import { PANEL_STATUS_COLOR, STATUS_BADGE_COLOR } from '@/shared/constants/domainColors'
-import { formatDateTime, isoDate } from '@/shared/utils/formatters'
+import { isoDate } from '@/shared/utils/formatters'
 import './StatisticsPage.css'
 
 // 통계 화면 숫자 표기 통일
 function formatNumber(value) {
   return Number(value ?? 0).toLocaleString('ko-KR')
 }
+
+// 예방조치 이행률 목표선 
+const RESOLUTION_TARGET_RATE = 90
 
 // 기본 조회 기간: 최근 7일(다른 이력 화면들과 동일 기준)
 function defaultFromDate() {
@@ -67,7 +85,6 @@ export default function StatisticsPage() {
   const alerts = data?.alerts
   const diagnoses = data?.diagnoses
   const panels = data?.panels
-  const inspections = data?.inspections
 
   const unresolvedAlertCount = useMemo(() => sumCounts(alerts?.statusCounts, ['UNCONFIRMED', 'CONFIRMED']), [alerts])
   const arcDiagnosisCount = useMemo(() => countOf(diagnoses?.verdictCounts, 'ARC'), [diagnoses])
@@ -87,6 +104,8 @@ export default function StatisticsPage() {
   )
 
   const dailyChartData = useMemo(() => alerts?.dailyCounts ?? [], [alerts])
+  // rate는 서버가 이미 0~100 스케일로 계산해서 내려줌(발생 건수가 0인 날은 null — "0%"와 "데이터 없음"을 구분)
+  const dailyResolutionChartData = useMemo(() => alerts?.dailyResolutionRates ?? [], [alerts])
 
   const panelChartData = useMemo(
     () => (panels?.statusCounts ?? []).filter((row) => row.count > 0).map((row) => ({ ...row, fill: PANEL_STATUS_COLOR[row.key] })),
@@ -225,45 +244,35 @@ export default function StatisticsPage() {
       </div>
 
       <div className="statistics-half-grid">
-        <BaseCard header={<h2 className="statistics-section-title">점검 현황</h2>}>
-          <div className="statistics-inspection-summary">
-            <div className="statistics-inspection-summary__item">
-              <span className="statistics-inspection-summary__label">전체 분전반</span>
-              <strong>{formatNumber(inspections?.totalPanelCount)}개</strong>
+        <BaseCard header={<h2 className="statistics-section-title">예방조치 이행률 추이</h2>}>
+          {dailyResolutionChartData.length ? (
+            <div className="statistics-chart">
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={dailyResolutionChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} width={32} unit="%" />
+                  <Tooltip formatter={(value) => (value == null ? '데이터 없음' : `${value}%`)} />
+                  <ReferenceLine
+                    y={RESOLUTION_TARGET_RATE}
+                    stroke="var(--color-warning)"
+                    strokeDasharray="4 4"
+                    label={{ value: `목표 ${RESOLUTION_TARGET_RATE}%`, position: 'insideTopRight', fontSize: 11, fill: 'var(--color-warning)' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="rate"
+                    name="조치완료율"
+                    stroke="var(--color-brand)"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                    connectNulls={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
-            <div className="statistics-inspection-summary__item">
-              <span className="statistics-inspection-summary__label">점검 완료</span>
-              <strong>{formatNumber(inspections?.inspectedPanelCount)}개</strong>
-            </div>
-            <div className="statistics-inspection-summary__item">
-              <span className="statistics-inspection-summary__label">미점검</span>
-              <strong
-                className={
-                  inspections?.uninspectedPanelCount > 0 ? 'statistics-inspection-summary__value--warning' : undefined
-                }
-              >
-                {formatNumber(inspections?.uninspectedPanelCount)}개
-              </strong>
-            </div>
-            <div className="statistics-inspection-summary__item">
-              <span className="statistics-inspection-summary__label">기간 내 점검 건수</span>
-              <strong>{formatNumber(inspections?.totalInspectionCount)}건</strong>
-            </div>
-          </div>
-
-          <h3 className="statistics-subsection-title">최근 점검 이력</h3>
-          {inspections?.recentInspections?.length ? (
-            <ul className="statistics-recent-list">
-              {inspections.recentInspections.map((row, index) => (
-                <li key={`${row.panelId}-${row.inspectedAt}-${index}`} className="statistics-recent-list__row">
-                  <span className="statistics-recent-list__panel">{row.panelName}</span>
-                  <span className="statistics-recent-list__time">{formatDateTime(row.inspectedAt)}</span>
-                  <span className="statistics-recent-list__inspector">{row.inspectorName || '-'}</span>
-                </li>
-              ))}
-            </ul>
           ) : (
-            <EmptyState message="기간 내 점검 이력이 없습니다." />
+            <EmptyState message="기간 내 경보가 없습니다." />
           )}
         </BaseCard>
 
@@ -271,12 +280,8 @@ export default function StatisticsPage() {
           <div className="statistics-highlight">
             <div className="statistics-highlight__top">
               <span className="statistics-highlight__title">
-                진단 커버리지 <strong>{diagnosisCoverageRate}%</strong>
+                회로 진단 커버리지 <strong>{diagnosisCoverageRate}%</strong>
               </span>
-              <StatusBadge
-                status={arcDiagnosisCount > 0 ? 'ARC' : 'NORMAL'}
-                label={`${arcDiagnosisCount > 0 ? '주의' : '정상'} ${arcRate}%`}
-              />
             </div>
             <div className="statistics-progress-bar">
               <div
@@ -285,8 +290,8 @@ export default function StatisticsPage() {
               />
             </div>
             <p className="statistics-highlight__desc">
-              회로 {formatNumber(diagnoses?.diagnosedCircuitCount)} / {formatNumber(diagnoses?.totalCircuitCount)}개 진단 완료 (전체{' '}
-              {formatNumber(diagnoses?.totalCount)}건 판정)
+              전체 회로 {formatNumber(diagnoses?.totalCircuitCount)}개 중 {formatNumber(diagnoses?.diagnosedCircuitCount)}개
+              진단
             </p>
 
             <hr className="statistics-highlight__divider" />
