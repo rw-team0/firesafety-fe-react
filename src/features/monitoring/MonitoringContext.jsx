@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { confirmAlert, getAlerts } from '@/features/alerts/api/alertApi'
 import { formatAlertType } from '@/features/alerts/utils/alertFormatters'
 import { useAuth } from '@/features/auth/useAuth'
@@ -21,6 +21,7 @@ export function MonitoringProvider({ children }) {
   const { role, isAuthenticated } = useAuth()
   const { sites, currentSiteId } = useSite()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [wsConnected, setWsConnected] = useState(false)
   const [unreadAlertCount, setUnreadAlertCount] = useState(0)
@@ -174,7 +175,9 @@ export function MonitoringProvider({ children }) {
     } catch {
       // 확인 처리 실패해도 상세 이동은 계속 — 상세 화면에서 다시 확인 처리할 수 있다
     }
-    navigate(buildPath(ROUTE_PATHS.equipmentDetail, { panelId }))
+    // 이 팝업은 PC/모바일 공용(AppProviders에 한 번만 마운트)이라 지금 보고 있는 화면(/m/* 여부)에 맞는 상세로 보낸다
+    const isMobile = location.pathname.startsWith('/m/')
+    navigate(buildPath(isMobile ? ROUTE_PATHS.mobileEquipmentDetail : ROUTE_PATHS.equipmentDetail, { panelId }))
   }
 
   const value = useMemo(
