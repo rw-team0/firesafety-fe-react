@@ -1,5 +1,6 @@
 import AccountHistoryPage from '@/features/accounts/pages/AccountHistoryPage'
 import AccountListPage from '@/features/accounts/pages/AccountListPage'
+import MobileAccountsPage from '@/features/accounts/pages/MobileAccountsPage'
 import AlertHistoryPage from '@/features/alerts/pages/AlertHistoryPage'
 import MobileAlertSettingsPage from '@/features/alerts/pages/MobileAlertSettingsPage'
 import MobileAlertsPage from '@/features/alerts/pages/MobileAlertsPage'
@@ -267,6 +268,7 @@ export const routeConfig = [
     scrId: 'SCR-404-M',
     requiresSite: true,
     navGroup: 'mobile',
+    page: MobileAccountsPage,
   },
   // 하단탭에는 없음 — 헤더 종 아이콘 + 드로어 전체메뉴로만 진입
   {

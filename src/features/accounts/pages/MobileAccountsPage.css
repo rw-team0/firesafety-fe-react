@@ -1,0 +1,105 @@
+.mobile-accounts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.mobile-accounts__title {
+  margin: 0;
+  font-size: var(--font-size-title);
+}
+
+/* 이름 검색 — 설비 목록 상태 필터와 같은 톤(카드 안에 넣어 PC용 박스 느낌 제거) */
+.mobile-accounts__filter {
+  padding: var(--space-8) var(--space-12);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.mobile-accounts__filter .field-input {
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.mobile-accounts__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.mobile-accounts__card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-8) var(--space-12);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+}
+
+/* 동그란 역할 이니셜 — 일반직원 "직" / 그 외(관리자) "관" */
+.mobile-accounts__avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-brand);
+  color: #fff;
+  font-size: var(--font-size-caption);
+  font-weight: 700;
+}
+
+.mobile-accounts__avatar--lg {
+  width: 44px;
+  height: 44px;
+  font-size: var(--font-size-body);
+}
+
+.mobile-accounts__name {
+  font-size: var(--font-size-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 연락처 상세 시트 */
+.mobile-accounts__detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.mobile-accounts__detail-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.mobile-accounts__detail-name {
+  display: block;
+  font-size: var(--font-size-subtitle);
+}
+
+.mobile-accounts__detail-role {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.mobile-accounts__detail-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-12);
+  background: var(--color-page-bg);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+}
