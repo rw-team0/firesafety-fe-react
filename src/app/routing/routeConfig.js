@@ -18,6 +18,7 @@ import MobileEquipmentDetailPage from '@/features/facilities/pages/MobileEquipme
 import MobileEquipmentListPage from '@/features/facilities/pages/MobileEquipmentListPage'
 import InspectionChecklistPage from '@/features/inspections/pages/InspectionChecklistPage'
 import InspectionHistoryPage from '@/features/inspections/pages/InspectionHistoryPage'
+import MobileInspectionPage from '@/features/inspections/pages/MobileInspectionPage'
 import MobileSiteSelectPage from '@/features/sites/pages/MobileSiteSelectPage'
 import SiteSelectPage from '@/features/sites/pages/SiteSelectPage'
 import SiteUnassignedPage from '@/features/sites/pages/SiteUnassignedPage'
@@ -247,6 +248,7 @@ export const routeConfig = [
     scrId: 'SCR-505-M',
     requiresSite: true,
     navGroup: 'mobile',
+    page: MobileInspectionPage,
   },
   {
     path: ROUTE_PATHS.mobileDashboard,

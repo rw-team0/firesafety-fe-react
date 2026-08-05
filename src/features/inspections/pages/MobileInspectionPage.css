@@ -1,0 +1,210 @@
+/* 모바일 점검(SCR-505-M/506-M) — PC InspectionPages.css와 클래스 접두사로 완전히 분리 */
+.mobile-inspection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+/* 상단 모드 탭 — 참고 앱처럼 한 박스 안에서 슬라이드되는 세그먼트 컨트롤 */
+.mobile-inspection__tabs {
+  position: relative;
+  display: flex;
+  height: 48px;
+  padding: 4px;
+  background: var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.mobile-inspection__tabs-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  background: var(--color-brand);
+  border-radius: var(--radius-sm);
+  transition: transform var(--motion-base) ease;
+}
+
+.mobile-inspection__tab {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  transition: color var(--motion-base) ease;
+}
+
+.mobile-inspection__tab.is-active {
+  color: #fff;
+}
+
+/* 분전반 선택 — 다른 모바일 화면 필터와 동일 톤 */
+.mobile-inspection__filter {
+  padding: var(--space-8) var(--space-12);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.mobile-inspection__filter .field-select {
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.mobile-inspection-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.mobile-inspection-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.mobile-inspection-item-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-12);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.mobile-inspection-item-card strong {
+  font-size: var(--font-size-body);
+}
+
+.mobile-inspection-item-card p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.mobile-inspection-result-toggle {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.mobile-inspection-result-toggle__button {
+  flex: 1;
+  height: 36px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+}
+
+.mobile-inspection-result-toggle__button.is-active {
+  font-weight: 700;
+}
+
+/* 점검 이력 리스트 — 알림/설비 최근경보와 동일한 구분선 리스트 패턴 */
+.mobile-inspection-history-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-border);
+}
+
+.mobile-inspection-history-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-12) 4px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.mobile-inspection-history-row__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.mobile-inspection-history-row__top strong {
+  font-size: var(--font-size-body);
+}
+
+.mobile-inspection-history-row__inspector {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.mobile-inspection-history-row__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.mobile-inspection__sentinel {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 점검 이력 상세 시트 */
+.mobile-inspection-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.mobile-inspection-detail__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-8) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-body);
+}
+
+.mobile-inspection-detail__row span {
+  color: var(--color-text-muted);
+}
+
+.mobile-inspection-detail__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-top: var(--space-8);
+}
+
+.mobile-inspection-detail__item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  font-size: var(--font-size-caption);
+}
+
+.mobile-inspection-detail__note {
+  margin-top: var(--space-8);
+  padding: var(--space-12);
+  background: var(--color-page-bg);
+  border-radius: var(--radius-md);
+}
+
+.mobile-inspection-detail__note-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.mobile-inspection-detail__note p {
+  margin: 0;
+  font-size: var(--font-size-body);
+  line-height: 1.5;
+}
