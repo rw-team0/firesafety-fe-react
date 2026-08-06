@@ -4,7 +4,6 @@ import { getPendingAlerts } from '@/features/alerts/api/alertApi'
 import { useAuth } from '@/features/auth/useAuth'
 import { useMonitoring } from '@/features/monitoring/useMonitoring'
 import { useSite } from '@/features/sites/useSite'
-import { getDashboardSummary } from '../api/dashboardApi'
 import EmptyState from '@/shared/components/feedback/EmptyState'
 import ErrorState from '@/shared/components/feedback/ErrorState'
 import LoadingState from '@/shared/components/feedback/LoadingState'
@@ -69,18 +68,20 @@ function formatRiskReason(panel) {
 export default function MobileDashboardPage() {
   const { user, role } = useAuth()
   const { currentSite, currentSiteId } = useSite()
-  const { refreshedAt } = useMonitoring()
+  // 설비 상태 요약은 MonitoringProvider가 단일 출처 — 여기서 따로 재조회하지 않고 Context 값만 구독한다
+  const { refreshedAt, summary: monitoringSummary } = useMonitoring()
   const navigate = useNavigate()
   const requestSeqRef = useRef(0)
 
-  const [summary, setSummary] = useState(EMPTY_SUMMARY)
   const [pendingActions, setPendingActions] = useState([])
   const [pendingTotal, setPendingTotal] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [summaryError, setSummaryError] = useState('')
+  const [pageError, setPageError] = useState('')
   const [pendingError, setPendingError] = useState('')
 
-  // 현재 현장 대시보드 데이터 조회. silent=true면 WS/폴링 백그라운드 갱신 — 화면을 비우지 않고 성공한 값만 조용히 교체한다
+  const summary = useMemo(() => ({ ...EMPTY_SUMMARY, ...(monitoringSummary ?? {}) }), [monitoringSummary])
+
+  // 미처리조치 조회. silent=true면 WS/폴링 백그라운드 갱신 — 화면을 비우지 않고 성공한 값만 조용히 교체한다
   const loadDashboard = useCallback(
     async ({ silent = false } = {}) => {
       const siteId = currentSiteId
@@ -88,7 +89,6 @@ export default function MobileDashboardPage() {
       requestSeqRef.current = seq
 
       if (!silent) {
-        setSummary(EMPTY_SUMMARY)
         setPendingActions([])
         setPendingTotal(0)
         setPendingError('')
@@ -96,35 +96,24 @@ export default function MobileDashboardPage() {
 
       if (!siteId) {
         setLoading(false)
-        if (!silent) setSummaryError('대시보드는 현장 선택 후 이용할 수 있습니다.')
+        if (!silent) setPageError('대시보드는 현장 선택 후 이용할 수 있습니다.')
         return
       }
 
       if (!silent) {
         setLoading(true)
-        setSummaryError('')
+        setPageError('')
       }
 
-      const [summaryResult, pendingResult] = await Promise.allSettled([
-        getDashboardSummary({ siteId }),
-        getPendingAlerts({ siteId, page: 0, size: PENDING_ACTION_SIZE }),
-      ])
-
-      if (requestSeqRef.current !== seq) return
-
-      if (summaryResult.status === 'fulfilled') {
-        setSummary({ ...EMPTY_SUMMARY, ...(summaryResult.value ?? {}) })
-        setSummaryError('')
-      } else if (!silent) {
-        setSummaryError(extractErrorMessage(summaryResult.reason, '대시보드 요약을 불러오지 못했습니다.'))
-      }
-
-      if (pendingResult.status === 'fulfilled') {
-        setPendingActions(toPageContent(pendingResult.value))
-        setPendingTotal(Number(pendingResult.value?.totalElements ?? 0))
+      try {
+        const data = await getPendingAlerts({ siteId, page: 0, size: PENDING_ACTION_SIZE })
+        if (requestSeqRef.current !== seq) return
+        setPendingActions(toPageContent(data))
+        setPendingTotal(Number(data?.totalElements ?? 0))
         setPendingError('')
-      } else if (!silent) {
-        setPendingError(extractErrorMessage(pendingResult.reason, '미처리 알림을 불러오지 못했습니다.'))
+      } catch (error) {
+        if (requestSeqRef.current !== seq || silent) return
+        setPendingError(extractErrorMessage(error, '미처리 알림을 불러오지 못했습니다.'))
       }
 
       setLoading(false)
@@ -207,7 +196,7 @@ export default function MobileDashboardPage() {
 
   if (loading) return <LoadingState label="대시보드 데이터를 불러오는 중입니다..." />
 
-  if (summaryError) return <ErrorState message={summaryError} onRetry={loadDashboard} />
+  if (pageError) return <ErrorState message={pageError} onRetry={loadDashboard} />
 
   return (
     <div className="mobile-dashboard">

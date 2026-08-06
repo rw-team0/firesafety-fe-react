@@ -6,7 +6,6 @@ import { canManageFacilities } from '../utils/facilityPolicy'
 import { useAuth } from '@/features/auth/useAuth'
 import { useMonitoring } from '@/features/monitoring/useMonitoring'
 import { useSite } from '@/features/sites/useSite'
-import { getDashboardSummary } from '@/features/dashboard/api/dashboardApi'
 import { usePageActions } from '@/layouts/DefaultLayout/usePageActions'
 import Button from '@/shared/components/buttons/Button'
 import BaseCard from '@/shared/components/data-display/BaseCard'
@@ -37,34 +36,19 @@ function getPanelCardClassName(status) {
 export default function EquipmentListPage() {
   const { role } = useAuth()
   const { currentSiteId } = useSite()
-  const { refreshedAt } = useMonitoring()
+  // 상태별 분전반 수 요약은 MonitoringProvider가 단일 출처 — 여기서 따로 재조회하지 않는다(대시보드와 같은 API-201 재사용)
+  const { refreshedAt, summary } = useMonitoring()
   const navigate = useNavigate()
   const panelSeqRef = useRef(0)
   const canManage = canManageFacilities(role)
 
   const [panels, setPanels] = useState([])
   const [totalElements, setTotalElements] = useState(0)
-  const [summary, setSummary] = useState(null)
   const [keyword, setKeyword] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [page, setPage] = useState(1)
   const [panelLoading, setPanelLoading] = useState(true)
   const [panelError, setPanelError] = useState('')
-
-  // 현재 현장 요약(상태별 분전반 수) — 필터/페이지와 무관하게 현장 전체 기준.
-  // 상단 요약 카드 + "현장에 분전반이 아예 없는지" 판단에 쓴다(대시보드와 같은 API-201 재사용).
-  const loadSummary = useCallback(async () => {
-    if (!currentSiteId) {
-      setSummary(null)
-      return
-    }
-    try {
-      const data = await getDashboardSummary({ siteId: currentSiteId })
-      setSummary(data)
-    } catch {
-      // 요약 실패는 목록 조회 자체를 막지 않는다 — 아래 loadPanels 에러 처리로 충분
-    }
-  }, [currentSiteId])
 
   // 현재 현장 분전반 카드 목록 조회 — 검색어/상태/페이지는 서버가 필터·페이징한다(API-505)
   // silent=true면 WS/폴링 백그라운드 갱신 — 카드 그리드를 비우지 않고 성공한 값만 조용히 교체한다
@@ -126,17 +110,12 @@ export default function EquipmentListPage() {
   }, [loadPanels])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadSummary()
-  }, [loadSummary])
-
-  useEffect(() => {
-    // MonitoringProvider가 WS/폴링으로 새 신호를 줄 때마다 화면 깜빡임 없이 조용히 다시 조회(REQ-201)
+    // MonitoringProvider가 WS/폴링으로 새 신호를 줄 때마다 화면 깜빡임 없이 카드 목록만 조용히 다시 조회(REQ-201)
+    // 요약(summary)은 Context 값을 그대로 구독하므로 여기서 별도로 재조회하지 않는다
     if (!refreshedAt) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadPanels({ silent: true })
-    loadSummary()
-  }, [refreshedAt, loadPanels, loadSummary])
+  }, [refreshedAt, loadPanels])
 
   useEffect(() => {
     // 현장이 바뀌면 검색/상태 필터/페이지도 새 현장 기준으로 초기화한다.
