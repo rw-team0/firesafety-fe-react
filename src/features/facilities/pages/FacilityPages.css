@@ -4,6 +4,13 @@
   gap: var(--space-16);
 }
 
+/* 플레이스홀더 문구("장비번호, 분전반명, 분전반No")가 기본 검색창 폭보다 길어서 잘려 보임 —
+   글자 크기를 바꾸면 다른 화면 검색창이랑 통일성이 깨져서, 이 칸만 넓힌다 */
+.facility-page .filter-bar__fields > .field:has(.facility-manage__search) {
+  min-width: 260px;
+  flex: 0 1 340px;
+}
+
 .facility-summary {
   display: flex;
   align-items: center;

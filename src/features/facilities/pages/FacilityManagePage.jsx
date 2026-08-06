@@ -426,6 +426,7 @@ export default function FacilityManagePage() {
           >
             <Input
               aria-label="분전반 검색"
+              className="facility-manage__search"
               placeholder="장비번호, 분전반명, 분전반No"
               value={keyword}
               onChange={(event) => {
