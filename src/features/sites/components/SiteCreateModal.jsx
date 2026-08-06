@@ -17,6 +17,7 @@ import '@/features/accounts/pages/accountFormShell.css'
 const INITIAL_FORM = {
   name: '',
   address: '',
+  addressDetail: '',
   zipCode: '',
   adminName: '',
   adminEmail: '',
@@ -103,6 +104,7 @@ export default function SiteCreateModal({ visible, onClose, onCreated }) {
       const created = await createSiteWithAdmin({
         name: form.name.trim(),
         address: form.address.trim(),
+        addressDetail: form.addressDetail.trim() || null,
         zipCode: form.zipCode.trim() || null,
         adminName: form.adminName.trim(),
         adminEmail: form.adminEmail.trim(),
@@ -180,6 +182,12 @@ export default function SiteCreateModal({ visible, onClose, onCreated }) {
                 주소 검색
               </Button>
             </div>
+            <Input
+              label="상세주소"
+              placeholder="예: 5층 501호"
+              value={form.addressDetail}
+              onChange={(event) => updateField('addressDetail', event.target.value)}
+            />
           </fieldset>
 
           <fieldset className="site-form__group">

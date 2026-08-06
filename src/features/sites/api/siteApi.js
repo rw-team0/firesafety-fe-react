@@ -2,7 +2,7 @@ import httpRequester from '@/shared/api/httpRequester'
 import { unwrap } from '@/shared/api/response'
 
 // 파라미터 없음 — SUPER_ADMIN은 전체 활성현장, ADMIN/GENERAL은 배정된 현장만 서버가 걸러서 내려줌(프론트 재필터 불필요)
-// 목록 항목: { siteId, name, address, zipCode, createdAt } — panelCount는 상세에만 있음
+// 목록 항목: { siteId, name, address, addressDetail, zipCode, createdAt } — panelCount는 상세에만 있음
 export async function getSites() {
   const res = await httpRequester.get('/sites')
   return unwrap(res)
@@ -20,7 +20,7 @@ export async function createSiteWithAdmin(payload) {
   return unwrap(res)
 }
 
-// 관리자 정보는 대상이 아님 — name/address/zipCode만
+// 관리자 정보는 대상이 아님 — name/address/addressDetail/zipCode만
 export async function updateSite(siteId, payload) {
   const res = await httpRequester.put(`/sites/${siteId}`, payload)
   return unwrap(res)

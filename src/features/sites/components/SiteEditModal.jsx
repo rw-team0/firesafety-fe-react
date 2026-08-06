@@ -11,11 +11,11 @@ import { formatResultDateTime } from '@/shared/utils/formatters'
 import '../pages/sitePageShell.css'
 import '@/features/accounts/components/AccountModal.css'
 
-// 현장 정보 수정 — 페이지 대신 모달로. 최초 관리자 계정은 수정 대상 아님(백엔드 SiteUpdateReq에 name/address/zipCode만 있음)
+// 현장 정보 수정 — 페이지 대신 모달로. 최초 관리자 계정은 수정 대상 아님(백엔드 SiteUpdateReq에 name/address/addressDetail/zipCode만 있음)
 export default function SiteEditModal({ visible, site, onClose, onUpdated, onDeleted }) {
   const { user } = useAuth()
 
-  const [form, setForm] = useState({ name: '', address: '', zipCode: '' })
+  const [form, setForm] = useState({ name: '', address: '', addressDetail: '', zipCode: '' })
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -29,7 +29,12 @@ export default function SiteEditModal({ visible, site, onClose, onUpdated, onDel
     if (!visible || !site) return
     // 모달을 열 때마다 대상 현장 값으로 다시 채움
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setForm({ name: site.name ?? '', address: site.address ?? '', zipCode: site.zipCode ?? '' })
+    setForm({
+      name: site.name ?? '',
+      address: site.address ?? '',
+      addressDetail: site.addressDetail ?? '',
+      zipCode: site.zipCode ?? '',
+    })
     setErrors({})
     setSubmitError('')
     setResult(null)
@@ -68,6 +73,7 @@ export default function SiteEditModal({ visible, site, onClose, onUpdated, onDel
       const updated = await updateSite(site.siteId, {
         name: form.name.trim(),
         address: form.address.trim(),
+        addressDetail: form.addressDetail.trim() || null,
         zipCode: form.zipCode.trim() || null,
       })
       setResult({ name: updated?.name ?? form.name, site: updated })
@@ -165,6 +171,12 @@ export default function SiteEditModal({ visible, site, onClose, onUpdated, onDel
                 주소 검색
               </Button>
             </div>
+            <Input
+              label="상세주소"
+              placeholder="예: 5층 501호"
+              value={form.addressDetail}
+              onChange={(event) => updateField('addressDetail', event.target.value)}
+            />
           </fieldset>
         </form>
       </BaseModal>
