@@ -105,7 +105,15 @@ export default function StatisticsPage() {
 
   const dailyChartData = useMemo(() => alerts?.dailyCounts ?? [], [alerts])
   // rate는 서버가 이미 0~100 스케일로 계산해서 내려줌(발생 건수가 0인 날은 null — "0%"와 "데이터 없음"을 구분)
+  // 예방조치 이행률(dailyResolutionRates)은 주의(CAUTION) 알림만 대상 — 조치완료 후 24시간 내 위험 미전환 비율
   const dailyResolutionChartData = useMemo(() => alerts?.dailyResolutionRates ?? [], [alerts])
+
+  // 예방조치 이행률 카드 상단 보조 지표 — 백엔드가 미리 합산해 내려준 값만 사용
+  const cautionAlertCount = alerts?.cautionAlertCount ?? 0
+  const cautionResolvedCount = alerts?.cautionResolvedCount ?? 0
+  const cautionEscalatedCount = alerts?.cautionEscalatedCount ?? 0
+  const cautionResolvedRate = useMemo(() => percentOf(cautionResolvedCount, cautionAlertCount), [cautionResolvedCount, cautionAlertCount])
+  const cautionEscalatedRate = useMemo(() => percentOf(cautionEscalatedCount, cautionAlertCount), [cautionEscalatedCount, cautionAlertCount])
 
   const panelChartData = useMemo(
     () => (panels?.statusCounts ?? []).filter((row) => row.count > 0).map((row) => ({ ...row, fill: PANEL_STATUS_COLOR[row.key] })),
@@ -245,6 +253,21 @@ export default function StatisticsPage() {
 
       <div className="statistics-half-grid">
         <BaseCard header={<h2 className="statistics-section-title">예방조치 이행률 추이</h2>}>
+          {/* 주의(CAUTION) 알림 발생/조치완료/위험 전환 건수 — 카드/여백 없이 한 줄 요약으로만 보여줘서 그래프 자리를 침범하지 않는다 */}
+          <p className="statistics-prevention-summary">
+            주의 알림 발생 <strong>{formatNumber(cautionAlertCount)}건</strong>
+            <span className="statistics-prevention-summary__divider">·</span>
+            주의 조치완료{' '}
+            <strong style={{ color: STATUS_BADGE_COLOR.RESOLVED }}>
+              {formatNumber(cautionResolvedCount)}건({cautionResolvedRate}%)
+            </strong>
+            <span className="statistics-prevention-summary__divider">·</span>
+            위험 전환{' '}
+            <strong style={{ color: STATUS_BADGE_COLOR.RISK }}>
+              {formatNumber(cautionEscalatedCount)}건({cautionEscalatedRate}%)
+            </strong>
+          </p>
+
           {dailyResolutionChartData.length ? (
             <div className="statistics-chart">
               <ResponsiveContainer width="100%" height={200}>
