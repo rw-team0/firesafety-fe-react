@@ -23,7 +23,7 @@ export const THRESHOLD_FIELDS = [
 // thresholdKey가 있으면 panel[thresholdKey]와 비교해 주의(노랑) 표시, alarmKey가 있으면 하드웨어 알람 플래그가
 // true일 때 수치·임계값 비교와 무관하게 위험(빨강)을 강제한다(REQ-203, API-506 2026-07-27 확장 내용).
 export const SENSOR_FIELDS = [
-  { key: 'totalCurrent', label: '전체전류', unit: 'A', alarmKey: 'overcurrentAlarm', icon: '⚡' },
+  { key: 'totalCurrent', label: '전체전류', unit: 'A', thresholdKey: 'overcurrentThreshold', alarmKey: 'overcurrentAlarm', icon: '⚡' },
   { key: 'leakMa', label: '누설전류', unit: 'mA', thresholdKey: 'leakMaThreshold', alarmKey: 'leakageAlarm', icon: '🔺' },
   { key: 'voltV', label: '전압', unit: 'V', icon: '🔌' },
   { key: 'totalPower', label: '전체전력', unit: 'W', icon: '💡' },
@@ -41,6 +41,12 @@ export function getSensorFieldStatus(panel, field) {
     const threshold = panel[field.thresholdKey]
     if (typeof value === 'number' && typeof threshold === 'number' && value >= threshold) return 'warning'
   }
+  return 'normal'
+}
+
+export function getDoorStatusTone(panel) {
+  if (panel?.doorAlarm === true) return 'danger'
+  if (panel?.doorStatus === true) return 'warning'
   return 'normal'
 }
 

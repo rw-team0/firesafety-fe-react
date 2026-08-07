@@ -9,6 +9,7 @@ import {
   formatPanelStatus,
   formatValue,
   getCircuitRiskLevel,
+  getDoorStatusTone,
   getSensorFieldStatus,
   SENSOR_FIELDS,
 } from '../utils/facilityFormatters'
@@ -236,12 +237,18 @@ export default function MobileEquipmentDetailPage() {
               </div>
             )
           })}
-          <div className={`mobile-equipment-sensor-tile${panel.doorStatus ? ' mobile-equipment-sensor-tile--danger' : ''}`}>
-            <span className="mobile-equipment-sensor-tile__label">🚪 도어</span>
-            <strong className="mobile-equipment-sensor-tile__value">
-              {panel.doorStatus == null ? '-' : panel.doorStatus ? '열림' : '닫힘'}
-            </strong>
-          </div>
+          {(() => {
+            const doorTone = getDoorStatusTone(panel)
+            const doorClass = doorTone !== 'normal' ? ` mobile-equipment-sensor-tile--${doorTone}` : ''
+            return (
+              <div className={`mobile-equipment-sensor-tile${doorClass}`}>
+                <span className="mobile-equipment-sensor-tile__label">🚪 도어</span>
+                <strong className="mobile-equipment-sensor-tile__value">
+                  {panel.doorStatus == null ? '-' : panel.doorStatus ? '열림' : '닫힘'}
+                </strong>
+              </div>
+            )
+          })()}
         </div>
       </section>
 

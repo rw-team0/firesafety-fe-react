@@ -12,6 +12,7 @@ import {
   formatThresholdSummary,
   formatValue,
   getCircuitRiskLevel,
+  getDoorStatusTone,
   getSensorFieldStatus,
   SENSOR_FIELDS,
 } from '../utils/facilityFormatters'
@@ -194,7 +195,7 @@ export default function PanelMonitoringDetail({ panel }) {
               icon="🚪"
               label="도어"
               value={panel.doorStatus == null ? '-' : panel.doorStatus ? '열림' : '닫힘'}
-              status={panel.doorStatus ? 'danger' : 'normal'}
+              status={getDoorStatusTone(panel)}
             />
           </div>
         </BaseCard>
