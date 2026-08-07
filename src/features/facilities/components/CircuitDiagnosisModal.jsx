@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getCircuitDiagnosis, triggerCircuitDiagnosis } from '../api/diagnosisApi'
 import { extractServerMessage, formatDateTimeCell } from '../utils/facilityFormatters'
-import { VERDICT_LABELS } from '@/shared/constants/domainLabels'
+import { DIAGNOSIS_TRIGGER_TYPE_LABELS, VERDICT_LABELS, labelOf } from '@/shared/constants/domainLabels'
 import Button from '@/shared/components/buttons/Button'
 import DataTable from '@/shared/components/data-display/DataTable'
 import Pagination from '@/shared/components/data-display/Pagination'
@@ -15,6 +15,10 @@ const PAGE_SIZE = 6
 
 function formatConfidence(value) {
   return value == null ? '-' : `${Math.round(value * 100)}%`
+}
+
+function formatTriggerType(value) {
+  return labelOf(DIAGNOSIS_TRIGGER_TYPE_LABELS, value)
 }
 
 // 회로 AI 진단 이력 + 수동 실행 (REQ-102/103) — SCR-202 통합, 새 라우트 없이 모달로만 존재. 조회/실행 모두 전체 역할 가능
@@ -77,6 +81,7 @@ export default function CircuitDiagnosisModal({ circuit, visible, onClose }) {
             { label: '대상 회로', value: `회로 ${circuit.channelNo}` },
             { label: '신뢰도', value: formatConfidence(latest.confidence) },
             { label: '샘플 수', value: latest.nSamples ?? '-' },
+            { label: '진단 방식', value: formatTriggerType(latest.triggerType) },
             ...(latest.warning ? [{ label: '경고', value: latest.warning }] : []),
             { label: '판정 시각', value: formatDateTimeCell(latest.diagnosedAt) },
           ],
@@ -121,6 +126,7 @@ export default function CircuitDiagnosisModal({ circuit, visible, onClose }) {
         </>
       ),
     },
+    { key: 'triggerType', header: '방식', render: (row) => formatTriggerType(row.triggerType) },
   ]
 
   return (

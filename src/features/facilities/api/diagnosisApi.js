@@ -13,8 +13,8 @@ export async function triggerCircuitDiagnosis(circuitId) {
   return unwrap(res)
 }
 
-// AI 모델 메타정보(버전, LOLO 평가 지표) 조회 — 회로/현장에 매이지 않는 전역 정보
-export async function getAiModelInfo() {
-  const res = await httpRequester.get('/circuits/model-info')
+// 분전반 AI 진단 현황 조회 — 회로별 상세 이력보다 한 단계 위의 요약 정보
+export async function getPanelDiagnosisSummary(panelId) {
+  const res = await httpRequester.get(`/panels/${panelId}/diagnosis/summary`)
   return unwrap(res)
 }

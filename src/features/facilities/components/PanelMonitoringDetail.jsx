@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { confirmAlert, getAlerts, resolveAlert } from '@/features/alerts/api/alertApi'
-import AiModelInfoModal from './AiModelInfoModal'
 import CircuitDiagnosisModal from './CircuitDiagnosisModal'
+import PanelDiagnosisSummaryModal from './PanelDiagnosisSummaryModal'
 import {
   extractServerMessage,
   formatAlertStatus,
@@ -80,7 +80,7 @@ function formatProcessedBy(row) {
 export default function PanelMonitoringDetail({ panel }) {
   const { user } = useAuth()
   const [diagnosisCircuit, setDiagnosisCircuit] = useState(null)
-  const [modelInfoOpen, setModelInfoOpen] = useState(false)
+  const [diagnosisSummaryOpen, setDiagnosisSummaryOpen] = useState(false)
   const [alerts, setAlerts] = useState([])
   const [alertsLoading, setAlertsLoading] = useState(true)
   const [alertsError, setAlertsError] = useState('')
@@ -203,8 +203,8 @@ export default function PanelMonitoringDetail({ panel }) {
         <BaseCard>
           <div className="facility-section-header">
             <h3 className="facility-section-title">회로 상태</h3>
-            <Button variant="ghost" onClick={() => setModelInfoOpen(true)}>
-              AI 모델 정보
+            <Button variant="ghost" onClick={() => setDiagnosisSummaryOpen(true)}>
+              AI 진단 현황
             </Button>
           </div>
           {panel.circuits?.length ? (
@@ -349,7 +349,11 @@ export default function PanelMonitoringDetail({ panel }) {
         onClose={() => setDiagnosisCircuit(null)}
       />
 
-      <AiModelInfoModal visible={modelInfoOpen} onClose={() => setModelInfoOpen(false)} />
+      <PanelDiagnosisSummaryModal
+        panel={panel}
+        visible={diagnosisSummaryOpen}
+        onClose={() => setDiagnosisSummaryOpen(false)}
+      />
     </>
   )
 }

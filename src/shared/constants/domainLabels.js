@@ -18,6 +18,13 @@ export const VERDICT_LABELS = {
   ARC: '아크 감지',
 }
 
+export const DIAGNOSIS_TRIGGER_TYPE_LABELS = {
+  AUTO: '자동',
+  MANUAL: '수동',
+  MOCK: '데모',
+  UNKNOWN: '알 수 없음',
+}
+
 export const ALERT_SOURCE_LABELS = {
   DEVICE: '장비',
   AI: 'AI',
