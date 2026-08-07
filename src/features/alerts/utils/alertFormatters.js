@@ -1,4 +1,4 @@
-import { ALERT_STATUS_LABELS, ALERT_TYPE_LABELS, labelOf } from '@/shared/constants/domainLabels'
+import { ALERT_SEVERITY_LABELS, ALERT_STATUS_LABELS, ALERT_TYPE_LABELS, labelOf } from '@/shared/constants/domainLabels'
 import { formatDateTime } from '@/shared/utils/formatters'
 
 export const ALERT_TYPE_OPTIONS = Object.entries(ALERT_TYPE_LABELS).map(([value, label]) => ({ value, label }))
@@ -9,6 +9,11 @@ export const PENDING_STATUS_OPTIONS = ALERT_STATUS_OPTIONS.filter((option) => op
 // 경보 유형 라벨
 export function formatAlertType(type) {
   return labelOf(ALERT_TYPE_LABELS, type)
+}
+
+// 경보 심각도 라벨
+export function formatAlertSeverity(severity) {
+  return labelOf(ALERT_SEVERITY_LABELS, severity)
 }
 
 // 경보 처리상태 라벨

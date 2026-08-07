@@ -44,6 +44,11 @@ export const ALERT_TYPE_LABELS = {
   COMM_LOST: '통신 두절',
 }
 
+export const ALERT_SEVERITY_LABELS = {
+  CAUTION: '주의',
+  RISK: '위험',
+}
+
 export const ALERT_STATUS_LABELS = {
   UNCONFIRMED: '미확인',
   CONFIRMED: '확인',

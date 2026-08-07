@@ -13,6 +13,11 @@ export const ALERT_STATUS_COLOR = {
   RESOLVED: 'var(--color-success)',
 }
 
+export const ALERT_SEVERITY_COLOR = {
+  CAUTION: 'var(--color-warning)',
+  RISK: 'var(--color-danger)',
+}
+
 export const INSPECTION_RESULT_COLOR = {
   NORMAL: 'var(--color-success)',
   ABNORMAL: 'var(--color-danger)',

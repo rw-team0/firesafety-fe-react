@@ -7,13 +7,15 @@ export default function ConfirmModal({
   title = '확인',
   message,
   danger = false,
+  tone,
   confirmLabel = '확인',
   cancelLabel = '취소',
   onConfirm,
   onCancel,
   children,
 }) {
-  const accent = danger ? 'var(--color-danger)' : 'var(--color-brand)'
+  const resolvedTone = tone ?? (danger ? 'danger' : 'default')
+  const accent = resolvedTone === 'danger' ? 'var(--color-danger)' : resolvedTone === 'warning' ? 'var(--color-warning)' : 'var(--color-brand)'
 
   return (
     <BaseModal
@@ -26,7 +28,7 @@ export default function ConfirmModal({
           <Button variant="secondary" onClick={onCancel}>
             {cancelLabel}
           </Button>
-          <Button variant={danger ? 'danger' : 'primary'} onClick={onConfirm}>
+          <Button variant={resolvedTone === 'danger' ? 'danger' : 'primary'} onClick={onConfirm}>
             {confirmLabel}
           </Button>
         </>

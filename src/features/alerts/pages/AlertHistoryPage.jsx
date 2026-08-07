@@ -7,6 +7,7 @@ import {
   PENDING_STATUS_OPTIONS,
   extractServerMessage,
   formatAlertStatus,
+  formatAlertSeverity,
   formatAlertType,
   formatCircuitNo,
   formatDateTimeCell,
@@ -28,6 +29,7 @@ import FilterBar from '@/shared/components/layout/FilterBar'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
 import BaseModal from '@/shared/components/modals/BaseModal'
+import { ALERT_SEVERITY_COLOR } from '@/shared/constants/domainColors'
 import { isoDate, formatResultDateTime } from '@/shared/utils/formatters'
 import './AlertHistoryPage.css'
 
@@ -441,6 +443,11 @@ export default function AlertHistoryPage() {
       { key: 'triggeredAt', header: '발생일시', render: (row) => formatDateTimeCell(row.triggeredAt) },
       { key: 'panelName', header: '분전반', render: (row) => row.panelName ?? '-' },
       { key: 'circuitNo', header: '회로', render: (row) => formatCircuitNo(row.circuitNo) },
+      {
+        key: 'severity',
+        header: '등급',
+        render: (row) => <StatusBadge status={row.severity} label={formatAlertSeverity(row.severity)} color={ALERT_SEVERITY_COLOR[row.severity]} />,
+      },
       { key: 'type', header: '유형', render: (row) => formatAlertType(row.type) },
       {
         key: 'status',
@@ -460,6 +467,11 @@ export default function AlertHistoryPage() {
     () => [
       { key: 'triggeredAt', header: '발생일시', render: (row) => formatDateTimeCell(row.triggeredAt) },
       { key: 'panelName', header: '분전반', render: (row) => row.panelName ?? '-' },
+      {
+        key: 'severity',
+        header: '등급',
+        render: (row) => <StatusBadge status={row.severity} label={formatAlertSeverity(row.severity)} color={ALERT_SEVERITY_COLOR[row.severity]} />,
+      },
       { key: 'type', header: '유형', render: (row) => formatAlertType(row.type) },
       {
         key: 'status',
@@ -744,6 +756,16 @@ export default function AlertHistoryPage() {
         {detailTarget && (
           <>
             <div className="facility-modal__grid">
+              <div>
+                <span className="facility-modal__grid-label">등급</span>
+                <p className="facility-modal__grid-value">
+                  <StatusBadge
+                    status={detailTarget.severity}
+                    label={formatAlertSeverity(detailTarget.severity)}
+                    color={ALERT_SEVERITY_COLOR[detailTarget.severity]}
+                  />
+                </p>
+              </div>
               <div>
                 <span className="facility-modal__grid-label">이상 유형</span>
                 <p className="facility-modal__grid-value">{formatAlertType(detailTarget.type)}</p>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { bulkConfirmAlerts, getPendingAlerts } from '../api/alertApi'
-import { extractServerMessage, formatAlertType, formatDateTimeCell } from '../utils/alertFormatters'
+import { extractServerMessage, formatAlertSeverity, formatAlertType, formatDateTimeCell } from '../utils/alertFormatters'
 import { useMonitoring } from '@/features/monitoring/useMonitoring'
 import { useSite } from '@/features/sites/useSite'
 import EmptyState from '@/shared/components/feedback/EmptyState'
@@ -246,6 +246,9 @@ export default function MobileAlertsPage() {
                 {alert.status === 'UNCONFIRMED' && <span className="mobile-alerts__dot" aria-hidden="true" />}
                 <div className="mobile-alerts__body">
                   <div className="mobile-alerts__row-top">
+                    <span className={`mobile-alerts__severity-badge mobile-alerts__severity-badge--${String(alert.severity).toLowerCase()}`.trim()}>
+                      {formatAlertSeverity(alert.severity)}
+                    </span>
                     <span className="mobile-alerts__type-badge">{formatAlertType(alert.type)}</span>
                     <strong className="mobile-alerts__panel">{alert.panelName ?? '-'}</strong>
                   </div>
