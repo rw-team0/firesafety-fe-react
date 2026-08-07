@@ -4,6 +4,7 @@ import CircuitDiagnosisModal from './CircuitDiagnosisModal'
 import PanelDiagnosisSummaryModal from './PanelDiagnosisSummaryModal'
 import {
   extractServerMessage,
+  formatAlertSeverity,
   formatAlertStatus,
   formatAlertType,
   formatDateTimeCell,
@@ -27,6 +28,7 @@ import Input from '@/shared/components/forms/Input'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
 import BaseModal from '@/shared/components/modals/BaseModal'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
+import { ALERT_SEVERITY_COLOR } from '@/shared/constants/domainColors'
 import { formatResultDateTime } from '@/shared/utils/formatters'
 
 const RESOLUTION_NOTE_MAX_LENGTH = 500
@@ -158,6 +160,11 @@ export default function PanelMonitoringDetail({ panel }) {
 
   const recentAlertColumns = [
     { key: 'triggeredAt', header: '발생 시각', render: (row) => formatDateTimeCell(row.triggeredAt) },
+    {
+      key: 'severity',
+      header: '등급',
+      render: (row) => <StatusBadge status={row.severity} label={formatAlertSeverity(row.severity)} color={ALERT_SEVERITY_COLOR[row.severity]} />,
+    },
     { key: 'type', header: '이상 유형', render: (row) => formatAlertType(row.type) },
     {
       key: 'status',
@@ -311,6 +318,16 @@ export default function PanelMonitoringDetail({ panel }) {
       >
         {detailTarget && (
           <div className="facility-modal__grid">
+            <div>
+              <span className="facility-modal__grid-label">등급</span>
+              <p className="facility-modal__grid-value">
+                <StatusBadge
+                  status={detailTarget.severity}
+                  label={formatAlertSeverity(detailTarget.severity)}
+                  color={ALERT_SEVERITY_COLOR[detailTarget.severity]}
+                />
+              </p>
+            </div>
             <div>
               <span className="facility-modal__grid-label">이상 유형</span>
               <p className="facility-modal__grid-value">{formatAlertType(detailTarget.type)}</p>

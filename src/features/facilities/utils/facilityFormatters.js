@@ -1,4 +1,4 @@
-import { ALERT_STATUS_LABELS, ALERT_TYPE_LABELS, PANEL_STATUS_LABELS, labelOf } from '@/shared/constants/domainLabels'
+import { ALERT_SEVERITY_LABELS, ALERT_STATUS_LABELS, ALERT_TYPE_LABELS, PANEL_STATUS_LABELS, labelOf } from '@/shared/constants/domainLabels'
 import { formatDateTime } from '@/shared/utils/formatters'
 import { MAX_CIRCUIT_COUNT, MIN_CIRCUIT_COUNT, M_NO_LENGTH } from '../constants/facilityConstants'
 
@@ -170,6 +170,11 @@ export function getCircuitRiskLevel(status) {
 // 경보 유형 라벨
 export function formatAlertType(type) {
   return labelOf(ALERT_TYPE_LABELS, type)
+}
+
+// 경보 심각도 라벨
+export function formatAlertSeverity(severity) {
+  return labelOf(ALERT_SEVERITY_LABELS, severity)
 }
 
 // 경보 처리상태 라벨

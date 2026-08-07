@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { confirmAlert, getAlerts, resolveAlert } from '@/features/alerts/api/alertApi'
-import { formatAlertStatus, formatAlertType } from '@/features/alerts/utils/alertFormatters'
+import { formatAlertSeverity, formatAlertStatus, formatAlertType } from '@/features/alerts/utils/alertFormatters'
 import { getPanelDetail } from '../api/facilityApi'
 import {
   extractServerMessage,
@@ -16,6 +16,7 @@ import {
 import { useAuth } from '@/features/auth/useAuth'
 import { useMonitoring } from '@/features/monitoring/useMonitoring'
 import { useSite } from '@/features/sites/useSite'
+import AlertSeverityIcon from '@/shared/components/feedback/AlertSeverityIcon'
 import EmptyState from '@/shared/components/feedback/EmptyState'
 import ErrorState from '@/shared/components/feedback/ErrorState'
 import LoadingState from '@/shared/components/feedback/LoadingState'
@@ -25,6 +26,7 @@ import Input from '@/shared/components/forms/Input'
 import ActionResultModal from '@/shared/components/modals/ActionResultModal'
 import BaseModal from '@/shared/components/modals/BaseModal'
 import ConfirmModal from '@/shared/components/modals/ConfirmModal'
+import { ALERT_SEVERITY_COLOR } from '@/shared/constants/domainColors'
 import { ROUTE_PATHS } from '@/shared/constants/routePaths'
 import { formatDateTime, formatResultDateTime } from '@/shared/utils/formatters'
 import './MobileEquipmentPages.css'
@@ -37,6 +39,13 @@ function formatMobileAlertStatus(status) {
   if (status === 'RESOLVED') return '  완료'
   if (status === 'CONFIRMED') return '  확인'
   return formatAlertStatus(status)
+}
+
+// 최근 경보 목록은 한 줄에 넣을 자리가 좁아 연도/초는 빼고 "MM-DD HH:mm"만 표시
+function formatMobileAlertTime(value) {
+  if (!value) return '-'
+  const [date, time] = value.split('T')
+  return `${date?.slice(5) ?? ''} ${time?.slice(0, 5) ?? ''}`.trim()
 }
 
 // SCR-202-M 설비 상세 — 목록에서 바로 진입, 상단에서 이 설비의 최신 미처리 경보를 즉시 확인/조치완료할 수 있다
@@ -213,7 +222,11 @@ export default function MobileEquipmentDetailPage() {
       {topAlert && (
         <div className="mobile-equipment-action-banner">
           <span className="mobile-equipment-action-banner__info">
-            <StatusBadge status={topAlert.status} label={formatMobileAlertStatus(topAlert.status)} />
+            <StatusBadge
+              status={topAlert.severity}
+              label={formatAlertSeverity(topAlert.severity)}
+              color={ALERT_SEVERITY_COLOR[topAlert.severity]}
+            />
             <strong>{formatAlertType(topAlert.type)} 경보</strong>
           </span>
           <Button variant="primary" onClick={() => openAction(topAlert)}>
@@ -289,9 +302,12 @@ export default function MobileEquipmentDetailPage() {
                 className="mobile-equipment-alert-divided-row"
                 onClick={() => openAction(alert)}
               >
-                <span className="mobile-equipment-alert-divided-row__type">{formatAlertType(alert.type)}</span>
+                <span className="mobile-equipment-alert-divided-row__type">
+                  <AlertSeverityIcon severity={alert.severity} size={16} />
+                  {formatAlertType(alert.type)}
+                </span>
                 <StatusBadge status={alert.status} label={formatMobileAlertStatus(alert.status)} />
-                <span className="mobile-equipment-alert-row__meta">{formatDateTime(alert.triggeredAt)}</span>
+                <span className="mobile-equipment-alert-row__meta">{formatMobileAlertTime(alert.triggeredAt)}</span>
               </button>
             ))}
           </div>
@@ -373,6 +389,11 @@ export default function MobileEquipmentDetailPage() {
         {detailTarget && (
           <div className="mobile-equipment-alert-detail">
             <div className="mobile-equipment-alert-detail__summary">
+              <StatusBadge
+                status={detailTarget.severity}
+                label={formatAlertSeverity(detailTarget.severity)}
+                color={ALERT_SEVERITY_COLOR[detailTarget.severity]}
+              />
               <StatusBadge status={detailTarget.status} label="완료" />
               <strong>{formatAlertType(detailTarget.type)} 경보</strong>
             </div>
