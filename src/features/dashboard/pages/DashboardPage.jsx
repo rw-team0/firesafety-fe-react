@@ -216,8 +216,7 @@ export default function DashboardPage() {
           label: '경보 발생',
           value: unresolvedAlerts,
           unit: '건',
-          percent: formatPercent(unresolvedAlerts, total),
-          percentStatus: 'RISK',
+          // 경보는 건수 단위라 설비 대수(total)로 나눈 비율이 성립하지 않는다 — % 배지 없이 건수만 표시
           meta: `미확인 ${formatNumber(unconfirmedAlerts)} · 미처리 ${formatNumber(pendingTotal)}건`,
         },
       ]
